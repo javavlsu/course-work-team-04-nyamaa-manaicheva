@@ -1,0 +1,47 @@
+package ru.rps.notesbook.Infrastructure.Database.Entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
+
+import java.util.Date;
+import java.util.UUID;
+
+@Entity
+@Table(name = "User")
+@Getter
+@Setter
+@NoArgsConstructor
+public class UserEntity {
+
+    @Id
+    @GeneratedValue
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
+
+    @Column(name = "name", nullable = false, length = 75)
+    private String name;
+
+    @Column(name = "surname", nullable = false, length = 75)
+    private String surname;
+
+    @Column(name = "email", nullable = false, length = 150, unique = true)
+    private String email;
+
+    @Column(name = "birthday_date")
+    private Date birthdayDate;
+
+    @CreationTimestamp
+    @Column(name = "registration_date", updatable = false)
+    private Date registrationDate;
+
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
+
+    @Column(name = "role", nullable = false)
+    private RoleTypeEnum role;
+
+}
