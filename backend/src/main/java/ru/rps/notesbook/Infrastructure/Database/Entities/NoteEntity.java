@@ -5,10 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.CreationTimestamp;
 import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -29,9 +28,8 @@ public class NoteEntity {
     @Column(name = "content", length = 1000)
     private String content;
 
-    @CreationTimestamp
     @Column(name = "create_date", updatable = false)
-    private Date createDate;
+    private LocalDateTime createDate;
 
     @Column(name = "note_type", nullable = false, updatable = false)
     private NoteTypeEnum noteType;

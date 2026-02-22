@@ -20,4 +20,5 @@ public class AdminEntity {
 
     @Column(name = "code", nullable = false)
     private UUID code;
+
 }

@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -34,9 +34,8 @@ public class UserEntity {
     @Column(name = "birthday_date")
     private Date birthdayDate;
 
-    @CreationTimestamp
     @Column(name = "registration_date", updatable = false)
-    private Date registrationDate;
+    private LocalDateTime registrationDate;
 
     @Column(name = "password", nullable = false, length = 100)
     private String password;

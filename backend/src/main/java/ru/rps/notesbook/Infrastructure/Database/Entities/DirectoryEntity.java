@@ -4,9 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -24,9 +23,8 @@ public class DirectoryEntity {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @CreationTimestamp
     @Column(name = "created_date", updatable = false)
-    private Date createdDate;
+    private LocalDateTime createdDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
