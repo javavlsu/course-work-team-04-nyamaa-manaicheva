@@ -1,13 +1,14 @@
 package ru.rps.notesbook.Infrastructure.Database.Entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity {
 
     @Id
@@ -32,7 +34,7 @@ public class UserEntity {
     private String email;
 
     @Column(name = "birthday_date")
-    private Date birthdayDate;
+    private LocalDate birthdayDate;
 
     @Column(name = "registration_date", updatable = false)
     private LocalDateTime registrationDate;

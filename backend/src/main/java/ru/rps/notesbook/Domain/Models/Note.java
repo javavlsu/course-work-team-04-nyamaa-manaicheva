@@ -61,5 +61,5 @@ public class Note {
     public LocalDateTime GetCreateDate() { return this.createDate; }
     public NoteTypeEnum GetNoteType() { return this.noteType; }
     public boolean GetIsFavourite() { return this.isFavourite; }
-    public User getOwner() { return owner; }
+    public User GetOwner() { return this.owner; }
 }

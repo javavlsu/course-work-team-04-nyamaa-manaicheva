@@ -16,4 +16,21 @@ public class Admin {
         this.code = code;
 
     }
+
+    public void ChangeUser(User user)
+    {
+        // validation
+
+        this.user = user;
+    }
+    public void ChangeCode(UUID code)
+    {
+        // validation
+
+        this.code = code;
+    }
+
+    public User GetUser() { return this.user; }
+    public UUID GetCode() { return this.code; }
+
 }
