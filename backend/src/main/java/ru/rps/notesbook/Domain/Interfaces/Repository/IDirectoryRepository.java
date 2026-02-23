@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface IDirectoryRepository {
-    List<Directory> GetDirectoriesByUserId(UUID userId);
+    List<Directory> GetDirectoriesByOwnerId(UUID ownerId);
     Optional<Directory> GetDirectoryById(UUID id);
     Directory SaveDirectory(Directory directory);
     void DeleteDirectoryById(UUID id);
