@@ -8,9 +8,8 @@ import java.util.UUID;
 
 @Repository
 public interface IDirectoryNoteRepository {
-    List<DirectoryNote> GetDirectoriesNotesByDirectoryIdAsync(UUID directoryId);
-    DirectoryNote CreateDirectoryNoteAsync(DirectoryNote directoryNote);
-    DirectoryNote UpdateDirectoryNoteAsync(DirectoryNote directoryNote);
-    void DeleteDirectoryNoteByDirectoryIdAsync(UUID directoryId);
-    void DeleteDirectoryNoteByNoteIdAsync(UUID noteId);
+    List<DirectoryNote> GetDirectoriesNotesByDirectoryId(UUID directoryId);
+    DirectoryNote SaveDirectoryNote(DirectoryNote directoryNote);
+    void DeleteDirectoryNoteByDirectoryId(UUID directoryId);
+    void DeleteDirectoryNoteByNoteId(UUID noteId);
 }
