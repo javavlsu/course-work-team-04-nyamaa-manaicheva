@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.0.3</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>ru.rps</groupId>
 	<artifactId>notesbook</artifactId>
@@ -84,6 +84,11 @@
 			<version>4.0.3</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+          <groupId>org.hibernate.orm</groupId>
+          <artifactId>hibernate-core</artifactId>
+          <version>6.3.1.Final</version>
+      </dependency>
 	</dependencies>
 
 	<build>
