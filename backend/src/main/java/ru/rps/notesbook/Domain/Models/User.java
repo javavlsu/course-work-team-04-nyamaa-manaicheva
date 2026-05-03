@@ -50,27 +50,22 @@ public class User {
         ValidateName(name);
         this.name = name;
     }
-
     public void ChangeSurname(String surname) {
         ValidateSurname(surname);
         this.surname = surname;
     }
-
     public void ChangeEmail(String email) {
         ValidateEmail(email);
-        this.email = emailNorm;
+        this.email = email.toLowerCase();
     }
-
     public void ChangeBirthdayDate(LocalDate birthdayDate) {
         ValidateBirthdayDate(birthdayDate);
         this.birthdayDate = birthdayDate;
     }
-
     public void ChangePassword(String password) {
         ValidatePassword(password);
         this.password = password;
     }
-
     public void ChangeRole(RoleTypeEnum role) {
         ValidateRole(role);
         this.role = role;
@@ -84,7 +79,6 @@ public class User {
             throw new IllegalArgumentException("name is too long");
         }
     }
-
     public void ValidateSurname(String surname) {
             if (surname == null || surname.isEmpty()) {
             throw new IllegalArgumentException("second name can't be null or empty");
@@ -93,7 +87,6 @@ public class User {
             throw new IllegalArgumentException("second name is too long");
         }
     }
-
     public void ValidateEmail(String email) {
         Pattern emailPattern = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
@@ -104,13 +97,11 @@ public class User {
             throw new IllegalArgumentException("email is not valid");
         }
     }
-
     public void ValidateBirthdayDate(LocalDate birthdayDate) {
         if (birthdayDate != null && birthdayDate.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("birthday date is in the future");
         }
     }
-
     public void ValidatePassword(String password) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("password can't be null or empty");
@@ -119,7 +110,6 @@ public class User {
             throw new IllegalArgumentException("password is too long");
         }
     }
-
     public void ValidateRole(RoleTypeEnum role) {
         if (role == null) {
             throw new IllegalArgumentException("role can't be null");
@@ -128,4 +118,5 @@ public class User {
             throw new IllegalArgumentException("role is not valid");
         }
     }
+    
 }
