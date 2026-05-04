@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface NoteAdapterJPA extends JpaRepository<NoteEntity, UUID> {
 
-    List<NoteEntity> findNotesByUserId(UUID userId);
+    List<NoteEntity> findByOwner_Id(UUID ownerId);
 
 }

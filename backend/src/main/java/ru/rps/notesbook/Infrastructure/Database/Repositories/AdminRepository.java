@@ -22,7 +22,7 @@ public class AdminRepository implements IAdminRepository {
     @Override
     public List<Admin> GetAdminsByUsersIds(List<UUID> userIds)
     {
-        return adminAdapterJPA.findByUsersIdsIn(userIds)
+        return adminAdapterJPA.findAllById(userIds)
                 .stream()
                 .map(adminMapper::ToDomain)
                 .toList();
@@ -31,7 +31,7 @@ public class AdminRepository implements IAdminRepository {
     @Override
     public Optional<Admin> GetAdminByUserId(UUID userId)
     {
-        return adminAdapterJPA.findByUserId(userId).map(adminMapper::ToDomain);
+        return adminAdapterJPA.findById(userId).map(adminMapper::ToDomain);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class AdminRepository implements IAdminRepository {
     @Override
     public void DeleteAdminById(UUID userId)
     {
-        adminAdapterJPA.deleteByUserId(userId);
+        adminAdapterJPA.deleteById(userId);
     }
 
 }

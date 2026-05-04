@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface DirectoryAdapterJPA extends JpaRepository<DirectoryEntity, UUID> {
 
-    List<DirectoryEntity> findDirectoriesByOwnerId(UUID ownerId);
+    List<DirectoryEntity> findByOwner_Id(UUID ownerId);
 
 }

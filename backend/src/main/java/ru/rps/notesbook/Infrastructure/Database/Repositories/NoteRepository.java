@@ -20,9 +20,9 @@ public class NoteRepository implements INoteRepository {
     private final NoteMapper noteMapper;
 
     @Override
-    public List<Note> GetNotesByUserId(UUID userId)
+    public List<Note> GetNotesByUserId(UUID ownerId)
     {
-        return noteAdapterJPA.findNotesByUserId(userId)
+        return noteAdapterJPA.findByOwner_Id(ownerId)
                 .stream()
                 .map(noteMapper::ToDomain)
                 .toList();

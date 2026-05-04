@@ -21,7 +21,7 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     @Override
     public List<DirectoryNote> GetDirectoriesNotesByDirectoryId(UUID directoryId)
     {
-        return directoryNoteAdapterJPA.findByDirectoryId(directoryId)
+        return directoryNoteAdapterJPA.findByDirectory_Id(directoryId)
                 .stream()
                 .map(directoryNoteMapper::ToDomain)
                 .toList();
@@ -40,13 +40,13 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     @Override
     public void DeleteDirectoryNoteByDirectoryId(UUID directoryId)
     {
-        directoryNoteAdapterJPA.deleteByDirectoryId(directoryId);
+        directoryNoteAdapterJPA.deleteByDirectory_Id(directoryId);
     }
 
     @Override
     public void DeleteDirectoryNoteByNoteId(UUID noteId)
     {
-        directoryNoteAdapterJPA.deleteByNoteId(noteId);
+        directoryNoteAdapterJPA.deleteByNote_Id(noteId);
     }
 
 }

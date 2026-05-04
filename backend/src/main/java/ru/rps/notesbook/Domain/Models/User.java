@@ -31,7 +31,7 @@ public class User {
         this.id = id;
         this.name = name;
         this.surname = surname;
-        this.email = email.toLowerCase();
+        this.email = email.trim().toLowerCase();
         this.birthdayDate = birthdayDate;
         this.password = password;
         this.role = role;

@@ -21,9 +21,9 @@ public class AdminMapper {
 
     public AdminEntity ToEntity(Admin admin)
     {
-        return new AdminEntity(
-                userMapper.ToEntity(admin.GetUser()),
-                admin.GetCode()
-        );
+        AdminEntity entity = new AdminEntity();
+        entity.setUser(userMapper.ToEntity(admin.GetUser()));
+        entity.setCode(admin.GetCode());
+        return entity;
     }
 }

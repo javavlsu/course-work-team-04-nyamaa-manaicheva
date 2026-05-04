@@ -1,3 +1,21 @@
 spring:
   application:
     name: notesbook
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notesbook
+    username: cursework
+    password: cursework
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE

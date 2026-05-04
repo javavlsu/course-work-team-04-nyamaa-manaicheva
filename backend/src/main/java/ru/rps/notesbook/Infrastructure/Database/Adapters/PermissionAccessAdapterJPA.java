@@ -11,8 +11,10 @@ import java.util.UUID;
 @Repository
 public interface PermissionAccessAdapterJPA extends JpaRepository<PermissionAccessEntity, UUID> {
 
-    List<PermissionAccessEntity> findByUserIdAndDirectoryId(UUID userId, UUID directoryId);
-    Optional<PermissionAccessEntity> findByUserIdAndNoteId(UUID userId, UUID noteId);
-    void deleteByNoteId(UUID noteId);
+    List<PermissionAccessEntity> findByUserGranted_IdAndDirectory_Id(UUID userId, UUID directoryId);
+
+    Optional<PermissionAccessEntity> findByUserGranted_IdAndNote_Id(UUID userId, UUID noteId);
+
+    void deleteByNote_Id(UUID noteId);
 
 }

@@ -2,6 +2,7 @@ package ru.rps.notesbook.Domain.Models;
 
 public class DirectoryNote {
 
+
     private Note note;
     private Directory directory;
 

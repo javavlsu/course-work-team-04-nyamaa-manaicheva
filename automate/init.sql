@@ -8,32 +8,32 @@ CREATE TABLE "User" (
     surname         VARCHAR(75),
     email           VARCHAR(150),
     birthday_date   DATE,
-    registration_date DATE,
+    registration_date TIMESTAMP,
     password        VARCHAR(100),
     role            role_type
 );
 
-CREATE TABLE Admin (
+CREATE TABLE admin (
     user_id UUID PRIMARY KEY,
     code    UUID NOT NULL,
     CONSTRAINT fk_admin_user
         FOREIGN KEY (user_id) REFERENCES "User"(id)
 );
 
-CREATE TABLE Directory (
+CREATE TABLE directory (
     id           UUID PRIMARY KEY,
     title        VARCHAR(75),
-    created_date DATE,
+    created_date TIMESTAMP,
     owner_id     UUID NOT NULL,
     CONSTRAINT fk_directory_owner
         FOREIGN KEY (owner_id) REFERENCES "User"(id)
 );
 
-CREATE TABLE Note (
+CREATE TABLE note (
     id            UUID PRIMARY KEY,
     title         VARCHAR(150),
     content       VARCHAR(1000),
-    create_date   DATE,
+    create_date   TIMESTAMP,
     note_type     note_type,
     is_favourite  BOOLEAN,
     directory     UUID,
@@ -44,7 +44,7 @@ CREATE TABLE Note (
         FOREIGN KEY (directory) REFERENCES Directory(id)
 );
 
-CREATE TABLE DirectoryNote (
+CREATE TABLE directory_note (
     note_id      UUID NOT NULL,
     directory_id UUID NOT NULL,
     PRIMARY KEY (note_id, directory_id),
@@ -54,7 +54,7 @@ CREATE TABLE DirectoryNote (
         FOREIGN KEY (directory_id) REFERENCES Directory(id)
 );
 
-CREATE TABLE PermissionAccess (
+CREATE TABLE permission_access (
     id           UUID PRIMARY KEY,
     type         permission_type,
     note_id      UUID,
