@@ -9,5 +9,6 @@ public interface IDirectoryService {
     List<Directory> GetDirectoriesByOwnerId(UUID ownerId);
     Directory GetDirectoryById(UUID id);
     Directory SaveDirectory(Directory directory);
+    Directory CreateDirectoryForOwner(UUID ownerId, String title);
     void DeleteDirectoryById(UUID id);
 }

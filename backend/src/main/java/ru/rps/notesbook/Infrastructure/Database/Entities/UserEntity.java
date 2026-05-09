@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 
 import java.time.LocalDate;
@@ -20,7 +22,6 @@ import java.util.UUID;
 public class UserEntity {
 
     @Id
-    @GeneratedValue
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
@@ -43,7 +44,8 @@ public class UserEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role", nullable = false, columnDefinition = "role_type")
     private RoleTypeEnum role;
 
 }

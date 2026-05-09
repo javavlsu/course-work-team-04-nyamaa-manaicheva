@@ -3,8 +3,10 @@ package ru.rps.notesbook.Domain.Services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryService;
 import ru.rps.notesbook.Domain.Models.Directory;
+import ru.rps.notesbook.Domain.Models.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.UUID;
 public class DirectoryService implements IDirectoryService {
 
     private final IDirectoryRepository directoryRepository;
+    private final IUserRepository userRepository;
 
     @Override
     public List<Directory> GetDirectoriesByOwnerId(UUID ownerId) {
@@ -29,6 +32,14 @@ public class DirectoryService implements IDirectoryService {
 
     @Override
     public Directory SaveDirectory(Directory directory) {
+        return directoryRepository.SaveDirectory(directory);
+    }
+
+    @Override
+    public Directory CreateDirectoryForOwner(UUID ownerId, String title) {
+        User owner = userRepository.GetUserById(ownerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Directory directory = new Directory(UUID.randomUUID(), title, owner);
         return directoryRepository.SaveDirectory(directory);
     }
 

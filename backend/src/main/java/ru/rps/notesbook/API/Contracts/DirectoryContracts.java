@@ -17,10 +17,7 @@ public final class DirectoryContracts {
             String title
     ) {}
 
-    public record CreateDirectoryRequest(
-            String title,
-            UUID ownerId
-    ) {}
+    public record CreateDirectoryRequest(String title) {}
 
     public record UpdateDirectoryRequest(
             String title

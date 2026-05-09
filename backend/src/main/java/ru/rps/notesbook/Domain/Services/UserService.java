@@ -3,6 +3,7 @@ package ru.rps.notesbook.Domain.Services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IUserService;
@@ -19,12 +20,8 @@ public class UserService implements IUserService {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-//    @Override
-//    public List<User> GetUsers() {
-//        return new
-//    }
-
     @Override
+    @Transactional
     public void register(String name, String surname, String email,
                         LocalDate birthday, String rawPassword) {
         String normalizedEmail = email.trim().toLowerCase();
