@@ -7,19 +7,22 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "DirectoryNote")
+@Table(name = "directory_note")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class DirectoryNoteEntity {
 
+    @EmbeddedId
+    private DirectoryNoteId id;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "note_id", nullable = false)
+    @JoinColumn(name = "note_id", nullable = false, insertable = false, updatable = false)
     private NoteEntity note;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "directory_id", nullable = false)
+    @JoinColumn(name = "directory_id", nullable = false, insertable = false, updatable = false)
     private DirectoryEntity directory;
 
 }

@@ -9,13 +9,17 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "Admin")
+@Table(name = "admin")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdminEntity {
 
+    @Id
+    private UUID id;
+
+    @MapsId
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "Note")
+@Table(name = "note")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,6 +33,7 @@ public class NoteEntity {
     @Column(name = "create_date", updatable = false)
     private LocalDateTime createDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "note_type", nullable = false, updatable = false)
     private NoteTypeEnum noteType;
 

@@ -10,7 +10,7 @@ import ru.rps.notesbook.Domain.Enum.PermissionTypeEnum;
 import java.util.UUID;
 
 @Entity
-@Table(name = "PermissionAccess")
+@Table(name = "permission_access")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +22,7 @@ public class PermissionAccessEntity {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private PermissionTypeEnum type;
 

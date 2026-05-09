@@ -22,16 +22,16 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     @Override
     public List<PermissionAccess> GetPermissionAccessesByUserIdAndDirectoryId(UUID userId, UUID directoryId)
     {
-        return permissionAccessAdapterJPA.findByUserIdAndDirectoryId(userId, directoryId)
+        return permissionAccessAdapterJPA.findByUserGranted_IdAndDirectory_Id(userId, directoryId)
                 .stream()
                 .map(permissionAccessMapper::ToDomain)
                 .toList();
     }
 
     @Override
-    public Optional<PermissionAccess> GetPermissionAccessByNoteIdAndDirectoryId(UUID userId, UUID noteId)
+    public Optional<PermissionAccess> GetPermissionAccessByUserIdAndNoteId(UUID userId, UUID noteId)
     {
-        return permissionAccessAdapterJPA.findByUserIdAndNoteId(userId, noteId)
+        return permissionAccessAdapterJPA.findByUserGranted_IdAndNote_Id(userId, noteId)
                 .map(permissionAccessMapper::ToDomain);
     }
 
@@ -60,6 +60,6 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     @Override
     public void DeletePermissionAccessByNoteId(UUID noteId)
     {
-        permissionAccessAdapterJPA.deleteByNoteId(noteId);
+        permissionAccessAdapterJPA.deleteByNote_Id(noteId);
     }
 }
