@@ -20,7 +20,10 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/", 
                             "/login", 
-                            "/register").permitAll()
+                            "/register",
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**").permitAll()
                         .requestMatchers("/note").hasRole(RoleTypeEnum.Client.name())
                         .requestMatchers("/profile").authenticated()
                         .anyRequest().authenticated())
