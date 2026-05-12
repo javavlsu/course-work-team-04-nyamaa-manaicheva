@@ -1,5 +1,5 @@
 CREATE TYPE role_type AS ENUM ('Admin', 'Client');
-CREATE TYPE note_type AS ENUM ('Empty', 'List', 'Table', 'Kanban', 'Calendare');
+CREATE TYPE note_type AS ENUM ('Empty', 'List', 'Table', 'Kanban', 'Calendar');
 CREATE TYPE permission_type AS ENUM ('View', 'Edit');
 
 CREATE TABLE "User" (

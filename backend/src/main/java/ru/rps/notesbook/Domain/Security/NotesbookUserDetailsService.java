@@ -5,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Models.User;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +23,14 @@ public class NotesbookUserDetailsService implements UserDetailsService {
         User appUser = userRepository.GetUserByEmail(email.trim().toLowerCase())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-        String role = appUser.GetRole().name().toUpperCase();
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(appUser.GetEmail())
-                .password(appUser.GetPassword())
-                .roles(role)
-                .build();
+        String authority = "ROLE_" + appUser.GetRole().name().toUpperCase();
+        var authorities = List.of(new SimpleGrantedAuthority(authority));
+
+        return new NotesbookUserPrincipal(
+                appUser.GetId(),
+                appUser.GetEmail(),
+                appUser.GetPassword(),
+                authorities
+        );
     }
 }

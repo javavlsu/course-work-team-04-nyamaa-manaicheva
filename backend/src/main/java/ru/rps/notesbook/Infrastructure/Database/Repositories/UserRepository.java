@@ -1,7 +1,10 @@
 package ru.rps.notesbook.Infrastructure.Database.Repositories;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Models.User;
 import ru.rps.notesbook.Infrastructure.Database.Adapters.UserAdapterJPA;
@@ -18,6 +21,9 @@ public class UserRepository implements IUserRepository {
 
     private final UserAdapterJPA userAdapterJPA;
     private final UserMapper userMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<User> GetUsers()
@@ -41,13 +47,15 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public User SaveUser(User user)
-    {
+    @Transactional
+    public User SaveUser(User user) {
         UserEntity entity = userMapper.ToEntity(user);
-
-        UserEntity createdEntity = userAdapterJPA.save(entity);
-
-        return userMapper.ToDomain(createdEntity);
+        UUID id = entity.getId();
+        if (id != null && userAdapterJPA.existsById(id)) {
+            return userMapper.ToDomain(userAdapterJPA.save(entity));
+        }
+        entityManager.persist(entity);
+        return userMapper.ToDomain(entity);
     }
 
     @Override

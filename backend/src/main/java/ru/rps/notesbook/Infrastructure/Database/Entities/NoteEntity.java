@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 
 import java.time.LocalDateTime;
@@ -20,7 +22,6 @@ import java.util.UUID;
 public class NoteEntity {
 
     @Id
-    @GeneratedValue
     @Column(name = "id", updatable = false)
     private UUID id;
 
@@ -34,7 +35,8 @@ public class NoteEntity {
     private LocalDateTime createDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "note_type", nullable = false, updatable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "note_type", nullable = false, updatable = false, columnDefinition = "note_type")
     private NoteTypeEnum noteType;
 
     @ColumnDefault("false")

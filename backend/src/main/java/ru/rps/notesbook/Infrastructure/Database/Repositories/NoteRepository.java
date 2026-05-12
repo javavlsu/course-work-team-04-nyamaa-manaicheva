@@ -1,5 +1,6 @@
 package ru.rps.notesbook.Infrastructure.Database.Repositories;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
@@ -35,8 +36,8 @@ public class NoteRepository implements INoteRepository {
     }
 
     @Override
-    public Note SaveNote(Note note)
-    {
+    @Transactional
+    public Note SaveNote(Note note) {
         NoteEntity entity = noteMapper.ToEntity(note);
 
         NoteEntity createdEntity = noteAdapterJPA.save(entity);
