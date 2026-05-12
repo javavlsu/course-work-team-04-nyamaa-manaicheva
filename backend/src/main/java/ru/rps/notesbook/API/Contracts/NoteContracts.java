@@ -28,8 +28,7 @@ public final class NoteContracts {
             String title,
             String content,
             NoteTypeEnum noteType,
-            boolean isFavourite,
-            UUID ownerId
+            boolean isFavourite
     ) {}
 
     public record UpdateNoteRequest(

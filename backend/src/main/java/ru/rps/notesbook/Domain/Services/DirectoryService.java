@@ -2,6 +2,7 @@ package ru.rps.notesbook.Domain.Services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.rps.notesbook.API.Contracts.DirectoryContracts;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryService;
@@ -9,7 +10,6 @@ import ru.rps.notesbook.Domain.Models.Directory;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,27 +20,29 @@ public class DirectoryService implements IDirectoryService {
     private final IUserRepository userRepository;
 
     @Override
-    public List<Directory> GetDirectoriesByOwnerId(UUID ownerId) {
-        return directoryRepository.GetDirectoriesByOwnerId(ownerId);
+    public List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId) {
+        return directoryRepository.GetDirectoriesByOwnerId(ownerId).stream()
+                .map(DirectoryService::toResponse)
+                .toList();
     }
 
     @Override
-    public Directory GetDirectoryById(UUID id) {
-        return directoryRepository.GetDirectoryById(id)
-                .orElseThrow(() -> new RuntimeException("Directory not found"));
+    public DirectoryContracts.DirectoryResponse GetDirectoryById(UUID id) {
+        return toResponse(directoryRepository.GetDirectoryById(id)
+                .orElseThrow(() -> new RuntimeException("Directory not found")));
     }
 
     @Override
-    public Directory SaveDirectory(Directory directory) {
-        return directoryRepository.SaveDirectory(directory);
-    }
-
-    @Override
-    public Directory CreateDirectoryForOwner(UUID ownerId, String title) {
+    public DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, String title) {
         User owner = userRepository.GetUserById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Directory directory = new Directory(UUID.randomUUID(), title, owner);
-        return directoryRepository.SaveDirectory(directory);
+
+        Directory directory = new Directory(
+                UUID.randomUUID(),
+                title, owner
+        );
+
+        return toResponse(directoryRepository.SaveDirectory(directory));
     }
 
     @Override
@@ -48,4 +50,12 @@ public class DirectoryService implements IDirectoryService {
         directoryRepository.DeleteDirectoryById(id);
     }
 
+    private static DirectoryContracts.DirectoryResponse toResponse(Directory d) {
+        return new DirectoryContracts.DirectoryResponse(
+                d.GetId(),
+                d.GetTitle(),
+                d.GetCreatedDate(),
+                d.GetOwner().GetId()
+        );
+    }
 }
