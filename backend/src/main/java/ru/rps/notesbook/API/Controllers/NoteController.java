@@ -64,6 +64,18 @@ public class NoteController {
         return noteService.UpdateNote(id, request);
     }
 
+    @PatchMapping("/{id}/favourite")
+    public NoteContracts.NoteResponse favouriteChangeNote(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse response = noteService.GetNoteById(id);
+        requireOwnership(response, ownerId);
+
+        return noteService.favouriteChangeNote(id);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteNote(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,

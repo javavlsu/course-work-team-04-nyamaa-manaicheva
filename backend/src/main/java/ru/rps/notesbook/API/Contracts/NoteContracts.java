@@ -33,8 +33,7 @@ public final class NoteContracts {
 
     public record UpdateNoteRequest(
             String title,
-            String content,
-            Boolean isFavourite
+            String content
     ) {}
 }
 

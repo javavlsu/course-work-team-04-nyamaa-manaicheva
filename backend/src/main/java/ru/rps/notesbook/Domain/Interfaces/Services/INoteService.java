@@ -16,6 +16,8 @@ public interface INoteService {
 
     NoteContracts.NoteResponse UpdateNote(UUID id, NoteContracts.UpdateNoteRequest note);
 
+    NoteContracts.NoteResponse favouriteChangeNote(UUID id);
+
     void DeleteNoteById(UUID id);
 
 }

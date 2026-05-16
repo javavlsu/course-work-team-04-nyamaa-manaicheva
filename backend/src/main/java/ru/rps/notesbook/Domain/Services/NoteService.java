@@ -67,9 +67,17 @@ public class NoteService implements INoteService {
         if (request.content() != null) {
             note.ChangeContent(request.content());
         }
-        if (request.isFavourite() != null) {
-            note.ChangeIsFavourite(request.isFavourite());
-        }
+
+        return toResponse(noteRepository.SaveNote(note));
+    }
+
+    @Override
+    @Transactional
+    public NoteContracts.NoteResponse favouriteChangeNote(UUID id) {
+        Note note = noteRepository.GetNoteById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        note.ChangeIsFavourite(!note.GetIsFavourite());
 
         return toResponse(noteRepository.SaveNote(note));
     }
