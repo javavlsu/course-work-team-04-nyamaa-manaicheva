@@ -42,13 +42,7 @@ public class NoteController {
             @RequestBody NoteContracts.CreateNoteRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        return noteService.CreateNote(
-                ownerId,
-                request.title(),
-                request.content(),
-                request.noteType(),
-                request.isFavourite()
-        );
+        return noteService.CreateNote(ownerId, request);
     }
 
     @PutMapping("/{id}")
@@ -62,6 +56,18 @@ public class NoteController {
         requireOwnership(response, ownerId);
 
         return noteService.UpdateNote(id, request);
+    }
+
+    @PatchMapping("/{id}/favourite")
+    public NoteContracts.NoteResponse favouriteChangeNote(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse response = noteService.GetNoteById(id);
+        requireOwnership(response, ownerId);
+
+        return noteService.favouriteChangeNote(id);
     }
 
     @DeleteMapping("/{id}")

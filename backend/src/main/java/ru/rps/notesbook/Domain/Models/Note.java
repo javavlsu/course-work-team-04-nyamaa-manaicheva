@@ -10,7 +10,7 @@ public class Note {
     private final UUID id;
     private String title;
     private String content;
-    private final LocalDateTime createDate = LocalDateTime.now();
+    private final LocalDateTime createDate;
     private final NoteTypeEnum noteType;
     private boolean isFavourite;
     private User owner;
@@ -26,6 +26,7 @@ public class Note {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.createDate = createDate;
         this.noteType = noteType;
         this.isFavourite = isFavourite;
         this.owner = owner;

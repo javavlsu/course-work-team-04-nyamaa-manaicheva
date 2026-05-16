@@ -14,12 +14,13 @@ public class User {
     private String surname;
     private String email;
     private LocalDate birthdayDate;
-    private final LocalDateTime registrationDate = LocalDateTime.now();
+    private final LocalDateTime registrationDate;
     private String password;
     private RoleTypeEnum role;
 
     public User(UUID id, String name, String surname, String email,
-                LocalDate birthdayDate, String password, RoleTypeEnum role) {
+                LocalDate birthdayDate, LocalDateTime registrationDate,
+                String password, RoleTypeEnum role) {
                     
         ValidateName(name);
         ValidateSurname(surname);
@@ -33,6 +34,7 @@ public class User {
         this.surname = surname;
         this.email = email.trim().toLowerCase();
         this.birthdayDate = birthdayDate;
+        this.registrationDate = registrationDate;
         this.password = password;
         this.role = role;
     }

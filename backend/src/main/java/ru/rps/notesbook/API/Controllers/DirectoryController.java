@@ -44,7 +44,7 @@ public class DirectoryController {
             @RequestBody DirectoryContracts.CreateDirectoryRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        return directoryService.CreateDirectory(ownerId, request.title());
+        return directoryService.CreateDirectory(ownerId, request);
     }
 
     @DeleteMapping("/{id}")

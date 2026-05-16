@@ -35,7 +35,7 @@ public class UserController {
         return userService.GetUserById(id);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public UserContracts.UserResponse updateUser(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id,
