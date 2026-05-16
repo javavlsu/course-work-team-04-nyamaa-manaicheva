@@ -54,6 +54,19 @@
 
         @Override
         @Transactional
+        public DirectoryContracts.DirectoryResponse UpdateDirectory(UUID id, DirectoryContracts.UpdateDirectoryRequest request) {
+            Directory directory = directoryRepository.GetDirectoryById(id)
+                    .orElseThrow(() -> new RuntimeException("Directory not found"));
+
+            if (request.title() != null) {
+                directory.ChangeTitle(request.title());
+            }
+
+            return toResponse(directoryRepository.SaveDirectory(directory));
+        }
+
+        @Override
+        @Transactional
         public void DeleteDirectoryById(UUID id) {
             directoryRepository.DeleteDirectoryById(id);
         }

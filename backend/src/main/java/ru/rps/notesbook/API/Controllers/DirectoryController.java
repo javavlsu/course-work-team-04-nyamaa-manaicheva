@@ -47,6 +47,19 @@ public class DirectoryController {
         return directoryService.CreateDirectory(ownerId, request);
     }
 
+    @PutMapping("/{id}")
+    public DirectoryContracts.DirectoryResponse updateDirectory(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @RequestBody DirectoryContracts.UpdateDirectoryRequest request
+    ) {
+        UUID ownerId = requireUserId(principal);
+        DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
+        requireOwnership(directory, ownerId);
+
+        return directoryService.UpdateDirectory(id, request);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteDirectoryById(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,

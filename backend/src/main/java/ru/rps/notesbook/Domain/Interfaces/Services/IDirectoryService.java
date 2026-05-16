@@ -13,6 +13,8 @@ public interface IDirectoryService {
 
     DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, DirectoryContracts.CreateDirectoryRequest request);
 
+    DirectoryContracts.DirectoryResponse UpdateDirectory(UUID id, DirectoryContracts.UpdateDirectoryRequest request);
+
     void DeleteDirectoryById(UUID id);
 
 }
