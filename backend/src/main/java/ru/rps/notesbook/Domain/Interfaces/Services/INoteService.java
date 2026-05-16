@@ -12,9 +12,9 @@ public interface INoteService {
 
     NoteContracts.NoteResponse GetNoteById(UUID id);
 
-    NoteContracts.NoteResponse CreateNote(UUID ownerId, String title, String content, NoteTypeEnum noteType, boolean isFavourite);
+    NoteContracts.NoteResponse CreateNote(UUID ownerId, NoteContracts.CreateNoteRequest request);
 
-    NoteContracts.NoteResponse UpdateNote(UUID id, NoteContracts.UpdateNoteRequest note);
+    NoteContracts.NoteResponse UpdateNote(UUID id, NoteContracts.UpdateNoteRequest request);
 
     NoteContracts.NoteResponse favouriteChangeNote(UUID id);
 

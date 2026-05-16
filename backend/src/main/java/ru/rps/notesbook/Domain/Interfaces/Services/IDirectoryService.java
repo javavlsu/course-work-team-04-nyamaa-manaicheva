@@ -11,7 +11,7 @@ public interface IDirectoryService {
 
     DirectoryContracts.DirectoryResponse GetDirectoryById(UUID id);
 
-    DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, String title);
+    DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, DirectoryContracts.CreateDirectoryRequest request);
 
     void DeleteDirectoryById(UUID id);
 

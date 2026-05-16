@@ -2,6 +2,7 @@ package ru.rps.notesbook.Infrastructure.Database.Repositories;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Models.Directory;
 import ru.rps.notesbook.Infrastructure.Database.Adapters.DirectoryAdapterJPA;
@@ -36,6 +37,7 @@ public class DirectoryRepository implements IDirectoryRepository {
     }
 
     @Override
+    @Transactional
     public Directory SaveDirectory(Directory directory)
     {
         DirectoryEntity entity = directoryMapper.ToEntity(directory);

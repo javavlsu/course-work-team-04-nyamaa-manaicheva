@@ -7,16 +7,18 @@ public class Directory {
 
     private final UUID id;
     private String title;
-    private final LocalDateTime createdDate = LocalDateTime.now();
+    private final LocalDateTime createdDate;
     private User owner;
 
-    public Directory(UUID id, String title, User owner) {
+    public Directory(UUID id, String title,
+                     LocalDateTime createdDate ,User owner) {
 
         ValidateTitle(title);
         ValidateOwner(owner);
 
         this.id = id;
         this.title = title;
+        this.createdDate = createdDate;
         this.owner = owner;
     }
 

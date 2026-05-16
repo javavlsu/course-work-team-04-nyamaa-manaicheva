@@ -40,18 +40,20 @@ public class NoteService implements INoteService {
 
     @Override
     @Transactional
-    public NoteContracts.NoteResponse CreateNote(UUID ownerId, String title, String content, NoteTypeEnum noteType, boolean isFavourite) {
+    public NoteContracts.NoteResponse CreateNote(UUID ownerId, NoteContracts.CreateNoteRequest request) {
         User owner = userRepository.GetUserById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         Note note = new Note(
                 UUID.randomUUID(),
-                title,
-                content,
+                request.title(),
+                request.content(),
                 LocalDateTime.now(),
-                noteType,
-                isFavourite,
+                request.noteType(),
+                request.isFavourite(),
                 owner
         );
+
         return toResponse(noteRepository.SaveNote(note));
     }
 

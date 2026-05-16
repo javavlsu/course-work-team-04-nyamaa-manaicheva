@@ -21,7 +21,7 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
-
+  
 springdoc:
   api-docs:
     path: /v3/api-docs

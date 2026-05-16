@@ -42,13 +42,7 @@ public class NoteController {
             @RequestBody NoteContracts.CreateNoteRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        return noteService.CreateNote(
-                ownerId,
-                request.title(),
-                request.content(),
-                request.noteType(),
-                request.isFavourite()
-        );
+        return noteService.CreateNote(ownerId, request);
     }
 
     @PutMapping("/{id}")

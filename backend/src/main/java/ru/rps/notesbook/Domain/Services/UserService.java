@@ -14,6 +14,7 @@ import ru.rps.notesbook.Domain.Models.User;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,6 +71,7 @@ public class UserService implements IUserService {
             surname,
             normalizedEmail,
             birthday,
+            LocalDateTime.now(),
             passwordEncoder.encode(rawPassword),
             RoleTypeEnum.Client
         );

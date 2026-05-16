@@ -18,7 +18,6 @@ import java.util.UUID;
 public class DirectoryEntity {
 
     @Id
-    @GeneratedValue
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
