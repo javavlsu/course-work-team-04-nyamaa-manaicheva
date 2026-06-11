@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  --font-base: "Montserrat";
+  --font-logo: "Michroma";
+}
+
+@font-face {
+  font-family: "Michroma";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Michroma-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Montserrat-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Montserrat-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Montserrat-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Montserrat-Bold.ttf") format("truetype");
+}
+
+@theme {
+  --color-light-blue: #0070ff;
+  --color-dark-blue: #202f3d;
+  --color-orange: #fb6a18;
+  --color-gray: #aeaeb2;
+  --color-light-gray: #f2f2f2;
+  --color-dark-gray: #5f5f5f;
+
+  --spacing-5px: calc(var(--spacing) * 1.25);
+  --spacing-10px: calc(var(--spacing) * 2.5);
+  --spacing-15px: calc(var(--spacing) * 3.75);
+  --spacing-20px: calc(var(--spacing) * 5);
+  --spacing-30px: calc(var(--spacing) * 7.5);
+  --spacing-34px: calc(var(--spacing) * 8.5);
+  --spacing-40px: calc(var(--spacing) * 10);
+  --spacing-50px: calc(var(--spacing) * 12.5);
+  --spacing-60px: calc(var(--spacing) * 15);
+  --spacing-70px: calc(var(--spacing) * 17.5);
+  --spacing-80px: calc(var(--spacing) * 20);
+  --spacing-90px: calc(var(--spacing) * 22.5);
+  --spacing-100px: calc(var(--spacing) * 25);
+
+  --rounded-base: 5px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-base);
+  }
+
+  h1 {
+    font-family: var(--font-base);
+    font-weight: 600;
+    font-size: 64px;
+    line-height: 90px;
+    letter-spacing: -0.03em;
+  }
+
+  h2 {
+    font-size: 48px;
+    font-family: var(--font-base);
+  }
+
+  h3 {
+    font-size: 32px;
+    font-family: var(--font-base);
+  }
+
+  p,
+  span {
+    font-size: 20px;
+    line-height: 30px;
+    letter-spacing: -0.03em;
+    font-family: var(--font-base);
+    color: var(--color-gray);
+  }
+
+  .logo {
+    font-family: var(--font-logo);
+    font-size: 40px;
+    letter-spacing: -0.03em;
+    color: black;
+  }
+
+  .shadow-block {
+    box-shadow:
+      0 4px 6px rgba(0, 0, 0, 0.1),
+      0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+}

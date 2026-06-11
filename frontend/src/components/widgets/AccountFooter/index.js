@@ -1,0 +1,1 @@
+export { AccountFooter } from "./AccountFooter";
