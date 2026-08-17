@@ -1,0 +1,56 @@
+services:
+  postgres-db:
+    image: postgres:17
+    container_name: notesbook-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-cursework}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cursework}
+      POSTGRES_DB: ${DB_NAME:-notesbook}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-cursework} -d ${DB_NAME:-notesbook}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./automate/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - notesbook-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: notesbook-backend
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-notesbook}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-cursework}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-cursework}
+      SERVER_PORT: ${PORT:-8080}
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    networks:
+      - notesbook-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: notesbook-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - notesbook-network
+
+volumes:
+  postgres_data:
+
+networks:
+  notesbook-network:
+    driver: bridge
