@@ -8,32 +8,55 @@ public class Directory {
     private final UUID id;
     private String title;
     private final LocalDateTime createdDate;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
     private User owner;
+    private final Long version;
 
-    public Directory(UUID id, String title,
-                     LocalDateTime createdDate ,User owner) {
+    public Directory(UUID id, String title, LocalDateTime createdDate, User owner) {
+        this(id, title, createdDate, createdDate, null, owner, null);
+    }
 
+    public Directory(UUID id, String title, LocalDateTime createdDate,
+                     LocalDateTime updatedAt, LocalDateTime deletedAt,
+                     User owner, Long version) {
         ValidateTitle(title);
         ValidateOwner(owner);
 
         this.id = id;
         this.title = title;
         this.createdDate = createdDate;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
         this.owner = owner;
+        this.version = version;
     }
 
     public UUID GetId() { return this.id; }
     public String GetTitle() { return this.title; }
     public LocalDateTime GetCreatedDate() { return this.createdDate; }
+    public LocalDateTime GetUpdatedAt() { return this.updatedAt; }
+    public LocalDateTime GetDeletedAt() { return this.deletedAt; }
     public User GetOwner() { return  this.owner; }
+    public Long GetVersion() { return this.version; }
 
     public void ChangeTitle(String title) {
         ValidateTitle(title);
         this.title = title;
+        this.updatedAt = LocalDateTime.now();
     }
     public void ChangeOwner(User owner) {
         ValidateOwner(owner);
         this.owner = owner;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Простые методы soft delete на будущее
+    public void MarkDeleted() {
+        this.deletedAt = LocalDateTime.now();
+    }
+    public void Restore() {
+        this.deletedAt = null;
     }
 
     public void ValidateTitle(String title) {
