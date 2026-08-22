@@ -8,8 +8,6 @@ import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteEntity;
 import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteId;
 import ru.rps.notesbook.Infrastructure.Database.Entities.NoteEntity;
 
-import java.time.LocalDateTime;
-
 @Component
 @RequiredArgsConstructor
 public class DirectoryNoteMapper {
@@ -21,7 +19,8 @@ public class DirectoryNoteMapper {
     {
         return new DirectoryNote(
                 noteMapper.ToDomain(entity.getNote()),
-                directoryMapper.ToDomain(entity.getDirectory())
+                directoryMapper.ToDomain(entity.getDirectory()),
+                entity.getAddedAt()
         );
     }
 
@@ -34,7 +33,7 @@ public class DirectoryNoteMapper {
                 new DirectoryNoteId(note.getId(), directory.getId()),
                 note,
                 directory,
-                LocalDateTime.now()
+                directoryNote.GetAddedAt()
         );
     }
 }

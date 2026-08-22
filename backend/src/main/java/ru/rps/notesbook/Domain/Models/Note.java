@@ -11,13 +11,23 @@ public class Note {
     private String title;
     private String content;
     private final LocalDateTime createDate;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
     private final NoteTypeEnum noteType;
     private boolean isFavourite;
     private User owner;
+    private final Long version;
 
     public Note(UUID id, String title, String content,
                 LocalDateTime createDate, NoteTypeEnum noteType,
                 boolean isFavourite, User owner) {
+        this(id, title, content, createDate, createDate, null,
+                noteType, isFavourite, owner, null);
+    }
+
+    public Note(UUID id, String title, String content,
+                LocalDateTime createDate, LocalDateTime updatedAt, LocalDateTime deletedAt,
+                NoteTypeEnum noteType, boolean isFavourite, User owner, Long version) {
         ValidateTitle(title);
         ValidateContent(content);
         ValidateNoteType(noteType);
@@ -27,33 +37,51 @@ public class Note {
         this.title = title;
         this.content = content;
         this.createDate = createDate;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
         this.noteType = noteType;
         this.isFavourite = isFavourite;
         this.owner = owner;
+        this.version = version;
     }
 
     public UUID GetId() { return this.id; }
     public String GetTitle() { return this.title; }
     public String GetContent() { return this.content; }
     public LocalDateTime GetCreateDate() { return this.createDate; }
+    public LocalDateTime GetUpdatedAt() { return this.updatedAt; }
+    public LocalDateTime GetDeletedAt() { return this.deletedAt; }
     public NoteTypeEnum GetNoteType() { return this.noteType; }
     public boolean GetIsFavourite() { return this.isFavourite; }
     public User GetOwner() { return this.owner; }
+    public Long GetVersion() { return this.version; }
 
     public void ChangeTitle(String title) {
         ValidateTitle(title);
         this.title = title;
+        this.updatedAt = LocalDateTime.now();
     }
     public void ChangeContent(String content) {
         ValidateContent(content);
         this.content = content;
+        this.updatedAt = LocalDateTime.now();
     }
     public void ChangeIsFavourite(boolean isFavourite) {
         this.isFavourite = isFavourite;
+        this.updatedAt = LocalDateTime.now();
     }
     public void ChangeOwner(User owner) {
         ValidateOwner(owner);
         this.owner = owner;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Простые методы soft delete на будущее
+    public void MarkDeleted() {
+        this.deletedAt = LocalDateTime.now();
+    }
+    public void Restore() {
+        this.deletedAt = null;
     }
 
     public void ValidateTitle(String title) {

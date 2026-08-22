@@ -1,21 +1,29 @@
 package ru.rps.notesbook.Domain.Models;
 
-public class DirectoryNote {
+import java.time.LocalDateTime;
 
+public class DirectoryNote {
 
     private Note note;
     private Directory directory;
+    private final LocalDateTime addedAt;
 
     public DirectoryNote(Note note, Directory directory) {
+        this(note, directory, LocalDateTime.now());
+    }
+
+    public DirectoryNote(Note note, Directory directory, LocalDateTime addedAt) {
         ValidateNote(note);
         ValidateDirectory(directory);
 
         this.note = note;
         this.directory = directory;
+        this.addedAt = addedAt;
     }
-    
+
     public Note GetNote() { return  this.note; }
     public Directory GetDirectory() { return this.directory; }
+    public LocalDateTime GetAddedAt() { return this.addedAt; }
 
     public void ChangeNote(Note note) {
         ValidateNote(note);

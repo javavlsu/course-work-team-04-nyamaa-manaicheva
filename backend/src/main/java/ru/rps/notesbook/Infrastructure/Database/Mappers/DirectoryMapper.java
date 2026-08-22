@@ -5,8 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.rps.notesbook.Domain.Models.Directory;
 import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryEntity;
 
-import java.time.LocalDateTime;
-
 @Component
 @RequiredArgsConstructor
 public class DirectoryMapper {
@@ -19,7 +17,10 @@ public class DirectoryMapper {
                 entity.getId(),
                 entity.getTitle(),
                 entity.getCreatedAt(),
-                userMapper.ToDomain(entity.getOwner())
+                entity.getUpdatedAt(),
+                entity.getDeletedAt(),
+                userMapper.ToDomain(entity.getOwner()),
+                entity.getVersion()
         );
     }
 
@@ -29,10 +30,10 @@ public class DirectoryMapper {
                 directory.GetId(),
                 directory.GetTitle(),
                 directory.GetCreatedDate(),
-                LocalDateTime.now(),
-                null,
+                directory.GetUpdatedAt(),
+                directory.GetDeletedAt(),
                 userMapper.ToEntity(directory.GetOwner()),
-                null
+                directory.GetVersion()
         );
     }
 }
