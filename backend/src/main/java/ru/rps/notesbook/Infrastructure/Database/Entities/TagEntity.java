@@ -10,35 +10,28 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "directory")
+@Table(name = "tag")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DirectoryEntity {
+public class TagEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "title", nullable = false)
-    private String title;
+    @Column(name = "name", length = 50, nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false, updatable = false)
+    private UserEntity owner;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private UserEntity owner;
-
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
 
 }

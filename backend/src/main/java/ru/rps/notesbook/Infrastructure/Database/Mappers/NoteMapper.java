@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import ru.rps.notesbook.Domain.Models.Note;
 import ru.rps.notesbook.Infrastructure.Database.Entities.NoteEntity;
 
+import java.time.LocalDateTime;
+
 @Component
 @RequiredArgsConstructor
 public class NoteMapper {
@@ -31,9 +33,12 @@ public class NoteMapper {
                 note.GetTitle(),
                 note.GetContent(),
                 note.GetCreateDate(),
+                LocalDateTime.now(),
+                null,
                 note.GetNoteType(),
                 note.GetIsFavourite(),
-                userMapper.ToEntity(note.GetOwner())
+                userMapper.ToEntity(note.GetOwner()),
+                null
         );
     }
 }

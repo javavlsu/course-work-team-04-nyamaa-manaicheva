@@ -37,7 +37,7 @@ public class UserEntity {
     @Column(name = "birthday_date")
     private LocalDate birthdayDate;
 
-    @Column(name = "registration_date", updatable = false)
+    @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDateTime registrationDate;
 
     @Column(name = "password", nullable = false, length = 100)

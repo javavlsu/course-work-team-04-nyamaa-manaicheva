@@ -2,6 +2,7 @@ package ru.rps.notesbook.Domain.Models;
 
 import ru.rps.notesbook.Domain.Enum.PermissionTypeEnum;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class PermissionAccess {
@@ -11,17 +12,24 @@ public class PermissionAccess {
     private Note note;
     private User user;
     private Directory directory;
+    private User createdBy;
+    private final LocalDateTime createdAt;
 
     public PermissionAccess(UUID id, PermissionTypeEnum type, Note note,
-                            User user, Directory directory) {
+                            User user, Directory directory,
+                            User createdBy, LocalDateTime createdAt) {
 
         ValidatePermissionType(type);
+        ValidateUser(user);
+        ValidateCreatedBy(createdBy);
 
         this.id = id;
         this.type = type;
         this.note = note;
         this.user = user;
         this.directory = directory;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
     }
 
     public UUID GetId() { return this.id; }
@@ -29,6 +37,8 @@ public class PermissionAccess {
     public Note GetNote() { return this.note; }
     public User GetUser() { return this.user; }
     public Directory GetDirectory() { return this.directory; }
+    public User GetCreatedBy() { return this.createdBy; }
+    public LocalDateTime GetCreatedAt() { return this.createdAt; }
 
     public void ChangePermissionType(PermissionTypeEnum type) {
         ValidatePermissionType(type);
@@ -38,10 +48,15 @@ public class PermissionAccess {
         this.note = note;
     }
     public void ChangeUser(User user) {
+        ValidateUser(user);
         this.user = user;
     }
     public void ChangeDirectory(Directory directory) {
         this.directory = directory;
+    }
+    public void ChangeCreatedBy(User createdBy) {
+        ValidateCreatedBy(createdBy);
+        this.createdBy = createdBy;
     }
 
     public void ValidatePermissionType(PermissionTypeEnum type) {
@@ -65,6 +80,11 @@ public class PermissionAccess {
     public void ValidateDirectory(Directory directory) {
         if (directory == null) {
             throw new IllegalArgumentException("directory can't be null");
+        }
+    }
+    public void ValidateCreatedBy(User createdBy) {
+        if (createdBy == null) {
+            throw new IllegalArgumentException("created by can't be null");
         }
     }
 
