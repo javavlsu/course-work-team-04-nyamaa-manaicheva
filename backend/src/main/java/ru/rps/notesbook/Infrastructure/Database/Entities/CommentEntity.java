@@ -10,19 +10,27 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "directory")
+@Table(name = "comment")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DirectoryEntity {
+public class CommentEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "title", nullable = false)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "note_id", nullable = false, updatable = false)
+    private NoteEntity note;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false, updatable = false)
+    private UserEntity author;
+
+    @Column(name = "content", nullable = false, columnDefinition = "text")
+    private String content;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -32,13 +40,5 @@ public class DirectoryEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private UserEntity owner;
-
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
 
 }

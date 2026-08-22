@@ -18,7 +18,7 @@ public class DirectoryMapper {
         return new Directory(
                 entity.getId(),
                 entity.getTitle(),
-                LocalDateTime.now(),
+                entity.getCreatedAt(),
                 userMapper.ToDomain(entity.getOwner())
         );
     }
@@ -29,7 +29,10 @@ public class DirectoryMapper {
                 directory.GetId(),
                 directory.GetTitle(),
                 directory.GetCreatedDate(),
-                userMapper.ToEntity(directory.GetOwner())
+                LocalDateTime.now(),
+                null,
+                userMapper.ToEntity(directory.GetOwner()),
+                null
         );
     }
 }

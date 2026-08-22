@@ -9,23 +9,23 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "directory_note")
+@Table(name = "note_tag")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DirectoryNoteEntity {
+public class NoteTagEntity {
 
     @EmbeddedId
-    private DirectoryNoteId id;
+    private NoteTagId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "note_id", nullable = false, insertable = false, updatable = false)
     private NoteEntity note;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "directory_id", nullable = false, insertable = false, updatable = false)
-    private DirectoryEntity directory;
+    @JoinColumn(name = "tag_id", nullable = false, insertable = false, updatable = false)
+    private TagEntity tag;
 
     @Column(name = "added_at", nullable = false)
     private LocalDateTime addedAt;

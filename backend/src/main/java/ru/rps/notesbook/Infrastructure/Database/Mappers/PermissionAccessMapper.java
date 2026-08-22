@@ -18,9 +18,11 @@ public class PermissionAccessMapper {
         return new PermissionAccess(
                 entity.getId(),
                 entity.getType(),
-                noteMapper.ToDomain(entity.getNote()),
+                entity.getNote() != null ? noteMapper.ToDomain(entity.getNote()) : null,
                 userMapper.ToDomain(entity.getUserGranted()),
-                directoryMapper.ToDomain(entity.getDirectory())
+                entity.getDirectory() != null ? directoryMapper.ToDomain(entity.getDirectory()) : null,
+                userMapper.ToDomain(entity.getCreatedBy()),
+                entity.getCreatedAt()
         );
     }
 
@@ -29,9 +31,11 @@ public class PermissionAccessMapper {
         return new PermissionAccessEntity(
                 permissionAccess.GetId(),
                 permissionAccess.GetAccessType(),
-                noteMapper.ToEntity(permissionAccess.GetNote()),
+                permissionAccess.GetNote() != null ? noteMapper.ToEntity(permissionAccess.GetNote()) : null,
+                permissionAccess.GetDirectory() != null ? directoryMapper.ToEntity(permissionAccess.GetDirectory()) : null,
                 userMapper.ToEntity(permissionAccess.GetUser()),
-                directoryMapper.ToEntity(permissionAccess.GetDirectory())
+                userMapper.ToEntity(permissionAccess.GetCreatedBy()),
+                permissionAccess.GetCreatedAt()
         );
     }
 }

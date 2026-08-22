@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.rps.notesbook.Domain.Enum.PermissionTypeEnum;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -26,15 +27,22 @@ public class PermissionAccessEntity {
     private PermissionTypeEnum type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "note_id", nullable = false)
+    @JoinColumn(name = "note_id")
     private NoteEntity note;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_granted", nullable = false)
+    @JoinColumn(name = "directory_id")
+    private DirectoryEntity directory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userGranted;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "directory_id", nullable = false)
-    private DirectoryEntity directory;
+    @JoinColumn(name = "created_by", nullable = false)
+    private UserEntity createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
 }
