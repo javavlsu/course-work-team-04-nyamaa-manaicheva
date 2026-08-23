@@ -68,7 +68,12 @@
         @Override
         @Transactional
         public void DeleteDirectoryById(UUID id) {
-            directoryRepository.DeleteDirectoryById(id);
+            Directory directory = directoryRepository.GetDirectoryById(id)
+                    .orElseThrow(() -> new RuntimeException("Directory not found"));
+
+            directory.MarkDeleted();
+
+            directoryRepository.SaveDirectory(directory);
         }
 
         private static DirectoryContracts.DirectoryResponse toResponse(Directory d) {

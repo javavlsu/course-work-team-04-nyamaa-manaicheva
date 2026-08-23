@@ -23,7 +23,7 @@ public class DirectoryRepository implements IDirectoryRepository {
     @Override
     public List<Directory> GetDirectoriesByOwnerId(UUID ownerId)
     {
-        return directoryAdapterJPA.findByOwner_Id(ownerId)
+        return directoryAdapterJPA.findByOwner_IdAndDeletedAtIsNull(ownerId)
                 .stream()
                 .map(directoryMapper::ToDomain)
                 .toList();
@@ -32,7 +32,7 @@ public class DirectoryRepository implements IDirectoryRepository {
     @Override
     public Optional<Directory> GetDirectoryById(UUID id)
     {
-        return directoryAdapterJPA.findById(id)
+        return directoryAdapterJPA.findByIdAndDeletedAtIsNull(id)
                 .map(directoryMapper::ToDomain);
     }
 
