@@ -23,7 +23,7 @@ public class TagRepository implements ITagRepository {
     @Override
     public List<Tag> GetTagsByOwnerId(UUID ownerId)
     {
-        return tagAdapterJPA.findByOwner_Id(ownerId)
+        return tagAdapterJPA.findByOwner_IdAndDeletedAtIsNull(ownerId)
                 .stream()
                 .map(tagMapper::ToDomain)
                 .toList();
@@ -32,7 +32,8 @@ public class TagRepository implements ITagRepository {
     @Override
     public Optional<Tag> GetTagById(UUID id)
     {
-        return tagAdapterJPA.findById(id).map(tagMapper::ToDomain);
+        return tagAdapterJPA.findByIdAndDeletedAtIsNull(id)
+            .map(tagMapper::ToDomain);
     }
 
     @Override
@@ -51,4 +52,5 @@ public class TagRepository implements ITagRepository {
     {
         tagAdapterJPA.deleteById(id);
     }
+
 }

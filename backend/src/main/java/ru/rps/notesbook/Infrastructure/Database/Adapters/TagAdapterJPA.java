@@ -5,11 +5,16 @@ import org.springframework.stereotype.Repository;
 import ru.rps.notesbook.Infrastructure.Database.Entities.TagEntity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface TagAdapterJPA extends JpaRepository<TagEntity, UUID> {
 
     List<TagEntity> findByOwner_Id(UUID ownerId);
+
+    List<TagEntity> findByOwner_IdAndDeletedAtIsNull(UUID ownerId);
+
+    Optional<TagEntity> findByIdAndDeletedAtIsNull(UUID id);
 
 }
