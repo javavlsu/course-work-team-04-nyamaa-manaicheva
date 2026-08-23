@@ -23,7 +23,7 @@ public class NoteRepository implements INoteRepository {
     @Override
     public List<Note> GetNotesByUserId(UUID ownerId)
     {
-        return noteAdapterJPA.findByOwner_Id(ownerId)
+        return noteAdapterJPA.findByOwner_IdAndDeletedAtIsNull(ownerId)
                 .stream()
                 .map(noteMapper::ToDomain)
                 .toList();
@@ -32,7 +32,7 @@ public class NoteRepository implements INoteRepository {
     @Override
     public Optional<Note> GetNoteById(UUID id)
     {
-        return noteAdapterJPA.findById(id).map(noteMapper::ToDomain);
+        return noteAdapterJPA.findByIdAndDeletedAtIsNull(id).map(noteMapper::ToDomain);
     }
 
     @Override

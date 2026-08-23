@@ -9,7 +9,9 @@ import java.util.UUID;
 @Repository
 public interface IDirectoryNoteRepository {
     List<DirectoryNote> GetDirectoriesNotesByDirectoryId(UUID directoryId);
+    boolean ExistsByNoteIdAndDirectoryId(UUID noteId, UUID directoryId);
     DirectoryNote SaveDirectoryNote(DirectoryNote directoryNote);
     void DeleteDirectoryNoteByDirectoryId(UUID directoryId);
     void DeleteDirectoryNoteByNoteId(UUID noteId);
+    void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId);
 }

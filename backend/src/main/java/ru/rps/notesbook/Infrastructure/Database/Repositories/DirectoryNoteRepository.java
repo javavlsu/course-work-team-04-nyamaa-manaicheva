@@ -6,6 +6,7 @@ import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryNoteRepository;
 import ru.rps.notesbook.Domain.Models.DirectoryNote;
 import ru.rps.notesbook.Infrastructure.Database.Adapters.DirectoryNoteAdapterJPA;
 import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteEntity;
+import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteId;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.DirectoryNoteMapper;
 
 import java.util.List;
@@ -28,6 +29,12 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     }
 
     @Override
+    public boolean ExistsByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
+    {
+        return directoryNoteAdapterJPA.existsById(new DirectoryNoteId(noteId, directoryId));
+    }
+
+    @Override
     public DirectoryNote SaveDirectoryNote(DirectoryNote directoryNote)
     {
         DirectoryNoteEntity entity = directoryNoteMapper.ToEntity(directoryNote);
@@ -47,6 +54,12 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     public void DeleteDirectoryNoteByNoteId(UUID noteId)
     {
         directoryNoteAdapterJPA.deleteByNote_Id(noteId);
+    }
+
+    @Override
+    public void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
+    {
+        directoryNoteAdapterJPA.deleteById(new DirectoryNoteId(noteId, directoryId));
     }
 
 }

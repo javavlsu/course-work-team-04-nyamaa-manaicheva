@@ -4,16 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
-import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRevisionRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
 import ru.rps.notesbook.Domain.Models.Note;
+import ru.rps.notesbook.Domain.Models.NoteRevision;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,6 +22,7 @@ public class NoteService implements INoteService {
 
     private final INoteRepository noteRepository;
     private final IUserRepository userRepository;
+    private final INoteRevisionRepository noteRevisionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -63,6 +64,21 @@ public class NoteService implements INoteService {
         Note note = noteRepository.GetNoteById(id)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
+        boolean isChanging = request.title() != null || request.content() != null;
+
+        if (isChanging) {
+            NoteRevision revision = new NoteRevision(
+                    UUID.randomUUID(),
+                    note,
+                    note.GetTitle(),
+                    note.GetContent(),
+                    note.GetVersion(),
+                    LocalDateTime.now(),
+                    note.GetOwner()
+            );
+            noteRevisionRepository.SaveRevision(revision);
+        }
+
         if (request.title() != null) {
             note.ChangeTitle(request.title());
         }
@@ -87,7 +103,12 @@ public class NoteService implements INoteService {
     @Override
     @Transactional
     public void DeleteNoteById(UUID id) {
-        noteRepository.DeleteNoteById(id);
+        Note note = noteRepository.GetNoteById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        note.MarkDeleted();
+
+        noteRepository.SaveNote(note);
     }
 
     private static NoteContracts.NoteResponse toResponse(Note n) {

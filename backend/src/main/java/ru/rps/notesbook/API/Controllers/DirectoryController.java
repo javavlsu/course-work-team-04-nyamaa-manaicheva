@@ -6,7 +6,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.DirectoryContracts;
+import ru.rps.notesbook.API.Contracts.DirectoryNoteContracts;
+import ru.rps.notesbook.API.Contracts.NoteContracts;
+import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryNoteService;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryService;
+import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.List;
@@ -18,6 +22,8 @@ import java.util.UUID;
 public class DirectoryController {
 
     private final IDirectoryService directoryService;
+    private final INoteService noteService;
+    private final IDirectoryNoteService directoryNoteService;
 
     @GetMapping
     public List<DirectoryContracts.DirectoryResponse> getDirectories(
@@ -71,6 +77,47 @@ public class DirectoryController {
         directoryService.DeleteDirectoryById(id);
     }
 
+    @GetMapping("/{id}/notes")
+    public List<DirectoryNoteContracts.DirectoryNoteResponse> getNotesInDirectory(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
+        requireOwnership(directory, ownerId);
+
+        return directoryNoteService.GetNotesByDirectoryId(id);
+    }
+
+    @PostMapping("/{id}/notes/{noteId}")
+    public DirectoryNoteContracts.DirectoryNoteResponse addNoteToDirectory(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @PathVariable UUID noteId
+    ) {
+        UUID ownerId = requireUserId(principal);
+        DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
+        requireOwnership(directory, ownerId);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(noteId);
+        requireNoteOwnership(note, ownerId);
+
+        return directoryNoteService.AddNoteToDirectory(
+                new DirectoryNoteContracts.CreateDirectoryNoteRequest(noteId, id));
+    }
+
+    @DeleteMapping("/{id}/notes/{noteId}")
+    public void removeNoteFromDirectory(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @PathVariable UUID noteId
+    ) {
+        UUID ownerId = requireUserId(principal);
+        DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
+        requireOwnership(directory, ownerId);
+
+        directoryNoteService.RemoveNoteFromDirectory(id, noteId);
+    }
+
     private static UUID requireUserId(NotesbookUserPrincipal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
@@ -79,6 +126,12 @@ public class DirectoryController {
     }
 
     private static void requireOwnership(DirectoryContracts.DirectoryResponse response, UUID ownerId) {
+        if (!response.ownerId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private static void requireNoteOwnership(NoteContracts.NoteResponse response, UUID ownerId) {
         if (!response.ownerId().equals(ownerId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
