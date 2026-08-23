@@ -9,7 +9,9 @@ import java.util.UUID;
 @Repository
 public interface INoteTagRepository {
     List<NoteTag> GetNoteTagsByNoteId(UUID noteId);
+    boolean ExistsByNoteIdAndTagId(UUID noteId, UUID tagId);
     NoteTag SaveNoteTag(NoteTag noteTag);
     void DeleteNoteTagByNoteId(UUID noteId);
     void DeleteNoteTagByTagId(UUID tagId);
+    void DeleteNoteTagByNoteIdAndTagId(UUID noteId, UUID tagId);
 }

@@ -10,11 +10,14 @@ public final class NoteContracts {
     public record NoteResponse(
             UUID id,
             String title,
-            String content,
+            Object content,
             LocalDateTime createDate,
+            LocalDateTime updatedAt,
+            LocalDateTime deletedAt,
             NoteTypeEnum noteType,
             boolean isFavourite,
-            UUID ownerId
+            UUID ownerId,
+            Long version
     ) {}
 
     public record NoteSummaryResponse(
@@ -26,14 +29,14 @@ public final class NoteContracts {
 
     public record CreateNoteRequest(
             String title,
-            String content,
+            Object content,
             NoteTypeEnum noteType,
             boolean isFavourite
     ) {}
 
     public record UpdateNoteRequest(
             String title,
-            String content
+            Object content
     ) {}
-}
 
+}

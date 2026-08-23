@@ -7,6 +7,7 @@ import ru.rps.notesbook.Domain.Interfaces.Repository.INoteTagRepository;
 import ru.rps.notesbook.Domain.Models.NoteTag;
 import ru.rps.notesbook.Infrastructure.Database.Adapters.NoteTagAdapterJPA;
 import ru.rps.notesbook.Infrastructure.Database.Entities.NoteTagEntity;
+import ru.rps.notesbook.Infrastructure.Database.Entities.NoteTagId;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.NoteTagMapper;
 
 import java.util.List;
@@ -26,6 +27,12 @@ public class NoteTagRepository implements INoteTagRepository {
                 .stream()
                 .map(noteTagMapper::ToDomain)
                 .toList();
+    }
+
+    @Override
+    public boolean ExistsByNoteIdAndTagId(UUID noteId, UUID tagId)
+    {
+        return noteTagAdapterJPA.existsById(new NoteTagId(noteId, tagId));
     }
 
     @Override
@@ -50,4 +57,11 @@ public class NoteTagRepository implements INoteTagRepository {
     {
         noteTagAdapterJPA.deleteByTag_Id(tagId);
     }
+
+    @Override
+    public void DeleteNoteTagByNoteIdAndTagId(UUID noteId, UUID tagId)
+    {
+        noteTagAdapterJPA.deleteById(new NoteTagId(noteId, tagId));
+    }
+
 }

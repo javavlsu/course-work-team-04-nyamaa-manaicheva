@@ -23,7 +23,7 @@ public class CommentRepository implements ICommentRepository {
     @Override
     public List<Comment> GetCommentsByNoteId(UUID noteId)
     {
-        return commentAdapterJPA.findByNote_Id(noteId)
+        return commentAdapterJPA.findByNote_IdAndDeletedAtIsNull(noteId)
                 .stream()
                 .map(commentMapper::ToDomain)
                 .toList();
@@ -32,7 +32,8 @@ public class CommentRepository implements ICommentRepository {
     @Override
     public Optional<Comment> GetCommentById(UUID id)
     {
-        return commentAdapterJPA.findById(id).map(commentMapper::ToDomain);
+        return commentAdapterJPA.findByIdAndDeletedAtIsNull(id)
+            .map(commentMapper::ToDomain);
     }
 
     @Override
@@ -57,4 +58,5 @@ public class CommentRepository implements ICommentRepository {
     {
         commentAdapterJPA.deleteByNote_Id(noteId);
     }
+
 }

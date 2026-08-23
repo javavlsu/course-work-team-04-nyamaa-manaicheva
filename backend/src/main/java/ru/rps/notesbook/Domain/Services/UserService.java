@@ -46,6 +46,19 @@ public class UserService implements IUserService {
         User user = userRepository.GetUserById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (request.name() != null) {
+            user.ChangeName(request.name());
+        }
+        if (request.surname() != null) {
+            user.ChangeSurname(request.surname());
+        }
+        if (request.email() != null) {
+            user.ChangeEmail(request.email().trim().toLowerCase());
+        }
+        if (request.birthdayDate() != null) {
+            user.ChangeBirthdayDate(request.birthdayDate());
+        }
+
         return toResponse(userRepository.SaveUser(user));
     }
 
@@ -90,4 +103,5 @@ public class UserService implements IUserService {
                 u.GetRole()
         );
     }
+    
 }

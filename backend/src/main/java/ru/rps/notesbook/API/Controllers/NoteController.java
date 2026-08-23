@@ -6,7 +6,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
+import ru.rps.notesbook.API.Contracts.NoteRevisionContracts;
+import ru.rps.notesbook.API.Contracts.NoteTagContracts;
+import ru.rps.notesbook.API.Contracts.TagContracts;
+import ru.rps.notesbook.Domain.Interfaces.Services.INoteRevisionService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
+import ru.rps.notesbook.Domain.Interfaces.Services.INoteTagService;
+import ru.rps.notesbook.Domain.Interfaces.Services.ITagService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.List;
@@ -18,6 +24,11 @@ import java.util.UUID;
 public class NoteController {
 
     private final INoteService noteService;
+    private final INoteRevisionService noteRevisionService;
+    private final INoteTagService noteTagService;
+    private final ITagService tagService;
+
+    // Note
 
     @GetMapping
     public List<NoteContracts.NoteResponse> listNotes(@AuthenticationPrincipal NotesbookUserPrincipal principal) {
@@ -82,6 +93,78 @@ public class NoteController {
         noteService.DeleteNoteById(id);
     }
 
+    // NoteRevision
+
+    @GetMapping("/{id}/revisions")
+    public List<NoteRevisionContracts.NoteRevisionResponse> listRevisions(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
+        requireOwnership(note, ownerId);
+
+        return noteRevisionService.GetRevisionsByNoteId(id);
+    }
+
+    @GetMapping("/{id}/revisions/{revisionId}")
+    public NoteRevisionContracts.NoteRevisionResponse getRevision(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @PathVariable UUID revisionId
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
+        requireOwnership(note, ownerId);
+
+        NoteRevisionContracts.NoteRevisionResponse revision = noteRevisionService.GetRevisionById(revisionId);
+        if (!revision.noteId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return revision;
+    }
+
+    // NoteTag
+
+    @GetMapping("/{id}/tags")
+    public List<NoteTagContracts.NoteTagResponse> listTags(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
+        requireOwnership(note, ownerId);
+
+        return noteTagService.GetTagsByNoteId(id);
+    }
+
+    @PostMapping("/{id}/tags/{tagId}")
+    public NoteTagContracts.NoteTagResponse addTag(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @PathVariable UUID tagId
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
+        requireOwnership(note, ownerId);
+        requireTagOwnership(tagService.GetTagById(tagId), ownerId);
+
+        return noteTagService.AddTagToNote(new NoteTagContracts.CreateNoteTagRequest(id, tagId));
+    }
+
+    @DeleteMapping("/{id}/tags/{tagId}")
+    public void removeTag(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @PathVariable UUID tagId
+    ) {
+        UUID ownerId = requireUserId(principal);
+        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
+        requireOwnership(note, ownerId);
+
+        noteTagService.RemoveTagFromNote(id, tagId);
+    }
+
     private static UUID requireUserId(NotesbookUserPrincipal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
@@ -94,4 +177,11 @@ public class NoteController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
+
+    private static void requireTagOwnership(TagContracts.TagResponse response, UUID ownerId) {
+        if (!response.ownerId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
 }

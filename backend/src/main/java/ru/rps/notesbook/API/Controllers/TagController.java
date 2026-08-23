@@ -5,55 +5,58 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import ru.rps.notesbook.API.Contracts.UserContracts;
-import ru.rps.notesbook.Domain.Interfaces.Services.IUserService;
+import ru.rps.notesbook.API.Contracts.TagContracts;
+import ru.rps.notesbook.Domain.Interfaces.Services.ITagService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/tags")
 @RequiredArgsConstructor
-public class UserController {
+public class TagController {
 
-    private final IUserService userService;
+    private final ITagService tagService;
 
     @GetMapping
-    public List<UserContracts.UserResponse> listUsers(@AuthenticationPrincipal NotesbookUserPrincipal principal)
-    {
+    public List<TagContracts.TagResponse> listTags(@AuthenticationPrincipal NotesbookUserPrincipal principal) {
         UUID ownerId = requireUserId(principal);
-        return userService.GetUsers();
+        return tagService.GetTagsByOwnerId(ownerId);
     }
 
-    @GetMapping("/{id}")
-    public UserContracts.UserResponse getUser(
+    @PostMapping
+    public TagContracts.TagResponse createTag(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
-            @PathVariable UUID id
+            @RequestBody TagContracts.CreateTagRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        return userService.GetUserById(id);
+        return tagService.CreateTag(ownerId, request);
     }
 
     @PutMapping("/{id}")
-    public UserContracts.UserResponse updateUser(
+    public TagContracts.TagResponse updateTag(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id,
-            @RequestBody UserContracts.UpdateUserRequest request
+            @RequestBody TagContracts.UpdateTagRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        requireSelf(id, ownerId);
-        return userService.UpdateUser(id, request);
+        TagContracts.TagResponse tag = tagService.GetTagById(id);
+        requireOwnership(tag, ownerId);
+
+        return tagService.UpdateTag(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(
+    public void deleteTag(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
         UUID ownerId = requireUserId(principal);
-        requireSelf(id, ownerId);
-        userService.DeleteUserById(id);
+        TagContracts.TagResponse tag = tagService.GetTagById(id);
+        requireOwnership(tag, ownerId);
+
+        tagService.DeleteTagById(id);
     }
 
     private static UUID requireUserId(NotesbookUserPrincipal principal) {
@@ -63,8 +66,8 @@ public class UserController {
         return principal.getUserId();
     }
 
-    private static void requireSelf(UUID id, UUID ownerId) {
-        if (!id.equals(ownerId)) {
+    private static void requireOwnership(TagContracts.TagResponse response, UUID ownerId) {
+        if (!response.ownerId().equals(ownerId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
