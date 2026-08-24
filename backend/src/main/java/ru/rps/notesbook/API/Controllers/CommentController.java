@@ -6,9 +6,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.CommentContracts;
-import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.Domain.Interfaces.Services.ICommentService;
-import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
+import ru.rps.notesbook.Domain.Interfaces.Services.IPermissionAccessService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.List;
@@ -19,16 +18,15 @@ import java.util.UUID;
 public class CommentController {
 
     private final ICommentService commentService;
-    private final INoteService noteService;
+    private final IPermissionAccessService permissionAccessService;
 
     @GetMapping("/api/notes/{noteId}/comments")
     public List<CommentContracts.CommentResponse> listComments(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID noteId
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(noteId);
-        requireNoteOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanViewNote(userId, noteId);
 
         return commentService.GetCommentsByNoteId(noteId);
     }
@@ -39,11 +37,10 @@ public class CommentController {
             @PathVariable UUID noteId,
             @RequestBody CommentContracts.CreateCommentRequest request
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(noteId);
-        requireNoteOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanEditNote(userId, noteId);
 
-        return commentService.CreateComment(noteId, ownerId, request);
+        return commentService.CreateComment(noteId, userId, request);
     }
 
     @PutMapping("/api/comments/{id}")
@@ -52,9 +49,9 @@ public class CommentController {
             @PathVariable UUID id,
             @RequestBody CommentContracts.UpdateCommentRequest request
     ) {
-        UUID ownerId = requireUserId(principal);
+        UUID userId = requireUserId(principal);
         CommentContracts.CommentResponse comment = commentService.GetCommentById(id);
-        requireAuthorship(comment, ownerId);
+        requireAuthorship(comment, userId);
 
         return commentService.UpdateComment(id, request);
     }
@@ -64,9 +61,9 @@ public class CommentController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
+        UUID userId = requireUserId(principal);
         CommentContracts.CommentResponse comment = commentService.GetCommentById(id);
-        requireAuthorship(comment, ownerId);
+        requireAuthorship(comment, userId);
 
         commentService.DeleteCommentById(id);
     }
@@ -78,14 +75,20 @@ public class CommentController {
         return principal.getUserId();
     }
 
-    private static void requireNoteOwnership(NoteContracts.NoteResponse response, UUID ownerId) {
-        if (!response.ownerId().equals(ownerId)) {
+    private static void requireAuthorship(CommentContracts.CommentResponse response, UUID userId) {
+        if (!response.authorId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
 
-    private static void requireAuthorship(CommentContracts.CommentResponse response, UUID ownerId) {
-        if (!response.authorId().equals(ownerId)) {
+    private void requireCanViewNote(UUID userId, UUID noteId) {
+        if (!permissionAccessService.canViewNote(userId, noteId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private void requireCanEditNote(UUID userId, UUID noteId) {
+        if (!permissionAccessService.canEditNote(userId, noteId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }

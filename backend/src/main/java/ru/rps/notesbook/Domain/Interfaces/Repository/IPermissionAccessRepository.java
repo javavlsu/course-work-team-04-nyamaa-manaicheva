@@ -9,10 +9,17 @@ import java.util.UUID;
 
 @Repository
 public interface IPermissionAccessRepository {
-    List<PermissionAccess> GetPermissionAccessesByUserIdAndDirectoryId(UUID userId, UUID directoryId);
+
     Optional<PermissionAccess> GetPermissionAccessByUserIdAndNoteId(UUID userId, UUID noteId);
+    Optional<PermissionAccess> GetPermissionAccessByUserIdAndDirectoryId(UUID userId, UUID directoryId);
+
+    List<PermissionAccess> GetPermissionAccessesByNoteId(UUID noteId);
+    List<PermissionAccess> GetPermissionAccessesByDirectoryId(UUID directoryId);
+    
     Optional<PermissionAccess> GetPermissionAccessById(UUID id);
     PermissionAccess SavePermissionAccess(PermissionAccess permissionAccess);
     void DeletePermissionAccessById(UUID id);
     void DeletePermissionAccessByNoteId(UUID noteId);
+    void DeletePermissionAccessByDirectoryId(UUID directoryId);
+
 }

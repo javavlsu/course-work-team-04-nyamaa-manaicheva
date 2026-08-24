@@ -29,6 +29,15 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     }
 
     @Override
+    public List<DirectoryNote> GetDirectoriesNotesByNoteId(UUID noteId)
+    {
+        return directoryNoteAdapterJPA.findByNote_Id(noteId)
+                .stream()
+                .map(directoryNoteMapper::ToDomain)
+                .toList();
+    }
+
+    @Override
     public boolean ExistsByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
     {
         return directoryNoteAdapterJPA.existsById(new DirectoryNoteId(noteId, directoryId));

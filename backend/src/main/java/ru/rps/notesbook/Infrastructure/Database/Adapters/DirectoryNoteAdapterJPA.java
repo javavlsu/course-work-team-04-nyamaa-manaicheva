@@ -13,6 +13,8 @@ public interface DirectoryNoteAdapterJPA extends JpaRepository<DirectoryNoteEnti
 
     List<DirectoryNoteEntity> findByDirectory_Id(UUID directoryId);
 
+    List<DirectoryNoteEntity> findByNote_Id(UUID noteId);
+
     void deleteByDirectory_Id(UUID directoryId);
 
     void deleteByNote_Id(UUID noteId);
