@@ -20,19 +20,37 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     private final PermissionAccessMapper permissionAccessMapper;
 
     @Override
-    public List<PermissionAccess> GetPermissionAccessesByUserIdAndDirectoryId(UUID userId, UUID directoryId)
+    public Optional<PermissionAccess> GetPermissionAccessByUserIdAndNoteId(UUID userId, UUID noteId)
+    {
+        return permissionAccessAdapterJPA.findByUserGranted_IdAndNote_Id(userId, noteId)
+                .map(permissionAccessMapper::ToDomain);
+    }
+
+    @Override
+    public Optional<PermissionAccess> GetPermissionAccessByUserIdAndDirectoryId(UUID userId, UUID directoryId)
     {
         return permissionAccessAdapterJPA.findByUserGranted_IdAndDirectory_Id(userId, directoryId)
+                .stream()
+                .findFirst()
+                .map(permissionAccessMapper::ToDomain);
+    }
+
+    @Override
+    public List<PermissionAccess> GetPermissionAccessesByNoteId(UUID noteId)
+    {
+        return permissionAccessAdapterJPA.findByNote_Id(noteId)
                 .stream()
                 .map(permissionAccessMapper::ToDomain)
                 .toList();
     }
 
     @Override
-    public Optional<PermissionAccess> GetPermissionAccessByUserIdAndNoteId(UUID userId, UUID noteId)
+    public List<PermissionAccess> GetPermissionAccessesByDirectoryId(UUID directoryId)
     {
-        return permissionAccessAdapterJPA.findByUserGranted_IdAndNote_Id(userId, noteId)
-                .map(permissionAccessMapper::ToDomain);
+        return permissionAccessAdapterJPA.findByDirectory_Id(directoryId)
+                .stream()
+                .map(permissionAccessMapper::ToDomain)
+                .toList();
     }
 
     @Override
@@ -61,5 +79,11 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     public void DeletePermissionAccessByNoteId(UUID noteId)
     {
         permissionAccessAdapterJPA.deleteByNote_Id(noteId);
+    }
+
+    @Override
+    public void DeletePermissionAccessByDirectoryId(UUID directoryId)
+    {
+        permissionAccessAdapterJPA.deleteByDirectory_Id(directoryId);
     }
 }

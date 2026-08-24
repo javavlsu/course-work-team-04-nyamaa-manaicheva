@@ -11,6 +11,7 @@ import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryNoteService;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
+import ru.rps.notesbook.Domain.Interfaces.Services.IPermissionAccessService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class DirectoryController {
     private final IDirectoryService directoryService;
     private final INoteService noteService;
     private final IDirectoryNoteService directoryNoteService;
+    private final IPermissionAccessService permissionAccessService;
 
     @GetMapping
     public List<DirectoryContracts.DirectoryResponse> getDirectories(
@@ -38,10 +40,9 @@ public class DirectoryController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        DirectoryContracts.DirectoryResponse response = directoryService.GetDirectoryById(id);
-        requireOwnership(response, ownerId);
-        return response;
+        UUID userId = requireUserId(principal);
+        requireCanViewDirectory(userId, id);
+        return directoryService.GetDirectoryById(id);
     }
 
     @PostMapping
@@ -60,6 +61,7 @@ public class DirectoryController {
             @RequestBody DirectoryContracts.UpdateDirectoryRequest request
     ) {
         UUID ownerId = requireUserId(principal);
+        // Изменение структуры Directory остаётся owner-only.
         DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
         requireOwnership(directory, ownerId);
 
@@ -82,9 +84,8 @@ public class DirectoryController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
-        requireOwnership(directory, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanViewDirectory(userId, id);
 
         return directoryNoteService.GetNotesByDirectoryId(id);
     }
@@ -96,6 +97,7 @@ public class DirectoryController {
             @PathVariable UUID noteId
     ) {
         UUID ownerId = requireUserId(principal);
+        // Добавление/удаление Note в/из Directory остаётся owner-only (изменение структуры).
         DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
         requireOwnership(directory, ownerId);
         NoteContracts.NoteResponse note = noteService.GetNoteById(noteId);
@@ -133,6 +135,12 @@ public class DirectoryController {
 
     private static void requireNoteOwnership(NoteContracts.NoteResponse response, UUID ownerId) {
         if (!response.ownerId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private void requireCanViewDirectory(UUID userId, UUID directoryId) {
+        if (!permissionAccessService.canViewDirectory(userId, directoryId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import ru.rps.notesbook.Domain.Enum.PermissionTypeEnum;
 
 import java.time.LocalDateTime;
@@ -23,7 +25,8 @@ public class PermissionAccessEntity {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "type", nullable = false, columnDefinition = "permission_type")
     private PermissionTypeEnum type;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -12,6 +12,7 @@ import ru.rps.notesbook.API.Contracts.TagContracts;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteRevisionService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteTagService;
+import ru.rps.notesbook.Domain.Interfaces.Services.IPermissionAccessService;
 import ru.rps.notesbook.Domain.Interfaces.Services.ITagService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
@@ -27,6 +28,7 @@ public class NoteController {
     private final INoteRevisionService noteRevisionService;
     private final INoteTagService noteTagService;
     private final ITagService tagService;
+    private final IPermissionAccessService permissionAccessService;
 
     // Note
 
@@ -41,10 +43,9 @@ public class NoteController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse response = noteService.GetNoteById(id);
-        requireOwnership(response, ownerId);
-        return response;
+        UUID userId = requireUserId(principal);
+        requireCanViewNote(userId, id);
+        return noteService.GetNoteById(id);
     }
 
     @PostMapping
@@ -62,9 +63,8 @@ public class NoteController {
             @PathVariable UUID id,
             @RequestBody NoteContracts.UpdateNoteRequest request
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse response = noteService.GetNoteById(id);
-        requireOwnership(response, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanEditNote(userId, id);
 
         return noteService.UpdateNote(id, request);
     }
@@ -74,9 +74,8 @@ public class NoteController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse response = noteService.GetNoteById(id);
-        requireOwnership(response, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanEditNote(userId, id);
 
         return noteService.favouriteChangeNote(id);
     }
@@ -100,9 +99,8 @@ public class NoteController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
-        requireOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanViewNote(userId, id);
 
         return noteRevisionService.GetRevisionsByNoteId(id);
     }
@@ -113,9 +111,8 @@ public class NoteController {
             @PathVariable UUID id,
             @PathVariable UUID revisionId
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
-        requireOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanViewNote(userId, id);
 
         NoteRevisionContracts.NoteRevisionResponse revision = noteRevisionService.GetRevisionById(revisionId);
         if (!revision.noteId().equals(id)) {
@@ -131,9 +128,8 @@ public class NoteController {
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @PathVariable UUID id
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
-        requireOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanViewNote(userId, id);
 
         return noteTagService.GetTagsByNoteId(id);
     }
@@ -144,10 +140,9 @@ public class NoteController {
             @PathVariable UUID id,
             @PathVariable UUID tagId
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
-        requireOwnership(note, ownerId);
-        requireTagOwnership(tagService.GetTagById(tagId), ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanEditNote(userId, id);
+        requireTagOwnership(tagService.GetTagById(tagId), userId);
 
         return noteTagService.AddTagToNote(new NoteTagContracts.CreateNoteTagRequest(id, tagId));
     }
@@ -158,9 +153,9 @@ public class NoteController {
             @PathVariable UUID id,
             @PathVariable UUID tagId
     ) {
-        UUID ownerId = requireUserId(principal);
-        NoteContracts.NoteResponse note = noteService.GetNoteById(id);
-        requireOwnership(note, ownerId);
+        UUID userId = requireUserId(principal);
+        requireCanEditNote(userId, id);
+        requireTagOwnership(tagService.GetTagById(tagId), userId);
 
         noteTagService.RemoveTagFromNote(id, tagId);
     }
@@ -180,6 +175,18 @@ public class NoteController {
 
     private static void requireTagOwnership(TagContracts.TagResponse response, UUID ownerId) {
         if (!response.ownerId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private void requireCanViewNote(UUID userId, UUID noteId) {
+        if (!permissionAccessService.canViewNote(userId, noteId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private void requireCanEditNote(UUID userId, UUID noteId) {
+        if (!permissionAccessService.canEditNote(userId, noteId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
