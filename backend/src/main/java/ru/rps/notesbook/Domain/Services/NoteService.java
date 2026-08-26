@@ -8,16 +8,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryNoteRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRevisionRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IPermissionAccessRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
+import ru.rps.notesbook.Domain.Models.DirectoryNote;
 import ru.rps.notesbook.Domain.Models.Note;
 import ru.rps.notesbook.Domain.Models.NoteRevision;
+import ru.rps.notesbook.Domain.Models.PermissionAccess;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -27,19 +34,48 @@ public class NoteService implements INoteService {
     private final INoteRepository noteRepository;
     private final IUserRepository userRepository;
     private final INoteRevisionRepository noteRevisionRepository;
-    // Spring Boot 4 + Jackson 3 автоконфигурирует бин JsonMapper, а не классический
-    // com.fasterxml.jackson.databind.ObjectMapper (Jackson 2). Зарегистрирует ли конкретно
-    // эта версия (4.0.3) ещё и совместимый ObjectMapper-бин параллельно — я не могу
-    // проверить без реальной сборки, поэтому создаём его сами: jackson-databind (2.x)
-    // гарантированно есть на classpath (это подтверждает документация Spring Boot 4 —
-    // Jackson 2 и 3 сосуществуют), а new ObjectMapper() работает всегда, независимо от
-    // того, что именно Spring решит зарегистрировать как бин.
+    private final IPermissionAccessRepository permissionAccessRepository;
+    private final IDirectoryRepository directoryRepository;
+    private final IDirectoryNoteRepository directoryNoteRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     @Transactional(readOnly = true)
     public List<NoteContracts.NoteResponse> GetNotesByOwnerId(UUID ownerId) {
-        return noteRepository.GetNotesByUserId(ownerId).stream()
+        Map<UUID, Note> notes = new LinkedHashMap<>();
+
+        // Notes
+        for (Note note : noteRepository.GetNotesByUserId(ownerId)) {
+            notes.putIfAbsent(note.GetId(), note);
+        }
+
+        List<PermissionAccess> userPermissions = permissionAccessRepository.GetPermissionAccessesByUserId(ownerId);
+
+        // Notes с прямым PermissionAccess
+        for (PermissionAccess permission : userPermissions) {
+            if (permission.GetNote() == null) {
+                continue;
+            }
+            noteRepository.GetNoteById(permission.GetNote().GetId())
+                    .ifPresent(note -> notes.putIfAbsent(note.GetId(), note));
+        }
+
+        // Notes с доступом через Directory permission
+        for (PermissionAccess permission : userPermissions) {
+            if (permission.GetDirectory() == null) {
+                continue;
+            }
+            directoryRepository.GetDirectoryById(permission.GetDirectory().GetId())
+                    .ifPresent(directory -> {
+                        for (DirectoryNote directoryNote : directoryNoteRepository.GetDirectoriesNotesByDirectoryId(directory.GetId())) {
+                            noteRepository.GetNoteById(directoryNote.GetNote().GetId())
+                                    .ifPresent(note -> notes.putIfAbsent(note.GetId(), note));
+                        }
+                    });
+        }
+
+        return notes.values().stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -57,9 +93,6 @@ public class NoteService implements INoteService {
         User owner = userRepository.GetUserById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Note(id, title, content, createDate, noteType, isFavourite, owner) сама проставляет
-        // updatedAt = createDate, deletedAt = null; version = null, что для JPA (@Version)
-        // означает "новая сущность" — Hibernate выставит version = 0 при первом сохранении.
         Note note = new Note(
                 UUID.randomUUID(),
                 request.title(),
@@ -81,10 +114,6 @@ public class NoteService implements INoteService {
 
         boolean isChanging = request.title() != null || request.content() != null;
 
-        // Перед применением изменений сохраняем текущее (ещё не изменённое) состояние
-        // как NoteRevision — простая история изменений без conflict resolution.
-        // Редактировать заметку сейчас может только её владелец (ownership проверяется
-        // в Controller до вызова этого метода), поэтому createdBy = текущий owner заметки.
         if (isChanging) {
             NoteRevision revision = new NoteRevision(
                     UUID.randomUUID(),
@@ -98,8 +127,6 @@ public class NoteService implements INoteService {
             noteRevisionRepository.SaveRevision(revision);
         }
 
-        // note.ChangeTitle/ChangeContent сами обновляют updatedAt; createDate и owner не трогаем.
-        // version обновит Hibernate через @Version при сохранении (optimistic locking).
         if (request.title() != null) {
             note.ChangeTitle(request.title());
         }
@@ -124,9 +151,6 @@ public class NoteService implements INoteService {
     @Override
     @Transactional
     public void DeleteNoteById(UUID id) {
-        // Soft delete: заметка остаётся в БД с проставленным deleted_at, чтобы другие
-        // устройства могли узнать об удалении во время будущей синхронизации.
-        // Физическое удаление (INoteRepository.DeleteNoteById) больше здесь не используется.
         Note note = noteRepository.GetNoteById(id)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
@@ -135,11 +159,6 @@ public class NoteService implements INoteService {
         noteRepository.SaveNote(note);
     }
 
-    // content хранится в Note/NoteEntity как обычный Java String, но колонка в PostgreSQL —
-    // JSONB. Поэтому на границе API (Contracts) content — это Object (обычная Java-структура:
-    // Map/List/String/число/null — как Jackson нативно разбирает любой JSON), а внутри
-    // Domain/Entity остаётся String с валидным JSON-текстом. Это позволяет не трогать
-    // Entity/Mapper/Repository — конвертация целиком на границе Service.
     private String writeContent(Object content) {
         if (content == null) {
             return null;

@@ -19,6 +19,8 @@ public interface PermissionAccessAdapterJPA extends JpaRepository<PermissionAcce
 
     List<PermissionAccessEntity> findByDirectory_Id(UUID directoryId);
 
+    List<PermissionAccessEntity> findByUserGranted_Id(UUID userId);
+
     void deleteByNote_Id(UUID noteId);
 
     void deleteByDirectory_Id(UUID directoryId);

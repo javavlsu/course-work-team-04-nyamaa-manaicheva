@@ -15,7 +15,9 @@ public interface IPermissionAccessRepository {
 
     List<PermissionAccess> GetPermissionAccessesByNoteId(UUID noteId);
     List<PermissionAccess> GetPermissionAccessesByDirectoryId(UUID directoryId);
-    
+
+    List<PermissionAccess> GetPermissionAccessesByUserId(UUID userId);
+
     Optional<PermissionAccess> GetPermissionAccessById(UUID id);
     PermissionAccess SavePermissionAccess(PermissionAccess permissionAccess);
     void DeletePermissionAccessById(UUID id);

@@ -5,13 +5,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.rps.notesbook.API.Contracts.DirectoryContracts;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IPermissionAccessRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IDirectoryService;
 import ru.rps.notesbook.Domain.Models.Directory;
+import ru.rps.notesbook.Domain.Models.PermissionAccess;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -20,11 +24,28 @@ public class DirectoryService implements IDirectoryService {
 
     private final IDirectoryRepository directoryRepository;
     private final IUserRepository userRepository;
+    private final IPermissionAccessRepository permissionAccessRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId) {
-        return directoryRepository.GetDirectoriesByOwnerId(ownerId).stream()
+        Map<UUID, Directory> directories = new LinkedHashMap<>();
+
+        // Собственные Directories
+        for (Directory directory : directoryRepository.GetDirectoriesByOwnerId(ownerId)) {
+            directories.putIfAbsent(directory.GetId(), directory);
+        }
+
+        // Directories доступные по PermissionAccess
+        for (PermissionAccess permission : permissionAccessRepository.GetPermissionAccessesByUserId(ownerId)) {
+            if (permission.GetDirectory() == null) {
+                continue;
+            }
+            directoryRepository.GetDirectoryById(permission.GetDirectory().GetId())
+                    .ifPresent(directory -> directories.putIfAbsent(directory.GetId(), directory));
+        }
+
+        return directories.values().stream()
                 .map(DirectoryService::toResponse)
                 .toList();
     }

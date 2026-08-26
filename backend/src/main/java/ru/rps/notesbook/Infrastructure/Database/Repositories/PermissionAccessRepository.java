@@ -54,6 +54,15 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     }
 
     @Override
+    public List<PermissionAccess> GetPermissionAccessesByUserId(UUID userId)
+    {
+        return permissionAccessAdapterJPA.findByUserGranted_Id(userId)
+                .stream()
+                .map(permissionAccessMapper::ToDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<PermissionAccess> GetPermissionAccessById(UUID id)
     {
         return permissionAccessAdapterJPA.findById(id).map(permissionAccessMapper::ToDomain);
@@ -86,4 +95,5 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     {
         permissionAccessAdapterJPA.deleteByDirectory_Id(directoryId);
     }
+
 }
