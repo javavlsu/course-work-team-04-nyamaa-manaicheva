@@ -1,8 +1,10 @@
 package ru.rps.notesbook.Domain.Services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.DirectoryContracts;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IPermissionAccessRepository;
@@ -79,6 +81,12 @@ public class DirectoryService implements IDirectoryService {
         Directory directory = directoryRepository.GetDirectoryById(id)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
 
+        // Optimistic-locking фундамент для будущего Sync (Stage 7.0), аналогично Note.
+        if (request.expectedVersion() != null && !request.expectedVersion().equals(directory.GetVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Resource was modified by another client (currentVersion=" + directory.GetVersion() + ")");
+        }
+
         if (request.title() != null) {
             directory.ChangeTitle(request.title());
         }
@@ -102,7 +110,10 @@ public class DirectoryService implements IDirectoryService {
                 d.GetId(),
                 d.GetTitle(),
                 d.GetCreatedDate(),
-                d.GetOwner().GetId()
+                d.GetOwner().GetId(),
+                d.GetUpdatedAt(),
+                d.GetDeletedAt(),
+                d.GetVersion()
         );
     }
     

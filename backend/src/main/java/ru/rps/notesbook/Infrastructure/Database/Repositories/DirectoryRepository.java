@@ -9,6 +9,7 @@ import ru.rps.notesbook.Infrastructure.Database.Adapters.DirectoryAdapterJPA;
 import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryEntity;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.DirectoryMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,6 +52,15 @@ public class DirectoryRepository implements IDirectoryRepository {
     public void DeleteDirectoryById(UUID id)
     {
         directoryAdapterJPA.deleteById(id);
+    }
+
+    @Override
+    public List<Directory> GetDirectoriesUpdatedAfter(LocalDateTime timestamp)
+    {
+        return directoryAdapterJPA.findByUpdatedAtAfter(timestamp)
+                .stream()
+                .map(directoryMapper::ToDomain)
+                .toList();
     }
 
 }

@@ -112,6 +112,13 @@ public class NoteService implements INoteService {
         Note note = noteRepository.GetNoteById(id)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
+        // Optimistic-locking фундамент для будущего Sync (Stage 7.0). expectedVersion необязателен -
+        // старые клиенты, которые его не передают, продолжают работать как раньше.
+        if (request.expectedVersion() != null && !request.expectedVersion().equals(note.GetVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Resource was modified by another client (currentVersion=" + note.GetVersion() + ")");
+        }
+
         boolean isChanging = request.title() != null || request.content() != null;
 
         if (isChanging) {

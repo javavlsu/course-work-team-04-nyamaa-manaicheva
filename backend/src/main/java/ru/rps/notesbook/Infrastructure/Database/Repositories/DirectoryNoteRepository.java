@@ -9,6 +9,7 @@ import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteEntity;
 import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteId;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.DirectoryNoteMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,6 +70,15 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     public void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
     {
         directoryNoteAdapterJPA.deleteById(new DirectoryNoteId(noteId, directoryId));
+    }
+
+    @Override
+    public List<DirectoryNote> GetDirectoryNotesAddedAfter(LocalDateTime timestamp)
+    {
+        return directoryNoteAdapterJPA.findByAddedAtAfter(timestamp)
+                .stream()
+                .map(directoryNoteMapper::ToDomain)
+                .toList();
     }
 
 }

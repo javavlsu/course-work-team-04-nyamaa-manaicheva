@@ -78,10 +78,13 @@ public class Note {
 
     // Простые методы soft delete на будущее
     public void MarkDeleted() {
-        this.deletedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.deletedAt = now;
+        this.updatedAt = now;
     }
     public void Restore() {
         this.deletedAt = null;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void ValidateTitle(String title) {
