@@ -44,4 +44,5 @@ public class NoteTag {
             throw new IllegalArgumentException("tag can't be null");
         }
     }
+    
 }

@@ -36,4 +36,5 @@ public class NoteTagMapper {
                 noteTag.GetAddedAt()
         );
     }
+    
 }

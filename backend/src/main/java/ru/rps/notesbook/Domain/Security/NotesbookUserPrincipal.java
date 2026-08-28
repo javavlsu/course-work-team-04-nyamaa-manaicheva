@@ -6,10 +6,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.UUID;
 
-/**
- * Принципал после form/session-login: сессия уходит клиенту cookie {@code JSESSIONID} автоматически.
- * Так вы получаете {@link #getUserId()} в контроллере, а не общий Spring {@code User} без id.
- */
 public final class NotesbookUserPrincipal implements UserDetails {
 
     private final UUID userId;
@@ -67,4 +63,5 @@ public final class NotesbookUserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }

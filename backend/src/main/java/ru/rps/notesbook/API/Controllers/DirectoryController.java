@@ -61,7 +61,6 @@ public class DirectoryController {
             @RequestBody DirectoryContracts.UpdateDirectoryRequest request
     ) {
         UUID ownerId = requireUserId(principal);
-        // Изменение структуры Directory остаётся owner-only.
         DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
         requireOwnership(directory, ownerId);
 
@@ -97,7 +96,6 @@ public class DirectoryController {
             @PathVariable UUID noteId
     ) {
         UUID ownerId = requireUserId(principal);
-        // Добавление/удаление Note в/из Directory остаётся owner-only (изменение структуры).
         DirectoryContracts.DirectoryResponse directory = directoryService.GetDirectoryById(id);
         requireOwnership(directory, ownerId);
         NoteContracts.NoteResponse note = noteService.GetNoteById(noteId);
@@ -144,4 +142,5 @@ public class DirectoryController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }
+
 }

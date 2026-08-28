@@ -41,7 +41,9 @@ public class AttachmentService implements IAttachmentService {
 
     @Override
     @Transactional
-    public AttachmentContracts.AttachmentResponse CreateAttachment(UUID noteId, UUID createdById, AttachmentContracts.CreateAttachmentRequest request) {
+    public AttachmentContracts.AttachmentResponse CreateAttachment(
+        UUID noteId, UUID createdById, AttachmentContracts.CreateAttachmentRequest request
+    ) {
         Note note = noteRepository.GetNoteById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
         User createdBy = userRepository.GetUserById(createdById)

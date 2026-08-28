@@ -9,7 +9,10 @@ public final class DirectoryContracts {
             UUID id,
             String title,
             LocalDateTime createdDate,
-            UUID ownerId
+            UUID ownerId,
+            LocalDateTime updatedAt,
+            LocalDateTime deletedAt,
+            Long version
     ) {}
 
     public record DirectorySummaryResponse(
@@ -19,8 +22,10 @@ public final class DirectoryContracts {
 
     public record CreateDirectoryRequest(String title) {}
 
+    // expectedVersion optional (not required)
     public record UpdateDirectoryRequest(
-            String title
+            String title,
+            Long expectedVersion
     ) {}
-}
 
+}

@@ -51,12 +51,15 @@ public class Directory {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Простые методы soft delete на будущее
+    // Простые методы soft delete
     public void MarkDeleted() {
-        this.deletedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.deletedAt = now;
+        this.updatedAt = now;
     }
     public void Restore() {
         this.deletedAt = null;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void ValidateTitle(String title) {
@@ -72,4 +75,5 @@ public class Directory {
             throw new IllegalArgumentException("owner can't be null");
         }
     }
+    
 }

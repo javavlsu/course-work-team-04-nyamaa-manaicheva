@@ -1,5 +1,6 @@
 package ru.rps.notesbook.API.Contracts;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public final class DirectoryNoteContracts {
@@ -13,5 +14,12 @@ public final class DirectoryNoteContracts {
             UUID noteId,
             UUID directoryId
     ) {}
-}
 
+    // contract for sync
+    public record DirectoryNoteSyncResponse(
+            UUID noteId,
+            UUID directoryId,
+            LocalDateTime addedAt
+    ) {}
+
+}

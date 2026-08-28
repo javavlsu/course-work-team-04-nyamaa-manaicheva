@@ -25,4 +25,5 @@ public class HomeController {
                 "username", user != null ? user.getUsername() : null
         );
     }
+
 }

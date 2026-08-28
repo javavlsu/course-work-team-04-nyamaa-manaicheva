@@ -34,11 +34,9 @@ public class PermissionAccessService implements IPermissionAccessService {
     private final IDirectoryNoteRepository directoryNoteRepository;
     private final IUserRepository userRepository;
 
-    // Простой внутренний уровень доступа. Не отдельная "permission hierarchy" -
-    // только для сравнения View/Edit/None внутри этого сервиса.
     private enum AccessLevel { NONE, VIEW, EDIT }
 
-    // ===================== canView/canEdit =====================
+    // canView/canEdit
 
     @Override
     @Transactional(readOnly = true)
@@ -68,10 +66,8 @@ public class PermissionAccessService implements IPermissionAccessService {
         return resolveDirectoryAccessLevel(userId, directory) == AccessLevel.EDIT;
     }
 
-    // ===================== Access resolution =====================
+    // Access resolution
 
-    // effective access = max( direct Note permission, permissions через все Directory,
-    // в которых находится Note ). Owner сразу получает EDIT (правило 3).
     private AccessLevel resolveNoteAccessLevel(UUID userId, Note note) {
         if (note.GetOwner().GetId().equals(userId)) {
             return AccessLevel.EDIT;
@@ -87,8 +83,6 @@ public class PermissionAccessService implements IPermissionAccessService {
 
         List<DirectoryNote> directoryNotes = directoryNoteRepository.GetDirectoriesNotesByNoteId(note.GetId());
         for (DirectoryNote directoryNote : directoryNotes) {
-            // Правило 7: soft-deleted Directory не должна учитываться - перепроверяем
-            // через репозиторий, который уже фильтрует deleted_at.
             Optional<Directory> activeDirectory = directoryRepository.GetDirectoryById(directoryNote.GetDirectory().GetId());
             if (activeDirectory.isEmpty()) {
                 continue;
@@ -105,7 +99,6 @@ public class PermissionAccessService implements IPermissionAccessService {
         return level;
     }
 
-    // effective access = owner ? EDIT : direct permission.
     private AccessLevel resolveDirectoryAccessLevel(UUID userId, Directory directory) {
         if (directory.GetOwner().GetId().equals(userId)) {
             return AccessLevel.EDIT;
@@ -127,7 +120,7 @@ public class PermissionAccessService implements IPermissionAccessService {
         return a.ordinal() >= b.ordinal() ? a : b;
     }
 
-    // ===================== Grant / Update / Revoke / List =====================
+    // Grant / Update / Revoke / List
 
     @Override
     @Transactional
@@ -148,7 +141,6 @@ public class PermissionAccessService implements IPermissionAccessService {
             owner = directory.GetOwner();
         }
 
-        // Только owner ресурса может выдавать permission (правило 5).
         if (!owner.GetId().equals(currentUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Только владелец ресурса может выдавать доступ");
         }
@@ -156,8 +148,7 @@ public class PermissionAccessService implements IPermissionAccessService {
         if (request.userId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId обязателен");
         }
-        // Пользователь не может выдать permission самому себе (правило 6),
-        // и нельзя выдать permission владельцу (он и так имеет полный доступ).
+
         if (request.userId().equals(currentUserId) || request.userId().equals(owner.GetId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя выдать permission владельцу или самому себе");
         }
@@ -171,7 +162,6 @@ public class PermissionAccessService implements IPermissionAccessService {
 
         PermissionAccess saved;
         if (existing.isPresent()) {
-            // Повторный grant = update существующей записи (правило "один effective permission").
             PermissionAccess permission = existing.get();
             permission.ChangePermissionType(request.type());
             saved = permissionAccessRepository.SavePermissionAccess(permission);
@@ -246,7 +236,7 @@ public class PermissionAccessService implements IPermissionAccessService {
                 .toList();
     }
 
-    // ===================== Helpers =====================
+    // Helpers
 
     private Note getActiveNoteOrThrow(UUID noteId) {
         return noteRepository.GetNoteById(noteId)

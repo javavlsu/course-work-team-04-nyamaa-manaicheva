@@ -57,4 +57,5 @@ public class AttachmentRepository implements IAttachmentRepository {
     {
         attachmentAdapterJPA.deleteByNote_Id(noteId);
     }
+
 }

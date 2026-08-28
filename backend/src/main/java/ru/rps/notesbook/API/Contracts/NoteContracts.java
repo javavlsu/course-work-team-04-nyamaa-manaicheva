@@ -34,9 +34,11 @@ public final class NoteContracts {
             boolean isFavourite
     ) {}
 
+    // expectedVersion optional (not required)
     public record UpdateNoteRequest(
             String title,
-            Object content
+            Object content,
+            Long expectedVersion
     ) {}
 
 }

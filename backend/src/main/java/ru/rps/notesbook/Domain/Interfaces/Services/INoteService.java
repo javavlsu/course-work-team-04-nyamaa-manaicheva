@@ -14,10 +14,15 @@ public interface INoteService {
 
     NoteContracts.NoteResponse CreateNote(UUID ownerId, NoteContracts.CreateNoteRequest request);
 
+    // for push sync only with client-generated UUID
+    NoteContracts.NoteResponse CreateNote(UUID id, UUID ownerId, NoteContracts.CreateNoteRequest request);
+
     NoteContracts.NoteResponse UpdateNote(UUID id, NoteContracts.UpdateNoteRequest request);
 
     NoteContracts.NoteResponse favouriteChangeNote(UUID id);
 
     void DeleteNoteById(UUID id);
+
+    void DeleteNoteById(UUID id, Long expectedVersion);
 
 }

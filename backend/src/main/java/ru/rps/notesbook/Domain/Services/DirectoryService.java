@@ -1,8 +1,10 @@
 package ru.rps.notesbook.Domain.Services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.DirectoryContracts;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IPermissionAccessRepository;
@@ -60,11 +62,18 @@ public class DirectoryService implements IDirectoryService {
     @Override
     @Transactional
     public DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, DirectoryContracts.CreateDirectoryRequest request) {
+        return CreateDirectory(UUID.randomUUID(), ownerId, request);
+    }
+
+    // for push sync only with client-generated UUID
+    @Override
+    @Transactional
+    public DirectoryContracts.DirectoryResponse CreateDirectory(UUID id, UUID ownerId, DirectoryContracts.CreateDirectoryRequest request) {
         User owner = userRepository.GetUserById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Directory directory = new Directory(
-                UUID.randomUUID(),
+                id,
                 request.title(),
                 LocalDateTime.now(),
                 owner
@@ -79,6 +88,11 @@ public class DirectoryService implements IDirectoryService {
         Directory directory = directoryRepository.GetDirectoryById(id)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
 
+        if (request.expectedVersion() != null && !request.expectedVersion().equals(directory.GetVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Resource was modified by another client (currentVersion=" + directory.GetVersion() + ")");
+        }
+
         if (request.title() != null) {
             directory.ChangeTitle(request.title());
         }
@@ -89,8 +103,19 @@ public class DirectoryService implements IDirectoryService {
     @Override
     @Transactional
     public void DeleteDirectoryById(UUID id) {
+        DeleteDirectoryById(id, null);
+    }
+
+    @Override
+    @Transactional
+    public void DeleteDirectoryById(UUID id, Long expectedVersion) {
         Directory directory = directoryRepository.GetDirectoryById(id)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
+
+        if (expectedVersion != null && !expectedVersion.equals(directory.GetVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Resource was modified by another client (currentVersion=" + directory.GetVersion() + ")");
+        }
 
         directory.MarkDeleted();
 
@@ -102,7 +127,10 @@ public class DirectoryService implements IDirectoryService {
                 d.GetId(),
                 d.GetTitle(),
                 d.GetCreatedDate(),
-                d.GetOwner().GetId()
+                d.GetOwner().GetId(),
+                d.GetUpdatedAt(),
+                d.GetDeletedAt(),
+                d.GetVersion()
         );
     }
     

@@ -9,6 +9,7 @@ import ru.rps.notesbook.Infrastructure.Database.Adapters.NoteAdapterJPA;
 import ru.rps.notesbook.Infrastructure.Database.Entities.NoteEntity;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.NoteMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +50,15 @@ public class NoteRepository implements INoteRepository {
     public void DeleteNoteById(UUID id)
     {
         noteAdapterJPA.deleteById(id);
+    }
+
+    @Override
+    public List<Note> GetNotesUpdatedAfter(LocalDateTime timestamp)
+    {
+        return noteAdapterJPA.findByUpdatedAtAfter(timestamp)
+                .stream()
+                .map(noteMapper::ToDomain)
+                .toList();
     }
 
 }
