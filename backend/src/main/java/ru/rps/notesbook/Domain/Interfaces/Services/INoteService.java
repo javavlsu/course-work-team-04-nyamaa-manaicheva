@@ -14,10 +14,18 @@ public interface INoteService {
 
     NoteContracts.NoteResponse CreateNote(UUID ownerId, NoteContracts.CreateNoteRequest request);
 
+    // Stage 7.3: Push Sync - создание с client-generated UUID (offline-first). Обычный
+    // CreateNote(ownerId, request) продолжает работать как раньше (генерирует id сам).
+    NoteContracts.NoteResponse CreateNote(UUID id, UUID ownerId, NoteContracts.CreateNoteRequest request);
+
     NoteContracts.NoteResponse UpdateNote(UUID id, NoteContracts.UpdateNoteRequest request);
 
     NoteContracts.NoteResponse favouriteChangeNote(UUID id);
 
     void DeleteNoteById(UUID id);
+
+    // Stage 7.3: Push Sync - удаление с optimistic-lock проверкой. expectedVersion nullable:
+    // null -> поведение как у обычного DeleteNoteById(id) (обратная совместимость).
+    void DeleteNoteById(UUID id, Long expectedVersion);
 
 }
