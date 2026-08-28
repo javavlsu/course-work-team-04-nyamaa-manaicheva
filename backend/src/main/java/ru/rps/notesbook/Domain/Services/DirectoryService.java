@@ -65,8 +65,7 @@ public class DirectoryService implements IDirectoryService {
         return CreateDirectory(UUID.randomUUID(), ownerId, request);
     }
 
-    // Stage 7.3: Push Sync - id приходит от клиента (offline-generated), вместо UUID.randomUUID().
-    // Проверка "такой id уже существует" — ответственность вызывающей стороны (PushService).
+    // for push sync only with client-generated UUID
     @Override
     @Transactional
     public DirectoryContracts.DirectoryResponse CreateDirectory(UUID id, UUID ownerId, DirectoryContracts.CreateDirectoryRequest request) {
@@ -89,7 +88,6 @@ public class DirectoryService implements IDirectoryService {
         Directory directory = directoryRepository.GetDirectoryById(id)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
 
-        // Optimistic-locking фундамент для будущего Sync (Stage 7.0), аналогично Note.
         if (request.expectedVersion() != null && !request.expectedVersion().equals(directory.GetVersion())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Resource was modified by another client (currentVersion=" + directory.GetVersion() + ")");
@@ -108,8 +106,6 @@ public class DirectoryService implements IDirectoryService {
         DeleteDirectoryById(id, null);
     }
 
-    // Stage 7.3: Push Sync - optimistic-lock проверка при удалении, аналогично UpdateDirectory.
-    // expectedVersion == null -> проверка пропускается (обратная совместимость).
     @Override
     @Transactional
     public void DeleteDirectoryById(UUID id, Long expectedVersion) {

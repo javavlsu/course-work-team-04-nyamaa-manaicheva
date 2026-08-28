@@ -14,9 +14,6 @@ import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.UUID;
 
-// Stage 7.2: базовая pull-синхронизация. Доступ к ресурсам вычисляется целиком внутри
-// SyncService - контроллер не делает отдельных ownership/permission проверок для каждой
-// сущности (в отличие от NoteController/DirectoryController), это часть самого алгоритма Sync.
 @RestController
 @RequestMapping("/api/sync")
 @RequiredArgsConstructor
@@ -40,4 +37,3 @@ public class SyncController {
         return principal.getUserId();
     }
 
-}

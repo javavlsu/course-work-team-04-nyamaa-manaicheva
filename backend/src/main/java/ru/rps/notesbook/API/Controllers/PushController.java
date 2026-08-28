@@ -14,9 +14,6 @@ import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
 import java.util.UUID;
 
-// Stage 7.3: Push Sync (CLIENT -> SERVER). Доступ к каждому ресурсу проверяется целиком
-// внутри PushService (по аналогии с SyncController/SyncService для Pull Sync) - контроллер
-// не делает отдельных ownership/permission проверок.
 @RestController
 @RequestMapping("/api/sync/push")
 @RequiredArgsConstructor

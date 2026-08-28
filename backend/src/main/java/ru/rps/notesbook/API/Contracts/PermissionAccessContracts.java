@@ -24,5 +24,5 @@ public final class PermissionAccessContracts {
     public record UpdatePermissionAccessRequest(
             PermissionTypeEnum type
     ) {}
-}
 
+}

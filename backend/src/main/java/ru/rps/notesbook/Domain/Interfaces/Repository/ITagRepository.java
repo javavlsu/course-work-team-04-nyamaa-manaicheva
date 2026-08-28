@@ -9,8 +9,10 @@ import java.util.UUID;
 
 @Repository
 public interface ITagRepository {
+
     List<Tag> GetTagsByOwnerId(UUID ownerId);
     Optional<Tag> GetTagById(UUID id);
     Tag SaveTag(Tag tag);
     void DeleteTagById(UUID id);
+    
 }

@@ -15,12 +15,11 @@ public final class DirectoryNoteContracts {
             UUID directoryId
     ) {}
 
-    // Stage 7.1: отдельный DTO для sync - в отличие от DirectoryNoteResponse несёт addedAt,
-    // чтобы клиент мог определить момент добавления связи Note-Directory.
+    // contract for sync
     public record DirectoryNoteSyncResponse(
             UUID noteId,
             UUID directoryId,
             LocalDateTime addedAt
     ) {}
-}
 
+}

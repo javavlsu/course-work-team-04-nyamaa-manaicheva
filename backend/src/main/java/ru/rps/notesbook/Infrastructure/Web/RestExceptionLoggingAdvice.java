@@ -19,10 +19,6 @@ import java.util.stream.Collectors;
 import org.springframework.core.Ordered;
 import org.springframework.validation.FieldError;
 
-/**
- * Пишет в лог причину ошибки со стектрейсом (файл notesbook-error.log для ERROR),
- * чтобы проще находить источник ответов 5xx.
- */
 @RestControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class RestExceptionLoggingAdvice {
@@ -76,4 +72,5 @@ public class RestExceptionLoggingAdvice {
                 "message", Optional.ofNullable(ex.getMessage()).orElse(ex.getClass().getSimpleName())
         ));
     }
+
 }

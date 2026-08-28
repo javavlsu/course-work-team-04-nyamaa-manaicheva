@@ -18,9 +18,6 @@ public interface IDirectoryNoteRepository {
     void DeleteDirectoryNoteByNoteId(UUID noteId);
     void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId);
 
-    // Stage 7.1: для pull-синхронизации. V1-ограничение: отслеживается только добавление связи
-    // (addedAt); физическое удаление DirectoryNote не оставляет следа, поэтому удаление связи
-    // через sync пока не отслеживается.
     List<DirectoryNote> GetDirectoryNotesAddedAfter(LocalDateTime timestamp);
 
 }

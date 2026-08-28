@@ -60,4 +60,5 @@ public class NoteRevision {
             throw new IllegalArgumentException("created by can't be null");
         }
     }
+    
 }

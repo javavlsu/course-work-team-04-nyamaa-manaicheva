@@ -10,11 +10,12 @@ import java.util.UUID;
 
 @Repository
 public interface IDirectoryRepository {
+
     List<Directory> GetDirectoriesByOwnerId(UUID ownerId);
     Optional<Directory> GetDirectoryById(UUID id);
     Directory SaveDirectory(Directory directory);
     void DeleteDirectoryById(UUID id);
 
-    // Stage 7.1: для pull-синхронизации. Soft-deleted Directory также должна попадать в результат.
     List<Directory> GetDirectoriesUpdatedAfter(LocalDateTime timestamp);
+
 }

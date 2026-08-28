@@ -9,9 +9,11 @@ import java.util.UUID;
 
 @Repository
 public interface IUserRepository{
+
     List<User> GetUsers();
     Optional<User> GetUserById(UUID id);
     Optional<User> GetUserByEmail(String email);
     User SaveUser(User user);
     void DeleteUserById(UUID id);
+    
 }

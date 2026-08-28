@@ -46,7 +46,7 @@ public class Comment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Простые методы soft delete на будущее
+    // Простые методы soft delete
     public void MarkDeleted() {
         this.deletedAt = LocalDateTime.now();
     }
@@ -69,4 +69,5 @@ public class Comment {
             throw new IllegalArgumentException("content can't be null or empty");
         }
     }
+
 }

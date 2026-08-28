@@ -18,7 +18,6 @@ public interface DirectoryAdapterJPA extends JpaRepository<DirectoryEntity, UUID
 
     Optional<DirectoryEntity> findByIdAndDeletedAtIsNull(UUID id);
 
-    // Stage 7.1: sync. Без filter по deletedAt - soft-deleted Directory должна попадать в результат.
     List<DirectoryEntity> findByUpdatedAtAfter(LocalDateTime timestamp);
 
 }

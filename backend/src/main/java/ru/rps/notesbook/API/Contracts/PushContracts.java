@@ -5,10 +5,6 @@ import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 import java.util.List;
 import java.util.UUID;
 
-// Stage 7.3: минимальные DTO для Push Sync (CLIENT -> SERVER).
-// Пул поддерживаемых операций - CREATE/UPDATE/DELETE для Note и Directory.
-// DirectoryNote в Push НЕ включён (см. Stage 7.3 audit) - используются существующие
-// POST/DELETE /api/directories/{id}/notes/{noteId}.
 public final class PushContracts {
 
     public enum PushOperationType { CREATE, UPDATE, DELETE }
@@ -17,10 +13,9 @@ public final class PushContracts {
 
     public enum PushResourceType { NOTE, DIRECTORY }
 
-    // Одна операция над Note. Поля title/content/noteType/isFavourite используются только
-    // для CREATE/UPDATE (для DELETE игнорируются). expectedVersion используется для
-    // UPDATE и DELETE; null означает "не проверять версию" (см. NoteService.UpdateNote/
-    // DeleteNoteById). Для CREATE id - client-generated UUID.
+    // title/content/noteType/isFavourite only for CREATE/UPDATE
+    // expectedVersion only for UPDATE/DELETE (null – ignore)
+    // for CREATE operation – client-generated UUID
     public record NotePushOperation(
             PushOperationType op,
             UUID id,
@@ -31,7 +26,9 @@ public final class PushContracts {
             Long expectedVersion
     ) {}
 
-    // Аналогично NotePushOperation, но для Directory (без content/noteType/isFavourite).
+    // title only for CREATE/UPDATE
+    // expectedVersion only for UPDATE/DELETE (null – ignore)
+    // for CREATE operation – client-generated UUID
     public record DirectoryPushOperation(
             PushOperationType op,
             UUID id,
@@ -44,8 +41,8 @@ public final class PushContracts {
             List<DirectoryPushOperation> directories
     ) {}
 
-    // Результат одной операции. currentVersion заполняется только при status == CONFLICT
-    // и только если версия ресурса известна на момент ответа.
+    // Only one operation result
+    // currentVersion is filled only when status == CONFLICT
     public record PushOperationResult(
             PushResourceType resourceType,
             UUID id,

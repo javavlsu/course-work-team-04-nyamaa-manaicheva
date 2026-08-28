@@ -33,4 +33,5 @@ public class NotesbookUserDetailsService implements UserDetailsService {
                 authorities
         );
     }
+
 }

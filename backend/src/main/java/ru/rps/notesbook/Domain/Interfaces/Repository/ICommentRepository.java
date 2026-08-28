@@ -9,9 +9,11 @@ import java.util.UUID;
 
 @Repository
 public interface ICommentRepository {
+
     List<Comment> GetCommentsByNoteId(UUID noteId);
     Optional<Comment> GetCommentById(UUID id);
     Comment SaveComment(Comment comment);
     void DeleteCommentById(UUID id);
     void DeleteCommentsByNoteId(UUID noteId);
+    
 }

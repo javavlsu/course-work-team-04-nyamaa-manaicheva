@@ -22,18 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-// Stage 7.3: Push Sync (CLIENT -> SERVER). Тонкий оркестратор поверх существующих
-// INoteService/IDirectoryService/IPermissionAccessService - никакой новой бизнес-логики
-// доступа здесь не заводится, permission-правила переиспользуются как есть (Stage 5/6).
-//
-// ВАЖНО: этот класс НЕ помечен @Transactional целиком. Каждая вызываемая операция
-// (NoteService.CreateNote/UpdateNote/DeleteNoteById, DirectoryService.*) уже сама
-// @Transactional - значит каждая push-операция коммитится/откатывается независимо,
-// без единой all-or-nothing транзакции на весь batch (см. Stage 7.3 approved plan, п.5).
-//
-// Push mutations работают только с активными ресурсами: GetNoteById/GetDirectoryById
-// (через которые здесь проверяется существование и владелец) уже фильтруют soft-deleted
-// записи на уровне repository - отдельно исключать deleted ресурсы не требуется.
 @Service
 @RequiredArgsConstructor
 public class PushService implements IPushService {
@@ -60,7 +48,7 @@ public class PushService implements IPushService {
         return new PushResponse(results);
     }
 
-    // ===================== Note =====================
+    // Note
 
     private PushOperationResult applyNoteOperation(UUID userId, NotePushOperation op) {
         try {
@@ -88,7 +76,6 @@ public class PushService implements IPushService {
                     "Note с таким id уже существует");
         }
 
-        // ownerId всегда = authenticated userId, никогда не берём владельца из тела запроса.
         NoteContracts.CreateNoteRequest createRequest = new NoteContracts.CreateNoteRequest(
                 op.title(), op.content(), op.noteType(), op.isFavourite()
         );
@@ -104,7 +91,6 @@ public class PushService implements IPushService {
             return new PushOperationResult(PushResourceType.NOTE, op.id(), PushResultStatus.ERROR, null, "Note not found");
         }
 
-        // Note UPDATE: owner или Edit permission (direct/via Directory) - как в NoteController.
         if (!permissionAccessService.canEditNote(userId, op.id())) {
             return new PushOperationResult(PushResourceType.NOTE, op.id(), PushResultStatus.FORBIDDEN, null, null);
         }
@@ -132,8 +118,6 @@ public class PushService implements IPushService {
             return new PushOperationResult(PushResourceType.NOTE, op.id(), PushResultStatus.ERROR, null, "Note not found");
         }
 
-        // Note DELETE: только owner (как в NoteController.deleteNote - requireOwnership,
-        // не requireCanEditNote). Edit permission недостаточно.
         if (!existing.ownerId().equals(userId)) {
             return new PushOperationResult(PushResourceType.NOTE, op.id(), PushResultStatus.FORBIDDEN, null, null);
         }
@@ -150,7 +134,7 @@ public class PushService implements IPushService {
         }
     }
 
-    // ===================== Directory =====================
+    // Directory
 
     private PushOperationResult applyDirectoryOperation(UUID userId, DirectoryPushOperation op) {
         try {
@@ -192,8 +176,6 @@ public class PushService implements IPushService {
             return new PushOperationResult(PushResourceType.DIRECTORY, op.id(), PushResultStatus.ERROR, null, "Directory not found");
         }
 
-        // Directory UPDATE: только owner (как в DirectoryController.updateDirectory) -
-        // Edit permission на Directory сейчас нигде не даёт прав на запись, это не расширяем.
         if (!existing.ownerId().equals(userId)) {
             return new PushOperationResult(PushResourceType.DIRECTORY, op.id(), PushResultStatus.FORBIDDEN, null, null);
         }
@@ -220,7 +202,6 @@ public class PushService implements IPushService {
             return new PushOperationResult(PushResourceType.DIRECTORY, op.id(), PushResultStatus.ERROR, null, "Directory not found");
         }
 
-        // Directory DELETE: только owner (как в DirectoryController.deleteDirectoryById).
         if (!existing.ownerId().equals(userId)) {
             return new PushOperationResult(PushResourceType.DIRECTORY, op.id(), PushResultStatus.FORBIDDEN, null, null);
         }

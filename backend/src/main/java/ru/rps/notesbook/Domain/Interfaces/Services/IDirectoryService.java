@@ -13,16 +13,13 @@ public interface IDirectoryService {
 
     DirectoryContracts.DirectoryResponse CreateDirectory(UUID ownerId, DirectoryContracts.CreateDirectoryRequest request);
 
-    // Stage 7.3: Push Sync - создание с client-generated UUID (offline-first). Обычный
-    // CreateDirectory(ownerId, request) продолжает работать как раньше.
+    // for push sync only with client-generated UUID
     DirectoryContracts.DirectoryResponse CreateDirectory(UUID id, UUID ownerId, DirectoryContracts.CreateDirectoryRequest request);
 
     DirectoryContracts.DirectoryResponse UpdateDirectory(UUID id, DirectoryContracts.UpdateDirectoryRequest request);
 
     void DeleteDirectoryById(UUID id);
 
-    // Stage 7.3: Push Sync - удаление с optimistic-lock проверкой. expectedVersion nullable:
-    // null -> поведение как у обычного DeleteDirectoryById(id) (обратная совместимость).
     void DeleteDirectoryById(UUID id, Long expectedVersion);
 
 }

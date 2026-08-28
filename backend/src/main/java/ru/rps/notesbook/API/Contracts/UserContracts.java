@@ -47,5 +47,5 @@ public final class UserContracts {
             String oldPassword,
             String newPassword
     ) {}
-}
 
+}

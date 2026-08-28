@@ -34,8 +34,7 @@ public final class NoteContracts {
             boolean isFavourite
     ) {}
 
-    // expectedVersion необязателен (null = старый клиент, проверка версии пропускается).
-    // Если передан и отличается от текущей версии Note - сервер возвращает 409 Conflict.
+    // expectedVersion optional (not required)
     public record UpdateNoteRequest(
             String title,
             Object content,

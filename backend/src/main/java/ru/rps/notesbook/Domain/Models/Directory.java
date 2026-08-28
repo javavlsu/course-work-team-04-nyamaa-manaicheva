@@ -51,7 +51,7 @@ public class Directory {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Простые методы soft delete на будущее
+    // Простые методы soft delete
     public void MarkDeleted() {
         LocalDateTime now = LocalDateTime.now();
         this.deletedAt = now;
@@ -75,4 +75,5 @@ public class Directory {
             throw new IllegalArgumentException("owner can't be null");
         }
     }
+    
 }

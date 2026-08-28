@@ -37,4 +37,5 @@ public class NoteRevisionMapper {
                 userMapper.ToEntity(noteRevision.GetCreatedBy())
         );
     }
+    
 }

@@ -9,9 +9,11 @@ import java.util.UUID;
 
 @Repository
 public interface INoteRevisionRepository {
+
     List<NoteRevision> GetRevisionsByNoteId(UUID noteId);
     Optional<NoteRevision> GetRevisionById(UUID id);
     NoteRevision SaveRevision(NoteRevision revision);
     void DeleteRevisionById(UUID id);
     void DeleteRevisionsByNoteId(UUID noteId);
+    
 }

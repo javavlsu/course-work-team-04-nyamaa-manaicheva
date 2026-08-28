@@ -18,7 +18,6 @@ public interface NoteAdapterJPA extends JpaRepository<NoteEntity, UUID> {
 
     Optional<NoteEntity> findByIdAndDeletedAtIsNull(UUID id);
 
-    // Stage 7.1: sync. Без filter по deletedAt - soft-deleted Note должны попадать в результат.
     List<NoteEntity> findByUpdatedAtAfter(LocalDateTime timestamp);
 
 }

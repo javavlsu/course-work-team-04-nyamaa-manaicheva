@@ -20,7 +20,6 @@ public interface DirectoryNoteAdapterJPA extends JpaRepository<DirectoryNoteEnti
 
     void deleteByNote_Id(UUID noteId);
 
-    // Stage 7.1: sync. Отслеживает только добавление связи (удаление не отслеживается - см. IDirectoryNoteRepository).
     List<DirectoryNoteEntity> findByAddedAtAfter(LocalDateTime timestamp);
 
 }

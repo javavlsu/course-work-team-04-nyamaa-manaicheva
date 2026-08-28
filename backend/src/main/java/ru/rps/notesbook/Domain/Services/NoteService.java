@@ -93,9 +93,7 @@ public class NoteService implements INoteService {
         return CreateNote(UUID.randomUUID(), ownerId, request);
     }
 
-    // Stage 7.3: Push Sync - id приходит от клиента (offline-generated), вместо UUID.randomUUID().
-    // Проверка "такой id уже существует" — ответственность вызывающей стороны (PushService),
-    // не этого метода — точно так же, как обычный CreateNote не проверяет дубликаты.
+    // for push sync only with client-generated UUID
     @Override
     @Transactional
     public NoteContracts.NoteResponse CreateNote(UUID id, UUID ownerId, NoteContracts.CreateNoteRequest request) {
@@ -121,8 +119,6 @@ public class NoteService implements INoteService {
         Note note = noteRepository.GetNoteById(id)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
-        // Optimistic-locking фундамент для будущего Sync (Stage 7.0). expectedVersion необязателен -
-        // старые клиенты, которые его не передают, продолжают работать как раньше.
         if (request.expectedVersion() != null && !request.expectedVersion().equals(note.GetVersion())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Resource was modified by another client (currentVersion=" + note.GetVersion() + ")");
@@ -170,8 +166,6 @@ public class NoteService implements INoteService {
         DeleteNoteById(id, null);
     }
 
-    // Stage 7.3: Push Sync - optimistic-lock проверка при удалении, аналогично UpdateNote.
-    // expectedVersion == null -> проверка пропускается (обратная совместимость со старыми клиентами).
     @Override
     @Transactional
     public void DeleteNoteById(UUID id, Long expectedVersion) {
