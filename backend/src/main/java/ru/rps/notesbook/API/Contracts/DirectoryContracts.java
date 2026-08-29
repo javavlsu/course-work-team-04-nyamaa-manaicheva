@@ -1,6 +1,7 @@
 package ru.rps.notesbook.API.Contracts;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public final class DirectoryContracts {
@@ -26,6 +27,14 @@ public final class DirectoryContracts {
     public record UpdateDirectoryRequest(
             String title,
             Long expectedVersion
+    ) {}
+
+    // Infinite Scroll: cursor-based pagination response. nextCursor == null и hasMore == false,
+    // когда данных больше нет.
+    public record DirectoryPageResponse(
+            List<DirectoryResponse> items,
+            String nextCursor,
+            boolean hasMore
     ) {}
 
 }

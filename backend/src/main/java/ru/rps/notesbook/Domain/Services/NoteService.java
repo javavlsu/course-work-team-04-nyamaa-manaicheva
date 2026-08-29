@@ -44,7 +44,9 @@ public class NoteService implements INoteService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NoteContracts.NoteResponse> GetNotesByOwnerId(UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite) {
+    public NoteContracts.NotePageResponse GetNotesByOwnerId(
+            UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor
+    ) {
         Map<UUID, Note> notes = new LinkedHashMap<>();
 
         // Notes
@@ -79,14 +81,31 @@ public class NoteService implements INoteService {
 
         String normalizedSearch = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
 
-        return notes.values().stream()
+        int pageSize = PageCursor.normalizeLimit(limit);
+        PageCursor pageCursor = PageCursor.decodeOrNull(cursor);
+
+        List<Note> page = notes.values().stream()
                 .filter(note -> normalizedSearch == null || note.GetTitle().toLowerCase().contains(normalizedSearch))
                 .filter(note -> noteType == null || note.GetNoteType() == noteType)
                 .filter(note -> isFavourite == null || note.GetIsFavourite() == isFavourite)
                 .sorted(Comparator.comparing(Note::GetUpdatedAt, Comparator.reverseOrder())
                         .thenComparing(Note::GetId, Comparator.reverseOrder()))
-                .map(this::toResponse)
+                .filter(note -> pageCursor == null || pageCursor.isAfter(note.GetUpdatedAt(), note.GetId()))
+                .limit(pageSize + 1)
                 .toList();
+
+        boolean hasMore = page.size() > pageSize;
+        List<Note> pageItems = hasMore ? page.subList(0, pageSize) : page;
+
+        String nextCursor = hasMore
+                ? PageCursor.of(pageItems.get(pageItems.size() - 1).GetUpdatedAt(), pageItems.get(pageItems.size() - 1).GetId()).encode()
+                : null;
+
+        return new NoteContracts.NotePageResponse(
+                pageItems.stream().map(this::toResponse).toList(),
+                nextCursor,
+                hasMore
+        );
     }
 
     @Override

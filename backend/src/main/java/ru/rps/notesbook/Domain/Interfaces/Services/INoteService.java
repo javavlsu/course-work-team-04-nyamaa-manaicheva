@@ -3,16 +3,13 @@ package ru.rps.notesbook.Domain.Interfaces.Services;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface INoteService {
 
-    // search: case-insensitive substring по title. noteType/isFavourite: точное совпадение.
-    // Все параметры опциональны (null = не фильтровать), комбинация = AND.
-    // Фильтрация применяется ПОСЛЕ сборки own + direct permission + via-directory
-    // (см. NoteService) - shared notes не теряются.
-    List<NoteContracts.NoteResponse> GetNotesByOwnerId(UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite);
+    NoteContracts.NotePageResponse GetNotesByOwnerId(
+        UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor
+    );
 
     NoteContracts.NoteResponse GetNoteById(UUID id);
 
