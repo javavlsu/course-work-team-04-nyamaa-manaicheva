@@ -2,6 +2,11 @@ spring:
   application:
     name: notesbook
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
   datasource:
     url: jdbc:postgresql://localhost:5432/notesbook
     username: cursework
@@ -14,6 +19,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+notesbook:
+  storage:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:notesbook-attachments}
 
 logging:
   file:
