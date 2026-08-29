@@ -29,10 +29,11 @@ public class DirectoryController {
 
     @GetMapping
     public List<DirectoryContracts.DirectoryResponse> getDirectories(
-            @AuthenticationPrincipal NotesbookUserPrincipal principal
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @RequestParam(required = false) String search
     ) {
         UUID ownerId = requireUserId(principal);
-        return directoryService.GetDirectoriesByOwnerId(ownerId);
+        return directoryService.GetDirectoriesByOwnerId(ownerId, search);
     }
 
     @GetMapping("/{id}")

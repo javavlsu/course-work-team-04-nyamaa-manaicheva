@@ -15,6 +15,7 @@ import ru.rps.notesbook.Domain.Models.PermissionAccess;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class DirectoryService implements IDirectoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId) {
+    public List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId, String search) {
         Map<UUID, Directory> directories = new LinkedHashMap<>();
 
         // Собственные Directories
@@ -47,7 +48,12 @@ public class DirectoryService implements IDirectoryService {
                     .ifPresent(directory -> directories.putIfAbsent(directory.GetId(), directory));
         }
 
+        String normalizedSearch = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
+
         return directories.values().stream()
+                .filter(directory -> normalizedSearch == null || directory.GetTitle().toLowerCase().contains(normalizedSearch))
+                .sorted(Comparator.comparing(Directory::GetUpdatedAt, Comparator.reverseOrder())
+                        .thenComparing(Directory::GetId, Comparator.reverseOrder()))
                 .map(DirectoryService::toResponse)
                 .toList();
     }
