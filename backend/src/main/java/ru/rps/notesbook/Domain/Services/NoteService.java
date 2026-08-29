@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
+import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryNoteRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
@@ -22,6 +23,7 @@ import ru.rps.notesbook.Domain.Models.PermissionAccess;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,7 @@ public class NoteService implements INoteService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NoteContracts.NoteResponse> GetNotesByOwnerId(UUID ownerId) {
+    public List<NoteContracts.NoteResponse> GetNotesByOwnerId(UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite) {
         Map<UUID, Note> notes = new LinkedHashMap<>();
 
         // Notes
@@ -75,7 +77,14 @@ public class NoteService implements INoteService {
                     });
         }
 
+        String normalizedSearch = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
+
         return notes.values().stream()
+                .filter(note -> normalizedSearch == null || note.GetTitle().toLowerCase().contains(normalizedSearch))
+                .filter(note -> noteType == null || note.GetNoteType() == noteType)
+                .filter(note -> isFavourite == null || note.GetIsFavourite() == isFavourite)
+                .sorted(Comparator.comparing(Note::GetUpdatedAt, Comparator.reverseOrder())
+                        .thenComparing(Note::GetId, Comparator.reverseOrder()))
                 .map(this::toResponse)
                 .toList();
     }

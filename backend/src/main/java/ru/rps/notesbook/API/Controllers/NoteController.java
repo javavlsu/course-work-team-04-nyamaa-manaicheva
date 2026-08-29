@@ -9,6 +9,7 @@ import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.API.Contracts.NoteRevisionContracts;
 import ru.rps.notesbook.API.Contracts.NoteTagContracts;
 import ru.rps.notesbook.API.Contracts.TagContracts;
+import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteRevisionService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteTagService;
@@ -33,9 +34,14 @@ public class NoteController {
     // Note
 
     @GetMapping
-    public List<NoteContracts.NoteResponse> listNotes(@AuthenticationPrincipal NotesbookUserPrincipal principal) {
+    public List<NoteContracts.NoteResponse> listNotes(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) NoteTypeEnum noteType,
+            @RequestParam(required = false) Boolean isFavourite
+    ) {
         UUID ownerId = requireUserId(principal);
-        return noteService.GetNotesByOwnerId(ownerId);
+        return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite);
     }
 
     @GetMapping("/{id}")

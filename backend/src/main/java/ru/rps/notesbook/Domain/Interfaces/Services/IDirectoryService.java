@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface IDirectoryService {
 
-    List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId);
+    List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId, String search);
 
     DirectoryContracts.DirectoryResponse GetDirectoryById(UUID id);
 
