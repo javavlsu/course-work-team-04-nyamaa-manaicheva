@@ -1,38 +1,43 @@
-import { cn } from "@/utils/cn";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
-export const Input = ({
-  label,
-  variant = "filled",
-  error = false,
-  className,
-  required,
-  ...props
-}) => {
-  const baseStyles =
-    "w-full px-[25px] py-[20px] rounded-[var(--rounded-base)] outline-none transition-colors duration-200 text-[20px]";
+import { EyeIcon, EyeOffIcon } from "./icons";
+import "./Input.css";
 
-  const variants = {
-    filled: "bg-light-gray text-dark-gray placeholder:text-dark-gray",
-    outline:
-      "bg-transparent border border-[var(--color-gray)] text-white placeholder:text-gray-400",
-  };
-
-  const errorStyles = error ? "border border-[var(--color-orange)]" : "";
+function Input({ name, label, type, placeholder, autoComplete, validation }) {
+  const { register, formState: { errors } } = useFormContext();
+  const [visible, setVisible] = useState(false);
+  const isPassword = type === "password";
+  const error = errors[name];
 
   return (
-    <div className="flex flex-col gap-2 w-full">
-      {label && (
-        <label className="text-[24px]">
-          {label}
-          {required && <span className="text-[var(--color-orange)] ml-1">*</span>}
-        </label>
-      )}
-
-      <input
-        className={cn(baseStyles, variants[variant], errorStyles, className)}
-        required={required}
-        {...props}
-      />
+    <div className="input-group">
+      <label className="input-label" htmlFor={name}>
+        {label}
+      </label>
+      <div className="input-wrapper">
+        <input
+          id={name}
+          type={isPassword && visible ? "text" : type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className={`input${error ? " input-invalid" : ""}${isPassword ? " input-password" : ""}`}
+          {...register(name, validation)}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="input-toggle"
+            aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
+            onClick={() => setVisible((value) => !value)}
+          >
+            {visible ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        )}
+      </div>
+      {error && <span className="input-error">{error.message}</span>}
     </div>
   );
-};
+}
+
+export default Input;

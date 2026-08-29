@@ -1,21 +1,19 @@
-import { AccountSideMenu } from "@/components/widgets/AccountSideMenu";
-import { AccountHeader } from "@/components/widgets/AccountHeader";
-import { AccountFooter } from "@/components/widgets/AccountFooter";
-import { Note } from "@/components/widgets/Note";
+import Header from "../../components/layout/Header";
+import Footer from "../../components/layout/Footer";
+import Button from "../../components/ui/Button";
 
-export const AccountPage = () => {
+export function AccountPage() {
   return (
-    <div className="min-h-screen w-full">
-      <AccountSideMenu />
-      <div className="min-h-screen flex flex-col pt-[50px]">
-        <AccountHeader />
-
-        <main className="px-[90px] py-[70px] flex-1">
-          <Note />
-        </main>
-
-        <AccountFooter />
-      </div>
-    </div>
+    <>
+      <Header />
+      <main className="page">
+        <section className="page-card">
+          <h1>Личный кабинет</h1>
+          <p>Здесь появятся ваши заметки, задачи и статистика.</p>
+          <Button to="/" variant="secondary">На главную</Button>
+        </section>
+      </main>
+      <Footer />
+    </>
   );
-};
+}
