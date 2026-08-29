@@ -16,11 +16,9 @@ public final class AttachmentContracts {
             UUID createdById
     ) {}
 
-    public record CreateAttachmentRequest(
-            String fileName,
-            String contentType,
-            Long fileSize,
-            String storageKey
+    public record AttachmentDownloadResponse(
+            String url,
+            LocalDateTime expiresAt
     ) {}
 
 }
