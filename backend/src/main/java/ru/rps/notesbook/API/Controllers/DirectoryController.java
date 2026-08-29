@@ -28,12 +28,14 @@ public class DirectoryController {
     private final IPermissionAccessService permissionAccessService;
 
     @GetMapping
-    public List<DirectoryContracts.DirectoryResponse> getDirectories(
+    public DirectoryContracts.DirectoryPageResponse getDirectories(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String cursor
     ) {
         UUID ownerId = requireUserId(principal);
-        return directoryService.GetDirectoriesByOwnerId(ownerId, search);
+        return directoryService.GetDirectoriesByOwnerId(ownerId, search, limit, cursor);
     }
 
     @GetMapping("/{id}")

@@ -31,7 +31,7 @@ public class DirectoryService implements IDirectoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DirectoryContracts.DirectoryResponse> GetDirectoriesByOwnerId(UUID ownerId, String search) {
+    public DirectoryContracts.DirectoryPageResponse GetDirectoriesByOwnerId(UUID ownerId, String search, Integer limit, String cursor) {
         Map<UUID, Directory> directories = new LinkedHashMap<>();
 
         // Собственные Directories
@@ -50,12 +50,29 @@ public class DirectoryService implements IDirectoryService {
 
         String normalizedSearch = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
 
-        return directories.values().stream()
+        int pageSize = PageCursor.normalizeLimit(limit);
+        PageCursor pageCursor = PageCursor.decodeOrNull(cursor);
+
+        List<Directory> page = directories.values().stream()
                 .filter(directory -> normalizedSearch == null || directory.GetTitle().toLowerCase().contains(normalizedSearch))
                 .sorted(Comparator.comparing(Directory::GetUpdatedAt, Comparator.reverseOrder())
                         .thenComparing(Directory::GetId, Comparator.reverseOrder()))
-                .map(DirectoryService::toResponse)
+                .filter(directory -> pageCursor == null || pageCursor.isAfter(directory.GetUpdatedAt(), directory.GetId()))
+                .limit(pageSize + 1)
                 .toList();
+
+        boolean hasMore = page.size() > pageSize;
+        List<Directory> pageItems = hasMore ? page.subList(0, pageSize) : page;
+
+        String nextCursor = hasMore
+                ? PageCursor.of(pageItems.get(pageItems.size() - 1).GetUpdatedAt(), pageItems.get(pageItems.size() - 1).GetId()).encode()
+                : null;
+
+        return new DirectoryContracts.DirectoryPageResponse(
+                pageItems.stream().map(DirectoryService::toResponse).toList(),
+                nextCursor,
+                hasMore
+        );
     }
 
     @Override

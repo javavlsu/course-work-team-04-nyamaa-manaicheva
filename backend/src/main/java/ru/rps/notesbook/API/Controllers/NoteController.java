@@ -34,14 +34,16 @@ public class NoteController {
     // Note
 
     @GetMapping
-    public List<NoteContracts.NoteResponse> listNotes(
+    public NoteContracts.NotePageResponse listNotes(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) NoteTypeEnum noteType,
-            @RequestParam(required = false) Boolean isFavourite
+            @RequestParam(required = false) Boolean isFavourite,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String cursor
     ) {
         UUID ownerId = requireUserId(principal);
-        return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite);
+        return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite, limit, cursor);
     }
 
     @GetMapping("/{id}")
