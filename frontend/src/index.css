@@ -1,120 +1,91 @@
-@import "tailwindcss";
-
 :root {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --fg: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --accent-soft: color-mix(in oklch, var(--accent) 12%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+  --font-display: "Iowan Old Style", "Charter", Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  --font-base: "Montserrat";
-  --font-logo: "Michroma";
+  scrollbar-width: none;
 }
 
-@font-face {
-  font-family: "Michroma";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/Michroma-Regular.ttf") format("truetype");
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/Montserrat-Regular.ttf") format("truetype");
+[data-theme="dark"] {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --fg: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #2a2e3a;
+  --accent: #3b82f6;
+  --accent-soft: color-mix(in oklch, var(--accent) 15%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-@font-face {
-  font-family: "Montserrat";
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/Montserrat-Italic.ttf") format("truetype");
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/Montserrat-SemiBold.ttf") format("truetype");
+.page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
 }
 
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
+.page-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.page-card h1 {
+  font-family: var(--font-display);
+  font-size: 24px;
   font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/Montserrat-Bold.ttf") format("truetype");
+  color: var(--fg);
 }
 
-@theme {
-  --color-light-blue: #0070ff;
-  --color-dark-blue: #202f3d;
-  --color-orange: #fb6a18;
-  --color-gray: #aeaeb2;
-  --color-light-gray: #f2f2f2;
-  --color-dark-gray: #5f5f5f;
-
-  --spacing-5px: calc(var(--spacing) * 1.25);
-  --spacing-10px: calc(var(--spacing) * 2.5);
-  --spacing-15px: calc(var(--spacing) * 3.75);
-  --spacing-20px: calc(var(--spacing) * 5);
-  --spacing-30px: calc(var(--spacing) * 7.5);
-  --spacing-34px: calc(var(--spacing) * 8.5);
-  --spacing-40px: calc(var(--spacing) * 10);
-  --spacing-50px: calc(var(--spacing) * 12.5);
-  --spacing-60px: calc(var(--spacing) * 15);
-  --spacing-70px: calc(var(--spacing) * 17.5);
-  --spacing-80px: calc(var(--spacing) * 20);
-  --spacing-90px: calc(var(--spacing) * 22.5);
-  --spacing-100px: calc(var(--spacing) * 25);
-
-  --rounded-base: 5px;
+.page-card p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
 }
 
-@layer base {
-  html {
-    font-family: var(--font-base);
-  }
-
-  h1 {
-    font-family: var(--font-base);
-    font-weight: 600;
-    font-size: 64px;
-    line-height: 90px;
-    letter-spacing: -0.03em;
-  }
-
-  h2 {
-    font-size: 48px;
-    font-family: var(--font-base);
-  }
-
-  h3 {
-    font-size: 32px;
-    font-family: var(--font-base);
-  }
-
-  p,
-  span {
-    font-size: 20px;
-    line-height: 30px;
-    letter-spacing: -0.03em;
-    font-family: var(--font-base);
-    color: var(--color-gray);
-  }
-
-  .logo {
-    font-family: var(--font-logo);
-    font-size: 40px;
-    letter-spacing: -0.03em;
-    color: black;
-  }
-
-  .shadow-block {
-    box-shadow:
-      0 4px 6px rgba(0, 0, 0, 0.1),
-      0 8px 20px rgba(0, 0, 0, 0.1);
-  }
+.page-card > .btn {
+  width: 100%;
+  justify-content: center;
 }

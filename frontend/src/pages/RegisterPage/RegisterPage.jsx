@@ -1,75 +1,31 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { AuthSection } from "@/components/widgets/AuthSection";
+import AuthLayout from "../../components/layout/AuthLayout";
+import Logo from "../../components/layout/Logo";
 
-export const RegisterPage = () => {
-  const [step, setStep] = useState(1);
-  const navigate = useNavigate();
+import NotesCardIcon from "./icons";
+import RegisterForm from "./RegisterForm";
+import "./RegisterPage.css";
 
+export function RegisterPage() {
   return (
-    <main className="grid grid-cols-[2fr_1fr] min-h-screen">
-      <div className="flex flex-col justify-center items-center">
-        <div className="max-w-[700px] flex flex-col gap-[45px] w-full">
-          <p className="logo text-[48px]">
-            <Link to="/">
-              NotesBook <span className="logo text-[24px] text-orange">v2</span>
-            </Link>
-          </p>
+    <AuthLayout
+      icon={<NotesCardIcon />}
+      title="NotesBook"
+      description="Присоединяйтесь к нам"
+    >
+      <div className="register-box">
+        <Logo />
+        <h1 className="auth-title">Регистрация</h1>
+        <p className="auth-subtitle">Создайте аккаунт и начните работать</p>
 
-          <h2 className="font-semibold">Регистрация</h2>
+        <RegisterForm />
 
-          <div className="flex flex-col gap-6">
-            {step === 1 && (
-              <>
-                <Input type="text" label="Имя" placeholder="Иван" required />
-                <Input type="text" label="Фамилия" placeholder="Иванов" required />
-                <Input type="date" label="Дата рождения" />
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <Input type="email" label="Email" placeholder="example@yandex.ru" required />
-                <Input type="password" label="Пароль" placeholder="password123" required />
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {step === 1 ? (
-              <Button className="h-[75px] w-full" onClick={() => setStep(2)}>
-                Далее
-              </Button>
-            ) : (
-              <>
-                <Button className="h-[70px] w-full" onClick={() => navigate("/account")}>
-                  Зарегистрироваться
-                </Button>
-
-                <Button
-                  variant="outlineOrange"
-                  className="h-[70px] w-full"
-                  onClick={() => setStep(1)}
-                >
-                  Назад
-                </Button>
-              </>
-            )}
-          </div>
-
-          <p className="text-center -mt-[15px]">
-            Уже есть аккаунт?{" "}
-            <Link to="/login" className="text-orange">
-              Войдите!
-            </Link>
-          </p>
-        </div>
+        <p className="auth-footer">
+          Уже есть аккаунт?{" "}
+          <Link to="/login" className="link-accent">Войти</Link>
+        </p>
       </div>
-
-      <AuthSection image="/img/main-img-3.png" />
-    </main>
+    </AuthLayout>
   );
-};
+}

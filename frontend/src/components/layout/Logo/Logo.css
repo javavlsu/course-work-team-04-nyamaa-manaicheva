@@ -1,0 +1,17 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+  text-decoration: none;
+  color: var(--fg);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.logo svg {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}

@@ -1,0 +1,143 @@
+.auth-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-y: auto;
+}
+
+.auth-aside {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in oklch, var(--accent) 60%, #7c3aed) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-aside__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.08) 0%, transparent 60%);
+}
+
+.auth-aside__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #ffffff;
+  padding: 40px;
+  max-width: 320px;
+}
+
+.auth-aside__content svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 24px;
+  opacity: 0.95;
+}
+
+.auth-aside__content h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.auth-aside__content p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-grid {
+  display: flex;
+  gap: 14px;
+}
+
+.form-grid > * {
+  flex: 1;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.link-accent {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-accent:hover {
+  text-decoration: underline;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.form-error {
+  font-size: 13px;
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .auth-aside {
+    display: none;
+  }
+}
