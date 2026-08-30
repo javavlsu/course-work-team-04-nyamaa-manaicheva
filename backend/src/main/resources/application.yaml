@@ -22,7 +22,9 @@ spring:
 
 notesbook:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    # dev: Vite default port 5173, legacy: 3000
+    # production: задаётся через env CORS_ALLOWED_ORIGINS
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   storage:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}

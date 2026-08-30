@@ -14,31 +14,81 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ForbiddenPage } from "./pages/ForbiddenPage";
 import { ServerErrorPage } from "./pages/ServerErrorPage";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute.jsx";
 
 function App() {
   return (
     <Routes>
+      {/* Публичные маршруты */}
       <Route path="/" element={<HomePage />} />
-
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/recover" element={<RecoverPage />} />
 
-      <Route path="/account" element={<AccountPage />} />
-
-      <Route path="/notes">
-        <Route index element={<NotesFeedPage />} />
-        <Route path=":id" element={<NoteEditorPage />} />
-      </Route>
-
-      <Route path="/kanban" element={<KanbanBoardPage />} />
-      <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/analytics" element={<AnalyticsPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-
+      {/* Статичные error-страницы — публичные */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />
+
+      {/* Защищённые маршруты */}
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/notes">
+        <Route
+          index
+          element={
+            <ProtectedRoute>
+              <NotesFeedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path=":id"
+          element={
+            <ProtectedRoute>
+              <NoteEditorPage />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+      <Route
+        path="/kanban"
+        element={
+          <ProtectedRoute>
+            <KanbanBoardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <CalendarPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
