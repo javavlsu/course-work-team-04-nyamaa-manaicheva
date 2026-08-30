@@ -8,10 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,6 +66,48 @@ public class RestExceptionLoggingAdvice {
     ) {
         log.warn("{} {} — malformed JSON: {}", req.getMethod(), req.getRequestURI(), ex.getMessage());
         return ResponseEntity.badRequest().body(Map.of("error", "Malformed JSON"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest req
+    ) {
+        String message = "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'";
+        log.warn("{} {} — {}", req.getMethod(), req.getRequestURI(), message);
+        return ResponseEntity.badRequest().body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> handleMissingParameter(
+            MissingServletRequestParameterException ex,
+            HttpServletRequest req
+    ) {
+        log.warn("{} {} — {}", req.getMethod(), req.getRequestURI(), ex.getMessage());
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<Map<String, String>> handleMissingPart(
+            MissingServletRequestPartException ex,
+            HttpServletRequest req
+    ) {
+        log.warn("{} {} — {}", req.getMethod(), req.getRequestURI(), ex.getMessage());
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex, HttpServletRequest req) {
+        String message = ex.getMessage();
+        if (message != null && message.toLowerCase(Locale.ROOT).contains("not found")) {
+            log.warn("{} {} — {}", req.getMethod(), req.getRequestURI(), message);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", message));
+        }
+        log.error("{} {} — необработанное исключение", req.getMethod(), req.getRequestURI(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Internal Server Error",
+                "message", Optional.ofNullable(message).orElse(ex.getClass().getSimpleName())
+        ));
     }
 
     @ExceptionHandler(Exception.class)
