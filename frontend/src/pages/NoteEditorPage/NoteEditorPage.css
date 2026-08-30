@@ -34,6 +34,126 @@
   --danger: #f87171;
 }
 
+/* ── Loading / Error states (загрузка заметки) ──────────── */
+.editor-loading,
+.editor-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 100px 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.editor-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: editor-spin 0.7s linear infinite;
+}
+
+@keyframes editor-spin {
+  to { transform: rotate(360deg); }
+}
+
+.editor-error p {
+  font-size: 15px;
+  color: var(--fg);
+  max-width: 40ch;
+}
+
+.editor-error-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.editor-error-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.editor-error-actions .btn-secondary {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.editor-error-actions .btn-secondary:hover {
+  background: color-mix(in oklch, var(--fg) 12%, transparent);
+}
+
+/* ── Save banner (успешное сохранение / conflict / ошибка) ───── */
+.editor-save-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 32px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-save-banner span {
+  color: var(--fg);
+}
+
+.editor-save-banner-conflict {
+  background: color-mix(in oklch, var(--star) 12%, transparent);
+}
+
+.editor-save-banner-generic {
+  background: color-mix(in oklch, var(--danger) 10%, transparent);
+}
+
+.editor-save-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.editor-save-banner-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.editor-save-banner-actions .btn-secondary {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.editor-save-banner-actions .btn-secondary:hover {
+  background: var(--fg-soft);
+}
+
+.editor-save-banner-dismiss {
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: color 0.12s;
+}
+
+.editor-save-banner-dismiss:hover {
+  color: var(--fg);
+}
+
 .main {
   flex: 1;
   margin-left: var(--sidebar-w);
@@ -84,6 +204,12 @@
 
 .app .btn:active {
   transform: scale(0.96);
+}
+
+.app .btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
 }
 
 .app .btn-primary {

@@ -118,6 +118,11 @@ export default function EditorTopbar({
   onRemoveShareUser,
   onExport,
   onSave,
+  isSaving = false,
+  justSaved = false,
+  onDelete,
+  isDeleting = false,
+  deleteDisabled = false,
 }) {
   return (
     <div className="editor-topbar">
@@ -155,7 +160,12 @@ export default function EditorTopbar({
           onAdd={onAddShareUser}
           onRemove={onRemoveShareUser}
         />
-        <button className="btn btn-danger" title="Удалить заметку">
+        <button
+          className="btn btn-danger"
+          title="Удалить заметку"
+          onClick={onDelete}
+          disabled={isDeleting || deleteDisabled}
+        >
           <Trash strokeWidth={1.6} />
         </button>
       </div>
@@ -175,9 +185,9 @@ export default function EditorTopbar({
           <Upload strokeWidth={1.6} />
           Экспорт
         </button>
-        <button className="btn btn-primary" onClick={onSave}>
+        <button className="btn btn-primary" onClick={onSave} disabled={isSaving}>
           <SaveIcon />
-          Сохранить
+          {isSaving ? "Сохранение…" : justSaved ? "Сохранено" : "Сохранить"}
         </button>
       </div>
     </div>
