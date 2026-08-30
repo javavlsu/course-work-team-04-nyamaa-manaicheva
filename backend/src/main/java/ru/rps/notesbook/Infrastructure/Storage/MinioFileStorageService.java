@@ -5,6 +5,7 @@ import io.minio.Http;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.rps.notesbook.Domain.Interfaces.Storage.IFileStorageService;
@@ -16,13 +17,16 @@ import java.time.Duration;
 public class MinioFileStorageService implements IFileStorageService {
 
     private final MinioClient minioClient;
+    private final MinioClient presignClient;
     private final String bucket;
 
     public MinioFileStorageService(
-            MinioClient minioClient,
+            @Qualifier("minioClient") MinioClient minioClient,
+            @Qualifier("minioPresignClient") MinioClient presignClient,
             @Value("${notesbook.storage.bucket}") String bucket
     ) {
         this.minioClient = minioClient;
+        this.presignClient = presignClient;
         this.bucket = bucket;
     }
 
@@ -43,7 +47,7 @@ public class MinioFileStorageService implements IFileStorageService {
     @Override
     public String GeneratePresignedDownloadUrl(String storageKey, Duration expiry) {
         try {
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+            return presignClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Http.Method.GET)
                     .bucket(bucket)
                     .object(storageKey)
