@@ -18,6 +18,8 @@ function AppSidebar({
   collapsed,
   onToggle,
   modules = { kanban: true, calendar: true, analytics: true },
+  onSelectAll,
+  onSelectFavorites,
 }) {
   const { currentUser, logout } = useAuth();
   const linkClass = (key) => (active === key ? "sidebar-link active" : "sidebar-link");
@@ -48,12 +50,19 @@ function AppSidebar({
       <div className="sidebar-scroll">
         <div className="sidebar-section">
           <div className="sidebar-section-title">Основные</div>
-          <Link to="/notes" className={linkClass("notes")}>
+          <Link to="/notes" className={linkClass("notes")} onClick={onSelectAll}>
             <LayoutGrid strokeWidth={1.6} />
             <span className="link-label">Все заметки</span>
             {counts.all !== undefined && <span className="count">{counts.all}</span>}
           </Link>
-          <a href="#" className={linkClass("favorites")}>
+          <a
+            href="#"
+            className={linkClass("favorites")}
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectFavorites?.();
+            }}
+          >
             <StarIcon filled={false} />
             <span className="link-label">Избранное</span>
             {counts.favorites !== undefined && (

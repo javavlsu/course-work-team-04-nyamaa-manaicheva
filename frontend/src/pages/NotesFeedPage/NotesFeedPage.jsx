@@ -76,8 +76,35 @@ export function NotesFeedPage() {
   useEffect(() => { foldersHasMoreRef.current = foldersHasMore; }, [foldersHasMore]);
   useEffect(() => { isFoldersLoadingMoreRef.current = isFoldersLoadingMore; }, [isFoldersLoadingMore]);
 
-  // --- Search (UI уже есть, к backend подключим в Stage 5) ---
+  // --- Search: input value + debounced value, отправляемая в backend ---
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearchRef = useRef("");
+
+  useEffect(() => { debouncedSearchRef.current = debouncedSearch; }, [debouncedSearch]);
+
+  // Debounce ~350мс: обновляем debouncedSearch только после паузы в наборе,
+  // чтобы не делать запрос на каждое нажатие клавиши.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+
+  // search применяется только для источника "all" (GET /api/notes его поддерживает).
+  // Когда выбрана конкретная директория, effectiveSearchKey остаётся пустым —
+  // это предотвращает лишние перезагрузки directory-notes при наборе текста в поиске.
+  const effectiveSearchKey = activeFolder === "all" ? debouncedSearch : "";
+
+  // --- Фильтр по isFavourite: undefined — все заметки, true — только избранные, false — только неизбранные ---
+  const [isFavouriteFilter, setIsFavouriteFilter] = useState(undefined);
+  const isFavouriteFilterRef = useRef(undefined);
+  useEffect(() => { isFavouriteFilterRef.current = isFavouriteFilter; }, [isFavouriteFilter]);
+
+  // Тот же принцип, что и effectiveSearchKey: isFavourite применяется только для "all",
+  // directory-notes endpoint этот параметр не поддерживает.
+  const effectiveFavouriteKey = activeFolder === "all" ? isFavouriteFilter : undefined;
 
   /**
    * Загружает одну страницу заметок для текущего источника (activeFolderRef):
@@ -101,7 +128,9 @@ export function NotesFeedPage() {
     const source = activeFolderRef.current;
 
     if (source === "all") {
-      return notesApi.list({ limit: PAGE_LIMIT, cursor });
+      const search = debouncedSearchRef.current || undefined;
+      const isFavourite = isFavouriteFilterRef.current;
+      return notesApi.list({ limit: PAGE_LIMIT, cursor, search, isFavourite });
     }
 
     // Directory-scoped: cursor игнорируется, т.к. backend его не поддерживает.
@@ -143,7 +172,7 @@ export function NotesFeedPage() {
 
     loadFirstPage();
     return () => { cancelled = true; };
-  }, [activeFolder, fetchNotesPage]);
+  }, [activeFolder, effectiveSearchKey, effectiveFavouriteKey, fetchNotesPage]);
 
   // Загрузка первой страницы директорий при монтировании
   useEffect(() => {
@@ -329,11 +358,25 @@ export function NotesFeedPage() {
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    // TODO Stage 5: запрос к API с search param + сброс cursor/hasMore/notes
+    // Фактический fetch/сброс notes произойдёт после debounce (см. эффект выше),
+    // когда изменится debouncedSearch/effectiveSearchKey.
   };
 
   const addFolder = () => {
     // TODO Stage 3D: POST /api/directories — создание пока не реализовано
+  };
+
+  // Клик по "Все заметки" в sidebar — полный сброс к дефолтному виду списка.
+  const handleSelectAll = () => {
+    setIsFavouriteFilter(undefined);
+    setActiveFolder("all");
+  };
+
+  // Клик по "Избранное" в sidebar — глобальный фильтр, не привязан к конкретной директории,
+  // поэтому также сбрасывает выбор папки на "all".
+  const handleSelectFavorites = () => {
+    setActiveFolder("all");
+    setIsFavouriteFilter(true);
   };
 
   // Counts для sidebar: всего и избранных (в рамках текущего загруженного источника)
@@ -345,10 +388,12 @@ export function NotesFeedPage() {
   return (
     <div className="app">
       <AppSidebar
-        active="notes"
+        active={isFavouriteFilter === true ? "favorites" : "notes"}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         counts={{ all: notes.length, favorites: favoritesCount }}
+        onSelectAll={handleSelectAll}
+        onSelectFavorites={handleSelectFavorites}
       />
       <div className="main">
         <Topbar count={notes.length} pluralRu={pluralRu} />
