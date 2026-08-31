@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Download, Paperclip, Trash2 } from "lucide-react";
 
 import * as notesApi from "../../api/notes.js";
 import * as commentsApi from "../../api/comments.js";
+import * as attachmentsApi from "../../api/attachments.js";
 import AppSidebar from "../../components/layout/AppSidebar";
 import { useAuth } from "../../context/AuthContext.jsx";
 import EditorTopbar from "./EditorTopbar";
@@ -108,6 +110,14 @@ export function NoteEditorPage() {
   const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [commentDeleteError, setCommentDeleteError] = useState(null);
 
+  // --- Attachments: POST /api/notes/:id/attachments ---
+  const [attachments, setAttachments] = useState([]);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+  const [attachmentError, setAttachmentError] = useState(null);
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState(null);
+  const [attachmentDownloadError, setAttachmentDownloadError] = useState(null);
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState(null);
+
   const [title, setTitle] = useState(isNew ? blankNote.title : "");
   const [content, setContent] = useState(isNew ? blankNote.content : "");
   const [favorited, setFavorited] = useState(false);
@@ -160,6 +170,22 @@ export function NoteEditorPage() {
     }
   }, [id, isNew]);
 
+  /**
+   * Загружает список attachments заметки. Недоступно для "new" (заметки ещё не существует на backend).
+   * Ошибка переиспользует уже существующий attachmentError/баннер, отдельного loading не вводим —
+   * список просто появляется, когда готов.
+   */
+  const loadAttachments = useCallback(async () => {
+    if (isNew) return;
+
+    try {
+      const data = await attachmentsApi.list(id);
+      setAttachments(data ?? []);
+    } catch (err) {
+      setAttachmentError(err.message || "Не удалось загрузить вложения");
+    }
+  }, [id, isNew]);
+
   // Загрузка заметки при монтировании / смене id.
   // "new" — заметки ещё не существует на backend, используем blankNote локально.
   useEffect(() => {
@@ -189,9 +215,17 @@ export function NoteEditorPage() {
         setCreatedAtRaw(data.createDate ?? null);
         setUpdatedAtRaw(data.updatedAt ?? null);
 
-        // Комментарии грузим только после успешной загрузки заметки,
-        // у них своё независимое loading/error состояние, не блокирует рендер редактора.
-        if (!cancelled) loadComments();
+        // Сбрасываем attachments при смене заметки перед загрузкой актуального списка.
+        setAttachments([]);
+        setAttachmentError(null);
+        setAttachmentDownloadError(null);
+
+        // Комментарии и attachments грузим только после успешной загрузки заметки,
+        // у них своё независимое loading/error состояние, не блокируют рендер редактора.
+        if (!cancelled) {
+          loadComments();
+          loadAttachments();
+        }
       } catch (err) {
         if (cancelled) return;
         if (err.status === 404) {
@@ -209,7 +243,7 @@ export function NoteEditorPage() {
 
     fetchNote();
     return () => { cancelled = true; };
-  }, [id, isNew, loadComments]);
+  }, [id, isNew, loadComments, loadAttachments]);
 
   const addShareUser = (name) => {
     const trimmed = name.trim();
@@ -278,6 +312,79 @@ export function NoteEditorPage() {
       setCommentDeleteError(err.message || "Не удалось удалить комментарий");
     } finally {
       setDeletingCommentId(null);
+    }
+  };
+
+  /**
+   * Загружает файл-вложение к заметке сразу после выбора файла в FormatToolbar.
+   * Недоступно для "new" (заметка ещё не существует на backend — кнопка дизейблена через uploadDisabled).
+   * Защита от повторной отправки через isUploadingAttachment. 413 от backend (лимит 20 МБ)
+   * показывается отдельным понятным сообщением.
+   */
+  const handleAttachmentUpload = async (file) => {
+    if (isNew || isUploadingAttachment) return;
+
+    setIsUploadingAttachment(true);
+    setAttachmentError(null);
+
+    try {
+      const created = await attachmentsApi.upload(id, file);
+      // Добавляем в уже загруженный список без повторного GET.
+      setAttachments((prev) => [...prev, created]);
+    } catch (err) {
+      if (err.status === 413) {
+        setAttachmentError("Файл превышает лимит 20 МБ");
+      } else {
+        setAttachmentError(err.message || "Не удалось загрузить файл");
+      }
+    } finally {
+      setIsUploadingAttachment(false);
+    }
+  };
+
+  /**
+   * Получает presigned-ссылку и открывает её в новой вкладке. Upload response не содержит
+   * url напрямую, поэтому требуется отдельный запрос GET /api/attachments/{id}.
+   * Защита от повторной отправки через downloadingAttachmentId.
+   */
+  const handleDownloadAttachment = async (attachment) => {
+    if (isNew || downloadingAttachmentId) return;
+
+    setDownloadingAttachmentId(attachment.id);
+    setAttachmentDownloadError(null);
+
+    try {
+      const { url } = await attachmentsApi.getDownloadUrl(attachment.id);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setAttachmentDownloadError(err.message || "Не удалось получить ссылку для скачивания");
+    } finally {
+      setDownloadingAttachmentId(null);
+    }
+  };
+
+  /**
+   * Удаляет вложение. Перед запросом — window.confirm. Защита от повторной
+   * отправки через deletingAttachmentId. Права проверяет только backend (canEditNote) —
+   * кнопка показывается всегда, ошибка 403 отобразится через тот же attachmentError.
+   * Повторный GET не делается — локально фильтруем удалённый id из attachments.
+   */
+  const handleDeleteAttachment = async (attachment) => {
+    if (isNew || deletingAttachmentId) return;
+
+    const confirmed = window.confirm(`Удалить вложение «${attachment.fileName}»?`);
+    if (!confirmed) return;
+
+    setDeletingAttachmentId(attachment.id);
+    setAttachmentError(null);
+
+    try {
+      await attachmentsApi.remove(attachment.id);
+      setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
+    } catch (err) {
+      setAttachmentError(err.message || "Не удалось удалить вложение");
+    } finally {
+      setDeletingAttachmentId(null);
     }
   };
 
@@ -523,8 +630,33 @@ export function NoteEditorPage() {
             </div>
           </div>
         )}
+        {/* Загрузка/ошибка attachment — минимальный state, переиспользованы те же баннеры, что и для save */}
+        {attachmentError && (
+          <div className="editor-save-banner editor-save-banner-generic">
+            <span>{attachmentError}</span>
+            <div className="editor-save-banner-actions">
+              <button
+                className="editor-save-banner-dismiss"
+                onClick={() => setAttachmentError(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        )}
+        {isUploadingAttachment && (
+          <div className="editor-save-banner">
+            <span>Загрузка файла…</span>
+          </div>
+        )}
         <div className="editor-content-wrap">
-          {mode === "edit" && <FormatToolbar />}
+          {mode === "edit" && (
+            <FormatToolbar
+              onFileSelect={handleAttachmentUpload}
+              isUploading={isUploadingAttachment}
+              uploadDisabled={isNew}
+            />
+          )}
           {/* data-note-version хранит текущий version для optimistic locking, не влияет на UI */}
           <div className="editor-body" data-note-version={version ?? undefined}>
             <MarkdownArea
@@ -538,6 +670,54 @@ export function NoteEditorPage() {
               <span>Создано: {createdAtDisplay}</span>
               <span>Изменено: {updatedAtDisplay}</span>
             </div>
+
+            {/* Список загруженных в этой сессии attachments (state из Stage 7A). Для "new" не показываемся. */}
+            {!isNew && attachments.length > 0 && (
+              <div className="attachments-section">
+                <div className="comments-header">
+                  <h3>Вложения</h3>
+                  <span className="comments-count">{attachments.length}</span>
+                </div>
+                <div className="attachments-list">
+                  {attachments.map((att) => (
+                    <div className="attachment-item" key={att.id}>
+                      <Paperclip strokeWidth={1.6} className="attachment-icon" />
+                      <span className="attachment-name">{att.fileName}</span>
+                      <button
+                        className="attachment-download"
+                        title="Скачать"
+                        onClick={() => handleDownloadAttachment(att)}
+                        disabled={downloadingAttachmentId === att.id}
+                      >
+                        {downloadingAttachmentId === att.id ? (
+                          "Открытие…"
+                        ) : (
+                          <Download strokeWidth={1.6} />
+                        )}
+                      </button>
+                      <button
+                        className="attachment-download"
+                        title="Удалить"
+                        onClick={() => handleDeleteAttachment(att)}
+                        disabled={deletingAttachmentId === att.id}
+                      >
+                        {deletingAttachmentId === att.id ? (
+                          "Удаление…"
+                        ) : (
+                          <Trash2 strokeWidth={1.6} />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {attachmentDownloadError && (
+                  <p className="comments-status comments-status-error">
+                    {attachmentDownloadError}
+                  </p>
+                )}
+              </div>
+            )}
+
             <CommentsSection
               comments={comments}
               draft={commentDraft}

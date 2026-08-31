@@ -618,6 +618,11 @@
   color: var(--accent);
 }
 
+.fmt-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .fmt-btn svg {
   width: 16px;
   height: 16px;
@@ -785,6 +790,73 @@
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+}
+
+.attachments-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, var(--radius));
+  box-shadow: var(--shadow);
+}
+
+.attachment-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.attachment-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.attachment-download:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.attachment-download:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.attachment-download svg {
+  width: 15px;
+  height: 15px;
 }
 
 .comments-header {
