@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import * as notesApi from "../../api/notes.js";
+import * as commentsApi from "../../api/comments.js";
 import AppSidebar from "../../components/layout/AppSidebar";
-import { mockComments } from "../../lib/utils/mockData";
+import { useAuth } from "../../context/AuthContext.jsx";
 import EditorTopbar from "./EditorTopbar";
 import FormatToolbar from "./FormatToolbar";
 import MarkdownArea from "./MarkdownArea";
@@ -55,9 +56,29 @@ function formatDateTime(isoString) {
   }
 }
 
+/**
+ * Адаптирует CommentResponse backend { id, noteId, authorId, content, createdAt, updatedAt }
+ * под формат, который уже ожидает CommentsSection: { author, initials, time, text }.
+ * Backend не возвращает имя автора (только authorId UUID), поэтому отображаем
+ * короткий идентификатор вместо полного имени (резолв через users API — вне Stage 6A).
+ */
+function adaptComment(comment) {
+  const authorId = comment.authorId || "";
+  const shortId = authorId.replace(/-/g, "").slice(0, 6).toUpperCase();
+  return {
+    id: comment.id,
+    authorId,
+    author: shortId ? `Пользователь ${shortId}` : "Пользователь",
+    initials: shortId.slice(0, 2) || "??",
+    time: formatDateTime(comment.createdAt),
+    text: comment.content ?? "",
+  };
+}
+
 export function NoteEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const isNew = id === "new";
 
   const [collapsed, setCollapsed] = useState(false);
@@ -78,6 +99,15 @@ export function NoteEditorPage() {
   // --- Delete state (DELETE /api/notes/:id) ---
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // --- Comments: GET /api/notes/:id/comments и POST ---
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState(null);
+  const [isSendingComment, setIsSendingComment] = useState(false);
+  const [sendCommentError, setSendCommentError] = useState(null);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
+  const [commentDeleteError, setCommentDeleteError] = useState(null);
+
   const [title, setTitle] = useState(isNew ? blankNote.title : "");
   const [content, setContent] = useState(isNew ? blankNote.content : "");
   const [favorited, setFavorited] = useState(false);
@@ -88,7 +118,6 @@ export function NoteEditorPage() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [privacy, setPrivacy] = useState("private");
   const [shareUsers, setShareUsers] = useState(initialShareUsers);
-  const [comments, setComments] = useState(mockComments);
   const [commentDraft, setCommentDraft] = useState("");
 
   const privacyWrapRef = useRef(null);
@@ -110,6 +139,26 @@ export function NoteEditorPage() {
     return () =>
       document.removeEventListener("click", handleDocumentClick);
   }, []);
+
+  /**
+   * Загружает комментарии к заметке. Недоступно для "new" (заметки ещё не существует на backend).
+   * Вызывается после успешной загрузки заметки, а также доступна как retry при ошибке.
+   */
+  const loadComments = useCallback(async () => {
+    if (isNew) return;
+
+    setCommentsLoading(true);
+    setCommentsError(null);
+
+    try {
+      const data = await commentsApi.list(id);
+      setComments((data ?? []).map(adaptComment));
+    } catch (err) {
+      setCommentsError(err.message || "Не удалось загрузить комментарии");
+    } finally {
+      setCommentsLoading(false);
+    }
+  }, [id, isNew]);
 
   // Загрузка заметки при монтировании / смене id.
   // "new" — заметки ещё не существует на backend, используем blankNote локально.
@@ -139,6 +188,10 @@ export function NoteEditorPage() {
         setVersion(data.version ?? null);
         setCreatedAtRaw(data.createDate ?? null);
         setUpdatedAtRaw(data.updatedAt ?? null);
+
+        // Комментарии грузим только после успешной загрузки заметки,
+        // у них своё независимое loading/error состояние, не блокирует рендер редактора.
+        if (!cancelled) loadComments();
       } catch (err) {
         if (cancelled) return;
         if (err.status === 404) {
@@ -156,7 +209,7 @@ export function NoteEditorPage() {
 
     fetchNote();
     return () => { cancelled = true; };
-  }, [id, isNew]);
+  }, [id, isNew, loadComments]);
 
   const addShareUser = (name) => {
     const trimmed = name.trim();
@@ -177,15 +230,55 @@ export function NoteEditorPage() {
     setShareUsers(shareUsers.filter((_, i) => i !== index));
   };
 
-  const addComment = () => {
+  const addComment = async () => {
+    // "new" — заметки ещё не существует на backend, создавать комментарий некуда.
+    if (isNew) return;
+    // Защита от повторной отправки пока запрос уже в полёте.
+    if (isSendingComment) return;
+
     const text = commentDraft.trim();
     if (!text) return;
-    setComments([
-      ...comments,
-      { author: "Алексей В.", initials: "АВ", time: "только что", text },
-    ]);
-    setCommentDraft("");
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+
+    setIsSendingComment(true);
+    setSendCommentError(null);
+
+    try {
+      const created = await commentsApi.create(id, { content: text });
+      // В список добавляется именно комментарий из ответа backend (с реальным id и createdAt),
+      // локальный id не генерируется. Повторный GET списка не нужен — response уже содержит всё необходимое.
+      setComments((prev) => [...prev, adaptComment(created)]);
+      setCommentDraft("");
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    } catch (err) {
+      // Ошибка — комментарий локально не добавляется, черновик остаётся как есть
+      setSendCommentError(err.message || "Не удалось отправить комментарий");
+    } finally {
+      setIsSendingComment(false);
+    }
+  };
+
+  /**
+   * Удаляет комментарий. Перед запросом — window.confirm. Защита от повторной
+   * отправки через deletingCommentId. При ошибке комментарий остаётся в списке.
+   * Повторный GET не делается — локально фильтруем удалённый id из comments.
+   */
+  const handleDeleteComment = async (commentId) => {
+    if (deletingCommentId) return;
+
+    const confirmed = window.confirm("Удалить этот комментарий?");
+    if (!confirmed) return;
+
+    setDeletingCommentId(commentId);
+    setCommentDeleteError(null);
+
+    try {
+      await commentsApi.remove(commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (err) {
+      setCommentDeleteError(err.message || "Не удалось удалить комментарий");
+    } finally {
+      setDeletingCommentId(null);
+    }
   };
 
   const handleExport = () => {
@@ -450,6 +543,15 @@ export function NoteEditorPage() {
               draft={commentDraft}
               onDraftChange={(e) => setCommentDraft(e.target.value)}
               onSend={addComment}
+              isLoading={commentsLoading}
+              error={commentsError}
+              onRetry={loadComments}
+              isSending={isSendingComment}
+              sendError={sendCommentError}
+              currentUserId={currentUser?.id}
+              onDeleteComment={handleDeleteComment}
+              deletingCommentId={deletingCommentId}
+              deleteError={commentDeleteError}
             />
           </div>
         </div>

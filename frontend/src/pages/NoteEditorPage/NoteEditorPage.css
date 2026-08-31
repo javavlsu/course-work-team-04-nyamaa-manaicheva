@@ -154,6 +154,16 @@
   color: var(--fg);
 }
 
+.comments-status {
+  padding: 10px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.comments-status-error {
+  color: var(--fg);
+}
+
 .main {
   flex: 1;
   margin-left: var(--sidebar-w);
@@ -898,6 +908,12 @@
 
 .comment-input-row input::placeholder {
   color: var(--muted);
+}
+
+.comment-input-row input:disabled,
+.comment-send:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .comment-send {
