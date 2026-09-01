@@ -1,6 +1,20 @@
 import { SendIcon } from "./icons";
 
-export default function CommentsSection({ comments, draft, onDraftChange, onSend }) {
+export default function CommentsSection({
+  comments,
+  draft,
+  onDraftChange,
+  onSend,
+  isLoading = false,
+  error = null,
+  onRetry,
+  isSending = false,
+  sendError = null,
+  currentUserId,
+  onDeleteComment,
+  deletingCommentId = null,
+  deleteError = null,
+}) {
   return (
     <div className="comments-section">
       <div className="comments-header">
@@ -8,7 +22,18 @@ export default function CommentsSection({ comments, draft, onDraftChange, onSend
         <span className="comments-count">{comments.length}</span>
       </div>
       <div className="comments-list">
-        {comments.map((comment, i) => (
+        {isLoading && <p className="comments-status">Загрузка комментариев…</p>}
+
+        {!isLoading && error && (
+          <p className="comments-status comments-status-error">
+            {error}{" "}
+            <button className="editor-save-banner-dismiss" onClick={onRetry}>
+              Повторить
+            </button>
+          </p>
+        )}
+
+        {!isLoading && !error && comments.map((comment, i) => (
           <div className="comment" key={`${comment.author}-${i}`}>
             <div
               className={
@@ -27,11 +52,27 @@ export default function CommentsSection({ comments, draft, onDraftChange, onSend
               <div className="comment-text">{comment.text}</div>
               <div className="comment-actions">
                 <span className="comment-action">Ответить</span>
+                {onDeleteComment && currentUserId && comment.authorId === currentUserId && (
+                  <span
+                    className="comment-action"
+                    onClick={() => onDeleteComment(comment.id)}
+                    style={
+                      deletingCommentId === comment.id
+                        ? { opacity: 0.5, pointerEvents: "none" }
+                        : undefined
+                    }
+                  >
+                    {deletingCommentId === comment.id ? "Удаление…" : "Удалить"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
+      {deleteError && (
+        <p className="comments-status comments-status-error">{deleteError}</p>
+      )}
       <div className="comment-input-row">
         <div className="comment-avatar">АВ</div>
         <input
@@ -39,12 +80,21 @@ export default function CommentsSection({ comments, draft, onDraftChange, onSend
           placeholder="Написать комментарий…"
           value={draft}
           onChange={onDraftChange}
-          onKeyDown={(e) => e.key === "Enter" && onSend()}
+          onKeyDown={(e) => e.key === "Enter" && !isSending && onSend()}
+          disabled={isSending}
         />
-        <button className="comment-send" title="Отправить" onClick={onSend}>
+        <button
+          className="comment-send"
+          title="Отправить"
+          onClick={onSend}
+          disabled={isSending}
+        >
           <SendIcon />
         </button>
       </div>
+      {sendError && (
+        <p className="comments-status comments-status-error">{sendError}</p>
+      )}
     </div>
   );
 }

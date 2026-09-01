@@ -1,28 +1,37 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { emailValidation, passwordValidation } from "../../lib/utils/inputValidations";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const methods = useForm({ mode: "onSubmit" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = (data) => {
+  // После логина возвращаем пользователя туда, откуда его редиректнул ProtectedRoute
+  const from = location.state?.from?.pathname || "/notes";
+
+  const onSubmit = async (data) => {
     setError("");
-    console.log("Login data:", data);
+    setIsSubmitting(true);
 
-    setTimeout(() => {
-      if (Math.random() < 0.5) {
-        setError("Неверный email или пароль");
-        return;
-      }
+    try {
+      await login(data.email, data.password);
       methods.reset();
-      navigate("/account");
-    }, 600);
+      navigate(from, { replace: true });
+    } catch (err) {
+      // Показываем сообщение из backend (например, «Неверный email или пароль»)
+      setError(err.message || "Ошибка входа. Попробуйте ещё раз.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -39,7 +48,15 @@ function LoginForm() {
           <Link to="/recover" className="link-accent">Забыли пароль?</Link>
         </div>
 
-        <Button type="submit" variant="primary" className="btn-block">Войти</Button>
+        <Button
+          type="submit"
+          variant="primary"
+          className="btn-block"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Вход…" : "Войти"}
+        </Button>
+
         {error && <div className="form-error">{error}</div>}
       </form>
     </FormProvider>
