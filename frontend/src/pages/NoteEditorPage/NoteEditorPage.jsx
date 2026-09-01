@@ -5,6 +5,8 @@ import { Download, Paperclip, Trash2 } from "lucide-react";
 import * as notesApi from "../../api/notes.js";
 import * as commentsApi from "../../api/comments.js";
 import * as attachmentsApi from "../../api/attachments.js";
+import * as permissionsApi from "../../api/permissions.js";
+import * as usersApi from "../../api/users.js";
 import AppSidebar from "../../components/layout/AppSidebar";
 import { useAuth } from "../../context/AuthContext.jsx";
 import EditorTopbar from "./EditorTopbar";
@@ -19,11 +21,6 @@ const blankNote = {
   createdAt: "только что",
   updatedAt: "только что",
 };
-
-const initialShareUsers = [
-  { name: "Мария К.", initials: "МК", role: "Редактирование" },
-  { name: "Дмитрий С.", initials: "ДС", role: "Просмотр" },
-];
 
 /**
  * Извлекает текстовое представление поля content для textarea/preview.
@@ -77,6 +74,27 @@ function adaptComment(comment) {
   };
 }
 
+/**
+ * Адаптирует PermissionAccessResponse backend { id, type, noteId, userId, directoryId }
+ * под формат, который уже ожидает PrivacyMenu: { name, initials, role }.
+ * Backend не возвращает имя пользователя (только userId), поэтому имя резолвится
+ * отдельно через users API (см. loadPermissions). id и userId сохраняются в адаптированном
+ * объекте — они понадобятся для grant/update/revoke на следующих этапах.
+ */
+function adaptPermission(permission, user) {
+  const name = user ? `${user.name} ${user.surname}`.trim() : "Неизвестный пользователь";
+  const initials = user
+    ? `${(user.name?.[0] || "").toUpperCase()}${(user.surname?.[0] || "").toUpperCase()}`
+    : "??";
+  return {
+    id: permission.id,
+    userId: permission.userId,
+    name,
+    initials,
+    role: permission.type === "Edit" ? "Редактирование" : "Просмотр",
+  };
+}
+
 export function NoteEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -118,16 +136,25 @@ export function NoteEditorPage() {
   const [attachmentDownloadError, setAttachmentDownloadError] = useState(null);
   const [deletingAttachmentId, setDeletingAttachmentId] = useState(null);
 
+  // --- Permissions: GET /api/notes/:id/permissions (только для owner) ---
+  const [ownerId, setOwnerId] = useState(null);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [permissionsError, setPermissionsError] = useState(null);
+  const [allUsers, setAllUsers] = useState([]); // кэш GET /api/users для поиска при добавлении
+  const [isAddingShareUser, setIsAddingShareUser] = useState(false);
+  const [removingShareUserId, setRemovingShareUserId] = useState(null);
+
   const [title, setTitle] = useState(isNew ? blankNote.title : "");
   const [content, setContent] = useState(isNew ? blankNote.content : "");
   const [favorited, setFavorited] = useState(false);
   const [createdAtRaw, setCreatedAtRaw] = useState(null);
   const [updatedAtRaw, setUpdatedAtRaw] = useState(null);
 
-  // --- Sharing/comments — UI-only заглушки, не входят в Stage 4A ---
+  // --- Sharing: privacy UI-состояние локально (link/public не поддерживаются backend);
+  // shareUsers теперь заполняется реальными permissions (см. loadPermissions).
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [privacy, setPrivacy] = useState("private");
-  const [shareUsers, setShareUsers] = useState(initialShareUsers);
+  const [shareUsers, setShareUsers] = useState([]);
   const [commentDraft, setCommentDraft] = useState("");
 
   const privacyWrapRef = useRef(null);
@@ -186,6 +213,37 @@ export function NoteEditorPage() {
     }
   }, [id, isNew]);
 
+  /**
+   * Загружает permissions заметки и резолвит имена через GET /api/users.
+   * Доступно только владельцу заметки — backend вернёт 403 иначе,
+   * поэтому запрос вообще не делается, если currentUser не совпадает с ownerId.
+   * ownerIdParam передаётся явно (а не читается из state ownerId), чтобы избежать
+   * stale-чтения сразу после setOwnerId в том же синхронном блоке.
+   */
+  const loadPermissions = useCallback(async (ownerIdParam) => {
+    if (isNew) return;
+    if (!currentUser || ownerIdParam !== currentUser.id) return;
+
+    setPermissionsLoading(true);
+    setPermissionsError(null);
+
+    try {
+      const [permissionsList, users] = await Promise.all([
+        permissionsApi.list(id),
+        usersApi.list(),
+      ]);
+      const usersById = new Map(users.map((u) => [u.id, u]));
+      setAllUsers(users ?? []);
+      setShareUsers(
+        (permissionsList ?? []).map((p) => adaptPermission(p, usersById.get(p.userId)))
+      );
+    } catch (err) {
+      setPermissionsError(err.message || "Не удалось загрузить доступ к заметке");
+    } finally {
+      setPermissionsLoading(false);
+    }
+  }, [id, isNew, currentUser]);
+
   // Загрузка заметки при монтировании / смене id.
   // "new" — заметки ещё не существует на backend, используем blankNote локально.
   useEffect(() => {
@@ -214,17 +272,24 @@ export function NoteEditorPage() {
         setVersion(data.version ?? null);
         setCreatedAtRaw(data.createDate ?? null);
         setUpdatedAtRaw(data.updatedAt ?? null);
+        setOwnerId(data.ownerId ?? null);
 
         // Сбрасываем attachments при смене заметки перед загрузкой актуального списка.
         setAttachments([]);
         setAttachmentError(null);
         setAttachmentDownloadError(null);
 
+        // Сбрасываем permissions перед загрузкой актуального списка (только для owner).
+        setShareUsers([]);
+        setPermissionsError(null);
+
         // Комментарии и attachments грузим только после успешной загрузки заметки,
         // у них своё независимое loading/error состояние, не блокируют рендер редактора.
+        // ownerId передаётся из data.ownerId напрямую — setOwnerId выше ещё не применился к state.
         if (!cancelled) {
           loadComments();
           loadAttachments();
+          loadPermissions(data.ownerId ?? null);
         }
       } catch (err) {
         if (cancelled) return;
@@ -243,25 +308,92 @@ export function NoteEditorPage() {
 
     fetchNote();
     return () => { cancelled = true; };
-  }, [id, isNew, loadComments, loadAttachments]);
+  }, [id, isNew, loadComments, loadAttachments, loadPermissions]);
 
-  const addShareUser = (name) => {
-    const trimmed = name.trim();
+  /**
+   * Добавляет пользователя в список доступа. Ищет совпадение по email/имени среди уже
+   * загруженного allUsers (из loadPermissions), так как backend не даёт серверный поиск.
+   * Владелец заметки не может быть добавлен сам себе (backend всё равно вернёт 400,
+   * но проверяем на клиенте, чтобы не делать заведомо бесполезный запрос). Защита от
+   * повторной отправки через isAddingShareUser. Новый permission id не генерируется локально —
+   * берётся из ответа backend через уже существующий adaptPermission.
+   */
+  const addShareUser = async (draftValue) => {
+    if (isNew || isAddingShareUser) return;
+
+    const trimmed = draftValue.trim();
     if (!trimmed) return;
-    const initials = trimmed
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-    setShareUsers([
-      ...shareUsers,
-      { name: trimmed, initials, role: "Просмотр" },
-    ]);
+
+    const lower = trimmed.toLowerCase();
+    const matched = allUsers.find((u) => {
+      const email = (u.email || "").toLowerCase();
+      const fullName = `${u.name || ""} ${u.surname || ""}`.toLowerCase();
+      return email === lower || fullName.includes(lower);
+    });
+
+    if (!matched) {
+      setPermissionsError("Пользователь не найден");
+      return;
+    }
+
+    if (matched.id === ownerId) {
+      setPermissionsError("Нельзя добавить владельца заметки");
+      return;
+    }
+
+    if (shareUsers.some((u) => u.userId === matched.id)) {
+      setPermissionsError("Этот пользователь уже добавлен");
+      return;
+    }
+
+    setIsAddingShareUser(true);
+    setPermissionsError(null);
+
+    try {
+      const created = await permissionsApi.grant({
+        type: "View",
+        noteId: id,
+        userId: matched.id,
+      });
+      // В список добавляется именно permission из ответа backend (с реальным id).
+      setShareUsers((prev) => [...prev, adaptPermission(created, matched)]);
+    } catch (err) {
+      // 400 (например, попытка добавить владельца) или 403 (не владелец ресурса) —
+      // пользователь в UI не добавляется.
+      setPermissionsError(err.message || "Не удалось предоставить доступ");
+    } finally {
+      setIsAddingShareUser(false);
+    }
   };
 
-  const removeShareUser = (index) => {
-    setShareUsers(shareUsers.filter((_, i) => i !== index));
+  /**
+   * Убирает доступ пользователя (revoke). PrivacyMenu передаёт индекс в массиве shareUsers
+   * (onRemove(i) не менялся) — реальный permission.id для DELETE берётся из shareUsers[index],
+   * а не из самого индекса. Перед запросом — window.confirm. Защита от повторной
+   * отправки через removingShareUserId. При ошибке пользователь остаётся в списке.
+   */
+  const removeShareUser = async (index) => {
+    if (isNew || removingShareUserId) return;
+
+    const target = shareUsers[index];
+    if (!target) return;
+
+    const confirmed = window.confirm(`Убрать доступ пользователя «${target.name}»?`);
+    if (!confirmed) return;
+
+    setRemovingShareUserId(target.id);
+    setPermissionsError(null);
+
+    try {
+      await permissionsApi.remove(target.id);
+      // Локально фильтруем по permission.id (не по индексу) — повторный GET не делается.
+      setShareUsers((prev) => prev.filter((u) => u.id !== target.id));
+    } catch (err) {
+      // Ошибка — пользователь остаётся в списке.
+      setPermissionsError(err.message || "Не удалось убрать доступ");
+    } finally {
+      setRemovingShareUserId(null);
+    }
   };
 
   const addComment = async () => {
@@ -647,6 +779,20 @@ export function NoteEditorPage() {
         {isUploadingAttachment && (
           <div className="editor-save-banner">
             <span>Загрузка файла…</span>
+          </div>
+        )}
+        {/* Ошибка загрузки permissions — минимальный state, тот же баннер, что и для attachment */}
+        {permissionsError && (
+          <div className="editor-save-banner editor-save-banner-generic">
+            <span>{permissionsError}</span>
+            <div className="editor-save-banner-actions">
+              <button
+                className="editor-save-banner-dismiss"
+                onClick={() => setPermissionsError(null)}
+              >
+                Закрыть
+              </button>
+            </div>
           </div>
         )}
         <div className="editor-content-wrap">
