@@ -56,6 +56,12 @@ export function NotesFeedPage() {
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
   const [foldersError, setFoldersError]         = useState(null);
 
+  // --- Directory CRUD state ---
+  const [isCreatingFolder, setIsCreatingFolder]   = useState(false);
+  const [renamingFolderId, setRenamingFolderId]   = useState(null);
+  const [deletingFolderId, setDeletingFolderId]   = useState(null);
+  const [folderActionError, setFolderActionError] = useState(null);
+
   // activeFolder читается внутри loadMore/fetchNotesPage через ref,
   // чтобы не пересоздавать loadMore (и, соответственно, IntersectionObserver)
   // при каждой смене выбранной директории.
@@ -362,8 +368,85 @@ export function NotesFeedPage() {
     // когда изменится debouncedSearch/effectiveSearchKey.
   };
 
-  const addFolder = () => {
-    // TODO Stage 3D: POST /api/directories — создание пока не реализовано
+  const addFolder = async () => {
+    if (isCreatingFolder) return;
+
+    const title = window.prompt("Название новой папки:");
+    if (!title || !title.trim()) return;
+
+    setIsCreatingFolder(true);
+    setFolderActionError(null);
+
+    try {
+      const created = await directoriesApi.create({ title: title.trim() });
+      // Адаптация DirectoryResponse { id, title } → формат FoldersSection { key, name, tint },
+      // тот же принцип, что и при загрузке списка.
+      setFolders((prev) => [
+        ...prev,
+        { key: created.id, name: created.title, tint: FOLDER_TINTS[prev.length % FOLDER_TINTS.length] },
+      ]);
+    } catch (err) {
+      setFolderActionError(err.message || "Не удалось создать папку");
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
+
+  /**
+   * Переименовывает директорию через PUT /api/directories/{id}. Защита от параллельных
+   * rename/delete-действий через renamingFolderId/deletingFolderId. Права проверяет только
+   * backend (владелец, иначе 403).
+   */
+  const handleRenameFolder = async (folder) => {
+    if (renamingFolderId || deletingFolderId) return;
+
+    const newTitle = window.prompt("Новое название папки:", folder.name);
+    if (!newTitle || !newTitle.trim() || newTitle.trim() === folder.name) return;
+
+    setRenamingFolderId(folder.key);
+    setFolderActionError(null);
+
+    try {
+      const updated = await directoriesApi.update(folder.key, { title: newTitle.trim() });
+      setFolders((prev) =>
+        prev.map((f) =>
+          f.key === folder.key ? { ...f, name: updated.title ?? newTitle.trim() } : f
+        )
+      );
+    } catch (err) {
+      setFolderActionError(err.message || "Не удалось переименовать папку");
+    } finally {
+      setRenamingFolderId(null);
+    }
+  };
+
+  /**
+   * Удаляет директорию через DELETE /api/directories/{id}. Если удаляемая папка была
+   * выбрана как activeFolder — возвращаемся к "Все заметки" через уже существующий
+   * handleSelectAll. Заметки внутри папки не удаляются (backend удаляет только самую директорию).
+   */
+  const handleDeleteFolder = async (folder) => {
+    if (renamingFolderId || deletingFolderId) return;
+
+    const confirmed = window.confirm(
+      `Удалить папку «${folder.name}»? Заметки внутри нее не удаляются.`
+    );
+    if (!confirmed) return;
+
+    setDeletingFolderId(folder.key);
+    setFolderActionError(null);
+
+    try {
+      await directoriesApi.remove(folder.key);
+      setFolders((prev) => prev.filter((f) => f.key !== folder.key));
+      if (activeFolder === folder.key) {
+        handleSelectAll();
+      }
+    } catch (err) {
+      setFolderActionError(err.message || "Не удалось удалить папку");
+    } finally {
+      setDeletingFolderId(null);
+    }
   };
 
   // Клик по "Все заметки" в sidebar — полный сброс к дефолтному виду списка.
@@ -421,7 +504,17 @@ export function NotesFeedPage() {
               counts={counts}
               onSelect={setActiveFolder}
               onAdd={addFolder}
+              isCreating={isCreatingFolder}
+              onRename={handleRenameFolder}
+              onDelete={handleDeleteFolder}
+              renamingFolderId={renamingFolderId}
+              deletingFolderId={deletingFolderId}
             />
+
+            {/* Ошибка create/rename/delete директорий — минимальный state, тот же паттерн, что и foldersError */}
+            {folderActionError && (
+              <p className="folders-status folders-status-error">{folderActionError}</p>
+            )}
 
             {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы папок */}
             {foldersHasMore && (
