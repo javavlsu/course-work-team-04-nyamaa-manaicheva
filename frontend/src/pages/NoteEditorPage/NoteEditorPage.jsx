@@ -7,6 +7,7 @@ import * as commentsApi from "../../api/comments.js";
 import * as attachmentsApi from "../../api/attachments.js";
 import * as permissionsApi from "../../api/permissions.js";
 import * as usersApi from "../../api/users.js";
+import * as directoriesApi from "../../api/directories.js";
 import AppSidebar from "../../components/layout/AppSidebar";
 import { useAuth } from "../../context/AuthContext.jsx";
 import EditorTopbar from "./EditorTopbar";
@@ -144,6 +145,14 @@ export function NoteEditorPage() {
   const [isAddingShareUser, setIsAddingShareUser] = useState(false);
   const [removingShareUserId, setRemovingShareUserId] = useState(null);
 
+  // --- Note ↔ Directory membership (только для owner, так же как permissions) ---
+  const [noteDirectories, setNoteDirectories] = useState([]); // [{ id, title }] — без псевдо-пункта "all"
+  const [noteDirectoryIds, setNoteDirectoryIds] = useState(new Set()); // directoryId, в которых сейчас лежит заметка
+  const [directoriesMenuOpen, setDirectoriesMenuOpen] = useState(false);
+  const [directoriesLoading, setDirectoriesLoading] = useState(false);
+  const [directoriesError, setDirectoriesError] = useState(null);
+  const [updatingDirectoryIds, setUpdatingDirectoryIds] = useState(new Set()); // блокирует только конкретную строку, не весь список
+
   const [title, setTitle] = useState(isNew ? blankNote.title : "");
   const [content, setContent] = useState(isNew ? blankNote.content : "");
   const [favorited, setFavorited] = useState(false);
@@ -158,6 +167,7 @@ export function NoteEditorPage() {
   const [commentDraft, setCommentDraft] = useState("");
 
   const privacyWrapRef = useRef(null);
+  const directoryMenuWrapRef = useRef(null);
 
   // Хранит id только что созданной через POST заметки, чтобы эффект загрузки
   // ниже не делал GET сразу после navigate("/notes/:newId") — данные уже есть из ответа create().
@@ -170,6 +180,12 @@ export function NoteEditorPage() {
         !privacyWrapRef.current.contains(e.target)
       ) {
         setPrivacyOpen(false);
+      }
+      if (
+        directoryMenuWrapRef.current &&
+        !directoryMenuWrapRef.current.contains(e.target)
+      ) {
+        setDirectoriesMenuOpen(false);
       }
     };
     document.addEventListener("click", handleDocumentClick);
@@ -244,6 +260,49 @@ export function NoteEditorPage() {
     }
   }, [id, isNew, currentUser]);
 
+  /**
+   * Загружает список директорий владельца и определяет, в каких из них сейчас
+   * находится эта заметка. Доступно только владельцу (add/remove на backend требуют
+   * владение директорией и заметкой), поэтому для не-владельца запрос вообще
+   * не делается. ownerIdParam передаётся явно, так же как в loadPermissions.
+   *
+   * Backend не имеет endpoint вида "в каких директориях лежит эта заметка" —
+   * только GET /api/directories/{id}/notes (список всех заметок одной директории).
+   * Поэтому membership определяется перебором всех директорий владельца (обычно
+   * их немного) и проверкой, есть ли текущий noteId в каждой из них.
+   */
+  const loadNoteDirectories = useCallback(async (ownerIdParam) => {
+    if (isNew) return;
+    if (!currentUser || ownerIdParam !== currentUser.id) return;
+
+    setDirectoriesLoading(true);
+    setDirectoriesError(null);
+
+    try {
+      const page = await directoriesApi.list({ limit: 100 });
+      const dirs = (page.items ?? []).map((d) => ({ id: d.id, title: d.title }));
+      setNoteDirectories(dirs);
+
+      const memberships = await Promise.all(
+        dirs.map(async (dir) => {
+          try {
+            const notesInDir = await directoriesApi.listNotes(dir.id);
+            const isMember = (notesInDir ?? []).some((n) => n.noteId === id);
+            return isMember ? dir.id : null;
+          } catch {
+            // Ошибка по одной директории не должна ломать весь список.
+            return null;
+          }
+        })
+      );
+      setNoteDirectoryIds(new Set(memberships.filter(Boolean)));
+    } catch (err) {
+      setDirectoriesError(err.message || "Не удалось загрузить папки");
+    } finally {
+      setDirectoriesLoading(false);
+    }
+  }, [id, isNew, currentUser]);
+
   // Загрузка заметки при монтировании / смене id.
   // "new" — заметки ещё не существует на backend, используем blankNote локально.
   useEffect(() => {
@@ -283,6 +342,11 @@ export function NoteEditorPage() {
         setShareUsers([]);
         setPermissionsError(null);
 
+        // Сбрасываем Note↔Directory membership перед загрузкой актуального состояния.
+        setNoteDirectories([]);
+        setNoteDirectoryIds(new Set());
+        setDirectoriesError(null);
+
         // Комментарии и attachments грузим только после успешной загрузки заметки,
         // у них своё независимое loading/error состояние, не блокируют рендер редактора.
         // ownerId передаётся из data.ownerId напрямую — setOwnerId выше ещё не применился к state.
@@ -290,6 +354,7 @@ export function NoteEditorPage() {
           loadComments();
           loadAttachments();
           loadPermissions(data.ownerId ?? null);
+          loadNoteDirectories(data.ownerId ?? null);
         }
       } catch (err) {
         if (cancelled) return;
@@ -308,7 +373,7 @@ export function NoteEditorPage() {
 
     fetchNote();
     return () => { cancelled = true; };
-  }, [id, isNew, loadComments, loadAttachments, loadPermissions]);
+  }, [id, isNew, loadComments, loadAttachments, loadPermissions, loadNoteDirectories]);
 
   /**
    * Добавляет пользователя в список доступа. Ищет совпадение по email/имени среди уже
@@ -393,6 +458,45 @@ export function NoteEditorPage() {
       setPermissionsError(err.message || "Не удалось убрать доступ");
     } finally {
       setRemovingShareUserId(null);
+    }
+  };
+
+  /**
+   * Включает/выключает принадлежность заметки к конкретной директории. Одна заметка может
+   * одновременно состоять в нескольких директориях — это обычный toggle без
+   * взаимного исключения. Защита от повторной отправки — через updatingDirectoryIds
+   * (Set), блокируется только конкретная директория, остальные остаются доступны.
+   * При ошибке checked-состояние не меняется. Повторный GET не делается —
+   * локально обновляем noteDirectoryIds после успешного add/remove.
+   */
+  const handleToggleNoteDirectory = async (directory) => {
+    if (isNew || updatingDirectoryIds.has(directory.id)) return;
+
+    const isMember = noteDirectoryIds.has(directory.id);
+
+    setUpdatingDirectoryIds((prev) => new Set(prev).add(directory.id));
+    setDirectoriesError(null);
+
+    try {
+      if (isMember) {
+        await directoriesApi.removeNote(directory.id, id);
+        setNoteDirectoryIds((prev) => {
+          const next = new Set(prev);
+          next.delete(directory.id);
+          return next;
+        });
+      } else {
+        await directoriesApi.addNote(directory.id, id);
+        setNoteDirectoryIds((prev) => new Set(prev).add(directory.id));
+      }
+    } catch (err) {
+      setDirectoriesError(err.message || "Не удалось обновить принадлежность к папке");
+    } finally {
+      setUpdatingDirectoryIds((prev) => {
+        const next = new Set(prev);
+        next.delete(directory.id);
+        return next;
+      });
     }
   };
 
@@ -741,6 +845,15 @@ export function NoteEditorPage() {
           onDelete={handleDelete}
           isDeleting={isDeleting}
           deleteDisabled={isNew}
+          showDirectoryMenu={!isNew && ownerId !== null && currentUser?.id === ownerId}
+          directoryMenuOpen={directoriesMenuOpen}
+          onToggleDirectoryMenu={() => setDirectoriesMenuOpen(!directoriesMenuOpen)}
+          directoryMenuWrapRef={directoryMenuWrapRef}
+          directories={noteDirectories}
+          directoryMemberIds={noteDirectoryIds}
+          onToggleNoteDirectory={handleToggleNoteDirectory}
+          updatingDirectoryIds={updatingDirectoryIds}
+          directoriesLoading={directoriesLoading}
         />
 
         {/* Ошибка сохранения — в т.ч. 409 Conflict. Локальные title/content не затираются. */}
@@ -789,6 +902,20 @@ export function NoteEditorPage() {
               <button
                 className="editor-save-banner-dismiss"
                 onClick={() => setPermissionsError(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Ошибка add/remove Note↔Directory — тот же паттерн, что и для permissions */}
+        {directoriesError && (
+          <div className="editor-save-banner editor-save-banner-generic">
+            <span>{directoriesError}</span>
+            <div className="editor-save-banner-actions">
+              <button
+                className="editor-save-banner-dismiss"
+                onClick={() => setDirectoriesError(null)}
               >
                 Закрыть
               </button>

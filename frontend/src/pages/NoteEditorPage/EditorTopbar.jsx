@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Lock, Plus, Trash, Upload } from "lucide-react";
 
 import { privacyOptions } from "../../lib/utils/mockData";
+import DirectoryMenu from "./DirectoryMenu";
 import {
   EyeIcon,
   GlobeIcon,
@@ -123,6 +124,15 @@ export default function EditorTopbar({
   onDelete,
   isDeleting = false,
   deleteDisabled = false,
+  showDirectoryMenu = false,
+  directoryMenuOpen = false,
+  onToggleDirectoryMenu,
+  directoryMenuWrapRef,
+  directories = [],
+  directoryMemberIds,
+  onToggleNoteDirectory,
+  updatingDirectoryIds,
+  directoriesLoading = false,
 }) {
   return (
     <div className="editor-topbar">
@@ -160,6 +170,18 @@ export default function EditorTopbar({
           onAdd={onAddShareUser}
           onRemove={onRemoveShareUser}
         />
+        {showDirectoryMenu && (
+          <DirectoryMenu
+            open={directoryMenuOpen}
+            onToggle={onToggleDirectoryMenu}
+            wrapRef={directoryMenuWrapRef}
+            directories={directories}
+            memberIds={directoryMemberIds}
+            onToggleDirectory={onToggleNoteDirectory}
+            updatingDirectoryIds={updatingDirectoryIds}
+            isLoading={directoriesLoading}
+          />
+        )}
         <button
           className="btn btn-danger"
           title="Удалить заметку"
