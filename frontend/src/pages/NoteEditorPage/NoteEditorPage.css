@@ -786,6 +786,40 @@
   color: var(--danger);
 }
 
+.directory-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.directory-menu-item:hover {
+  background: var(--fg-soft);
+}
+
+.directory-menu-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.directory-menu-item input[type="checkbox"]:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.directory-menu-busy {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+
 .comments-section {
   margin-top: 40px;
   padding-top: 24px;
