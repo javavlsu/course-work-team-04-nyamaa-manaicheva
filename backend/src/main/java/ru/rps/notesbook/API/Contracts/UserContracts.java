@@ -48,4 +48,14 @@ public final class UserContracts {
             String newPassword
     ) {}
 
+    public record ChangeRoleRequest(
+            RoleTypeEnum role
+    ) {}
+
+    public record UserSearchResponse(
+            UUID id,
+            String email,
+            String name
+    ) {}
+
 }

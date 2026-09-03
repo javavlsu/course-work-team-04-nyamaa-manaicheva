@@ -1,6 +1,7 @@
 package ru.rps.notesbook.Domain.Services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
+
+    private static final int SEARCH_RESULT_LIMIT = 20;
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -64,8 +67,44 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
+    public UserContracts.UserResponse ChangeUserRole(UUID id, RoleTypeEnum role) {
+        User user = userRepository.GetUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.ChangeRole(role);
+
+        return toResponse(userRepository.SaveUser(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserContracts.UserSearchResponse> SearchUsers(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        String normalized = query.trim().toLowerCase();
+
+        return userRepository.GetUsers().stream()
+                .filter(u -> u.GetEmail().toLowerCase().contains(normalized)
+                        || u.GetName().toLowerCase().contains(normalized)
+                        || u.GetSurname().toLowerCase().contains(normalized))
+                .limit(SEARCH_RESULT_LIMIT)
+                .map(u -> new UserContracts.UserSearchResponse(u.GetId(), u.GetEmail(), u.GetName()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
     public void DeleteUserById(UUID id) {
-        userRepository.DeleteUserById(id);
+        try {
+            userRepository.DeleteUserById(id);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Невозможно удалить пользователя: с ним связаны заметки, директории или другие данные"
+            );
+        }
     }
 
     @Override

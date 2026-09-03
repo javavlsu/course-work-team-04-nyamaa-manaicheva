@@ -62,5 +62,7 @@ public class UserRepository implements IUserRepository {
     public void DeleteUserById(UUID id)
     {
         userAdapterJPA.deleteById(id);
+        entityManager.flush();
     }
+    
 }

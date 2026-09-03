@@ -78,15 +78,24 @@ function adaptComment(comment) {
 /**
  * Адаптирует PermissionAccessResponse backend { id, type, noteId, userId, directoryId }
  * под формат, который уже ожидает PrivacyMenu: { name, initials, role }.
- * Backend не возвращает имя пользователя (только userId), поэтому имя резолвится
- * отдельно через users API (см. loadPermissions). id и userId сохраняются в адаптированном
- * объекте — они понадобятся для grant/update/revoke на следующих этапах.
+ * Backend не возвращает имя пользователя (только userId). Для уже выданных permissions
+ * (loadPermissions) имя больше недоступно обычному пользователю — GET /api/users стал
+ * admin-only — показываем заглушку "Неизвестный пользователь". При добавлении нового
+ * пользователя (addShareUser) имя берётся из GET /api/users/search, который возвращает
+ * только { id, email, name } (без surname), поэтому surname обрабатывается как опциональный.
+ * id и userId сохраняются в адаптированном объекте для grant/update/revoke.
  */
 function adaptPermission(permission, user) {
-  const name = user ? `${user.name} ${user.surname}`.trim() : "Неизвестный пользователь";
-  const initials = user
-    ? `${(user.name?.[0] || "").toUpperCase()}${(user.surname?.[0] || "").toUpperCase()}`
-    : "??";
+  let name = "Неизвестный пользователь";
+  let initials = "??";
+
+  if (user) {
+    name = user.surname ? `${user.name} ${user.surname}`.trim() : (user.name || name);
+    initials = user.surname
+      ? `${(user.name?.[0] || "").toUpperCase()}${(user.surname?.[0] || "").toUpperCase()}`
+      : (user.name || "").slice(0, 2).toUpperCase() || "??";
+  }
+
   return {
     id: permission.id,
     userId: permission.userId,
@@ -141,7 +150,6 @@ export function NoteEditorPage() {
   const [ownerId, setOwnerId] = useState(null);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [permissionsError, setPermissionsError] = useState(null);
-  const [allUsers, setAllUsers] = useState([]); // кэш GET /api/users для поиска при добавлении
   const [isAddingShareUser, setIsAddingShareUser] = useState(false);
   const [removingShareUserId, setRemovingShareUserId] = useState(null);
 
@@ -230,11 +238,14 @@ export function NoteEditorPage() {
   }, [id, isNew]);
 
   /**
-   * Загружает permissions заметки и резолвит имена через GET /api/users.
-   * Доступно только владельцу заметки — backend вернёт 403 иначе,
-   * поэтому запрос вообще не делается, если currentUser не совпадает с ownerId.
-   * ownerIdParam передаётся явно (а не читается из state ownerId), чтобы избежать
+   * Загружает permissions заметки. Доступно только владельцу заметки —
+   * backend вернёт 403 иначе, поэтому запрос вообще не делается, если currentUser не совпадает
+   * с ownerId. ownerIdParam передаётся явно (а не читается из state ownerId), чтобы избежать
    * stale-чтения сразу после setOwnerId в том же синхронном блоке.
+   *
+   * GET /api/users теперь admin-only, поэтому резолвить имена всех участников одним
+   * запросом больше нельзя (обычный пользователь получит 403). Список permissions показывается
+   * без резолва имён (adaptPermission без user отдаёт заглушку "Неизвестный пользователь").
    */
   const loadPermissions = useCallback(async (ownerIdParam) => {
     if (isNew) return;
@@ -244,15 +255,8 @@ export function NoteEditorPage() {
     setPermissionsError(null);
 
     try {
-      const [permissionsList, users] = await Promise.all([
-        permissionsApi.list(id),
-        usersApi.list(),
-      ]);
-      const usersById = new Map(users.map((u) => [u.id, u]));
-      setAllUsers(users ?? []);
-      setShareUsers(
-        (permissionsList ?? []).map((p) => adaptPermission(p, usersById.get(p.userId)))
-      );
+      const permissionsList = await permissionsApi.list(id);
+      setShareUsers((permissionsList ?? []).map((p) => adaptPermission(p, undefined)));
     } catch (err) {
       setPermissionsError(err.message || "Не удалось загрузить доступ к заметке");
     } finally {
@@ -376,12 +380,15 @@ export function NoteEditorPage() {
   }, [id, isNew, loadComments, loadAttachments, loadPermissions, loadNoteDirectories]);
 
   /**
-   * Добавляет пользователя в список доступа. Ищет совпадение по email/имени среди уже
-   * загруженного allUsers (из loadPermissions), так как backend не даёт серверный поиск.
-   * Владелец заметки не может быть добавлен сам себе (backend всё равно вернёт 400,
-   * но проверяем на клиенте, чтобы не делать заведомо бесполезный запрос). Защита от
-   * повторной отправки через isAddingShareUser. Новый permission id не генерируется локально —
-   * берётся из ответа backend через уже существующий adaptPermission.
+   * Добавляет пользователя в список доступа. Использует GET /api/users/search?q=... —
+   * доступен любому аутентифицированному пользователю (в отличие от старого admin-only
+   * GET /api/users). Backend сам фильтрует по email/имени/фамилии и возвращает только
+   * { id, email, name } (без surname) — из нескольких результатов берём точное совпадение
+   * по email, иначе первый результат. Владелец заметки не может быть добавлен сам себе
+   * (backend всё равно вернёт 400, но проверяем на клиенте, чтобы не делать заведомо
+   * бесполезный запрос). Защита от повторной отправки через isAddingShareUser. Новый
+   * permission id не генерируется локально — берётся из ответа backend через уже существующий
+   * adaptPermission.
    */
   const addShareUser = async (draftValue) => {
     if (isNew || isAddingShareUser) return;
@@ -389,38 +396,39 @@ export function NoteEditorPage() {
     const trimmed = draftValue.trim();
     if (!trimmed) return;
 
-    const lower = trimmed.toLowerCase();
-    const matched = allUsers.find((u) => {
-      const email = (u.email || "").toLowerCase();
-      const fullName = `${u.name || ""} ${u.surname || ""}`.toLowerCase();
-      return email === lower || fullName.includes(lower);
-    });
-
-    if (!matched) {
-      setPermissionsError("Пользователь не найден");
-      return;
-    }
-
-    if (matched.id === ownerId) {
-      setPermissionsError("Нельзя добавить владельца заметки");
-      return;
-    }
-
-    if (shareUsers.some((u) => u.userId === matched.id)) {
-      setPermissionsError("Этот пользователь уже добавлен");
-      return;
-    }
-
     setIsAddingShareUser(true);
     setPermissionsError(null);
 
     try {
+      const results = await usersApi.search(trimmed);
+
+      if (!results || results.length === 0) {
+        setPermissionsError("Пользователь не найден");
+        return;
+      }
+
+      const lower = trimmed.toLowerCase();
+      const matched =
+        results.find((u) => (u.email || "").toLowerCase() === lower) ?? results[0];
+
+      if (matched.id === ownerId) {
+        setPermissionsError("Нельзя добавить владельца заметки");
+        return;
+      }
+
+      if (shareUsers.some((u) => u.userId === matched.id)) {
+        setPermissionsError("Этот пользователь уже добавлен");
+        return;
+      }
+
       const created = await permissionsApi.grant({
         type: "View",
         noteId: id,
         userId: matched.id,
       });
       // В список добавляется именно permission из ответа backend (с реальным id).
+      // matched из /api/users/search имеет только { id, email, name } (без surname) —
+      // adaptPermission корректно обрабатывает отсутствие surname.
       setShareUsers((prev) => [...prev, adaptPermission(created, matched)]);
     } catch (err) {
       // 400 (например, попытка добавить владельца) или 403 (не владелец ресурса) —

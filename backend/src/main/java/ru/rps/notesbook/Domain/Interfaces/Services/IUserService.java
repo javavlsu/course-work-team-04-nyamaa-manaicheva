@@ -1,6 +1,7 @@
 package ru.rps.notesbook.Domain.Interfaces.Services;
 
 import ru.rps.notesbook.API.Contracts.UserContracts;
+import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +14,10 @@ public interface IUserService {
     UserContracts.UserResponse GetUserById(UUID id);
 
     UserContracts.UserResponse UpdateUser(UUID id, UserContracts.UpdateUserRequest request);
+
+    UserContracts.UserResponse ChangeUserRole(UUID id, RoleTypeEnum role);
+
+    List<UserContracts.UserSearchResponse> SearchUsers(String query);
 
     void DeleteUserById(UUID id);
 
