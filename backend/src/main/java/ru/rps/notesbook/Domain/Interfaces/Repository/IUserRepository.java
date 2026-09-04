@@ -13,6 +13,7 @@ public interface IUserRepository{
     List<User> GetUsers();
     Optional<User> GetUserById(UUID id);
     Optional<User> GetUserByEmail(String email);
+    Optional<User> GetUserByPasswordResetTokenHash(String tokenHash);
     User SaveUser(User user);
     void DeleteUserById(UUID id);
     

@@ -48,4 +48,10 @@ public class UserEntity {
     @Column(name = "role", nullable = false, columnDefinition = "role_type")
     private RoleTypeEnum role;
 
+    @Column(name = "password_reset_token_hash", length = 255)
+    private String passwordResetTokenHash;
+
+    @Column(name = "password_reset_expires_at")
+    private LocalDateTime passwordResetExpiresAt;
+
 }

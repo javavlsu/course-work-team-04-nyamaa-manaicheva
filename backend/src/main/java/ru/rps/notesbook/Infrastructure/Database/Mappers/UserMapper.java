@@ -8,7 +8,7 @@ import ru.rps.notesbook.Infrastructure.Database.Entities.UserEntity;
 public class UserMapper {
     public User ToDomain(UserEntity entity)
     {
-        return new User(
+        User user = new User(
                 entity.getId(),
                 entity.getName(),
                 entity.getSurname(),
@@ -18,6 +18,12 @@ public class UserMapper {
                 entity.getPassword(),
                 entity.getRole()
         );
+
+        if (entity.getPasswordResetTokenHash() != null) {
+            user.SetPasswordResetToken(entity.getPasswordResetTokenHash(), entity.getPasswordResetExpiresAt());
+        }
+
+        return user;
     }
 
     public UserEntity ToEntity(User user)
@@ -30,7 +36,9 @@ public class UserMapper {
                 user.GetBirthdayDate(),
                 user.GetRegistrationDate(),
                 user.GetPassword(),
-                user.GetRole()
+                user.GetRole(),
+                user.GetPasswordResetTokenHash(),
+                user.GetPasswordResetExpiresAt()
         );
     }
 

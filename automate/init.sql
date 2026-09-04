@@ -13,7 +13,9 @@ CREATE TABLE "User" (
     birthday_date      DATE,
     registration_date  TIMESTAMP NOT NULL,
     password           VARCHAR(100) NOT NULL,
-    role               role_type NOT NULL
+    role               role_type NOT NULL,
+    password_reset_token_hash  VARCHAR(255),
+    password_reset_expires_at  TIMESTAMP
 );
 
 -- DIRECTORY
