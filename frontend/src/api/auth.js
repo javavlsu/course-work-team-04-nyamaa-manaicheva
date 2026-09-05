@@ -68,3 +68,29 @@ export async function logout() {
 export async function getCurrentUser(userId) {
   return api.get(`/api/users/${userId}`);
 }
+
+/**
+ * Инициирует восстановление пароля.
+ * Backend contract: ForgotPasswordRequest { email } → ForgotPasswordResponse { message }.
+ * Токен никогда не возвращается в ответе — уходит только на email. Бэкенд всегда
+ * отвечает одинаковым сообщением независимо от того, существует ли email.
+ *
+ * @param {string} email
+ * @returns {Promise<{ message: string }>}
+ */
+export async function forgotPassword(email) {
+  return api.post("/api/auth/forgot-password", { email });
+}
+
+/**
+ * Устанавливает новый пароль по токену восстановления из письма.
+ * Backend contract: ResetPasswordRequest { token, newPassword, newPasswordConfirm }.
+ * Токен одноразовый и имеет TTL — backend вернёт 400 с понятным сообщением,
+ * если токен недействителен/просрочен.
+ *
+ * @param {{ token: string, newPassword: string, newPasswordConfirm: string }} data
+ * @returns {Promise<void>}
+ */
+export async function resetPassword({ token, newPassword, newPasswordConfirm }) {
+  return api.post("/api/auth/reset-password", { token, newPassword, newPasswordConfirm });
+}

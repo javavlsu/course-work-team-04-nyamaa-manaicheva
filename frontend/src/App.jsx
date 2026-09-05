@@ -4,6 +4,7 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { RecoverPage } from "./pages/RecoverPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { AccountPage } from "./pages/AccountPage";
 import { NotesFeedPage } from "./pages/NotesFeedPage";
 import { NoteEditorPage } from "./pages/NoteEditorPage";
@@ -24,6 +25,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/recover" element={<RecoverPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Статичные error-страницы — публичные */}
       <Route path="/403" element={<ForbiddenPage />} />
