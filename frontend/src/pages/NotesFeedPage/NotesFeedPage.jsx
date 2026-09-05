@@ -462,11 +462,8 @@ export function NotesFeedPage() {
     setIsFavouriteFilter(true);
   };
 
-  // Counts для sidebar: всего и избранных (в рамках текущего загруженного источника)
   const favoritesCount = notes.filter((n) => n.isFavourite).length;
-
-  // Counts для FoldersSection (пока только "all" — количество загруженных notes текущего источника)
-  const counts = { all: notes.length };
+  const directoriesCount = Math.max(0, folders.length - 1);
 
   return (
     <div className="app">
@@ -474,71 +471,13 @@ export function NotesFeedPage() {
         active={isFavouriteFilter === true ? "favorites" : "notes"}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        counts={{ all: notes.length, favorites: favoritesCount }}
+        counts={{ all: notes.length, directories: directoriesCount, favorites: favoritesCount }}
         onSelectAll={handleSelectAll}
         onSelectFavorites={handleSelectFavorites}
       />
       <div className="main">
         <Topbar count={notes.length} pluralRu={pluralRu} />
         <Toolbar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
-
-        {/* Directories loading/error state (первая загрузка) */}
-        {isFoldersLoading && (
-          <div className="folders-section">
-            <p className="folders-status">Загрузка папок…</p>
-          </div>
-        )}
-
-        {!isFoldersLoading && foldersError && (
-          <div className="folders-section">
-            <p className="folders-status folders-status-error">{foldersError}</p>
-          </div>
-        )}
-
-        {/* Directories list + infinite scroll */}
-        {!isFoldersLoading && !foldersError && (
-          <>
-            <FoldersSection
-              folders={folders}
-              activeFolder={activeFolder}
-              counts={counts}
-              onSelect={setActiveFolder}
-              onAdd={addFolder}
-              isCreating={isCreatingFolder}
-              onRename={handleRenameFolder}
-              onDelete={handleDeleteFolder}
-              renamingFolderId={renamingFolderId}
-              deletingFolderId={deletingFolderId}
-            />
-
-            {/* Ошибка create/rename/delete директорий — минимальный state, тот же паттерн, что и foldersError */}
-            {folderActionError && (
-              <p className="folders-status folders-status-error">{folderActionError}</p>
-            )}
-
-            {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы папок */}
-            {foldersHasMore && (
-              <div ref={foldersSentinelRef} className="folders-load-more-sentinel">
-                {isFoldersLoadingMore && (
-                  <div className="notes-load-more">
-                    <div className="notes-loading-spinner notes-loading-spinner-sm" />
-                    <span>Загрузка папок…</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Ошибка подгрузки следующей страницы папок — уже загруженные folders остаются */}
-            {foldersLoadMoreError && (
-              <div className="notes-load-more-error">
-                <span>{foldersLoadMoreError}</span>
-                <button className="btn btn-secondary" onClick={loadMoreFolders}>
-                  Повторить
-                </button>
-              </div>
-            )}
-          </>
-        )}
 
         {/* Notes loading state (первая загрузка / смена директории) */}
         {isLoading && (

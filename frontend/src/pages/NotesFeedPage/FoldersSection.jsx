@@ -1,6 +1,4 @@
-import { ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
-
-import { FolderFillIcon } from "./icons";
+import { Folder, Pencil, Plus, Trash2 } from "lucide-react";
 
 function FoldersSection({
   folders,
@@ -28,14 +26,15 @@ function FoldersSection({
           {isCreating ? "Создание…" : "Новая папка"}
         </button>
       </div>
-      <div className="folders-list">
+      <div className="folders-grid">
         {folders.map((folder) => {
           const isSystemFolder = folder.key === "all";
           const isBusy = renamingFolderId === folder.key || deletingFolderId === folder.key;
+          const notesCount = folder.notesCount ?? counts?.[folder.key] ?? 0;
           return (
             <div
               key={folder.key}
-              className={`folder-row${folder.key === activeFolder ? " active" : ""}`}
+              className={`folder-card${folder.key === activeFolder ? " active" : ""}`}
               data-folder={folder.key}
               role="button"
               tabIndex={0}
@@ -47,38 +46,43 @@ function FoldersSection({
                 }
               }}
             >
-              <span className={`folder-icon ${folder.tint}`}>
-                <FolderFillIcon />
-              </span>
-              <span className="folder-name">{folder.name}</span>
-              <span className="folder-count">{counts[folder.key] || 0}</span>
-              {!isSystemFolder && (
+              <div className={`folder-icon ${folder.tint || ""}`}>
+                <Folder size={24} />
+              </div>
+              <div className="folder-info">
+                <h3 className="folder-title">{folder.name}</h3>
+                <span className="folder-count">{notesCount} заметок</span>
+              </div>
+              {!isSystemFolder && (onRename || onDelete) && (
                 <div className="folder-actions">
-                  <button
-                    className="folder-action-btn"
-                    title="Переименовать"
-                    disabled={isBusy}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRename?.(folder);
-                    }}
-                  >
-                    <Pencil strokeWidth={1.6} />
-                  </button>
-                  <button
-                    className="folder-action-btn"
-                    title="Удалить"
-                    disabled={isBusy}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete?.(folder);
-                    }}
-                  >
-                    <Trash2 strokeWidth={1.6} />
-                  </button>
+                  {onRename && (
+                    <button
+                      className="folder-action-btn"
+                      title="Переименовать"
+                      disabled={isBusy}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRename(folder);
+                      }}
+                    >
+                      <Pencil strokeWidth={1.6} />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      className="folder-action-btn"
+                      title="Удалить"
+                      disabled={isBusy}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(folder);
+                      }}
+                    >
+                      <Trash2 strokeWidth={1.6} />
+                    </button>
+                  )}
                 </div>
               )}
-              <ChevronRight className="folder-chevron" />
             </div>
           );
         })}

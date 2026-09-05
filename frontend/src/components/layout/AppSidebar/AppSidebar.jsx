@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LayoutGrid, Trash } from "lucide-react";
+import { FileText, Folder, Trash } from "lucide-react";
 
 import {
   MenuIcon,
@@ -50,10 +50,15 @@ function AppSidebar({
       <div className="sidebar-scroll">
         <div className="sidebar-section">
           <div className="sidebar-section-title">Основные</div>
-          <Link to="/notes" className={linkClass("notes")} onClick={onSelectAll}>
-            <LayoutGrid strokeWidth={1.6} />
+          <Link to="/" className={linkClass("notes")} onClick={onSelectAll}>
+            <FileText strokeWidth={1.6} />
             <span className="link-label">Все заметки</span>
             {counts.all !== undefined && <span className="count">{counts.all}</span>}
+          </Link>
+          <Link to="/directories" className={linkClass("directories")}>
+            <Folder strokeWidth={1.6} />
+            <span className="link-label">Директории</span>
+            {counts.directories !== undefined && <span className="count">{counts.directories}</span>}
           </Link>
           <a
             href="#"

@@ -203,61 +203,52 @@
   height: 14px;
 }
 
-.folders-list {
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.folder-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.folder-row {
+  border-radius: 6px;
+  padding: 16px;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 11px 16px;
-  font-size: 14px;
-  color: var(--fg);
-  position: relative;
-  transition: background 0.15s ease;
-  text-align: left;
+  flex-direction: column;
+  gap: 10px;
   cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  height: 260px;
+  overflow: hidden;
+  position: relative;
 }
 
-.folder-row + .folder-row::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 56px;
-  right: 0;
-  height: 1px;
-  background: var(--border);
+.folder-card:hover {
+  border-color: color-mix(in oklch, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-.folder-row:hover {
-  background: var(--fg-soft);
-}
-
-.folder-row.active {
+.folder-card.active {
+  border-color: var(--accent);
   background: var(--accent-soft);
 }
 
-.folder-row.active .folder-name {
-  font-weight: 600;
-}
-
 .folder-icon {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--fg-soft);
 }
 
 .folder-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .tint-blue {
@@ -276,9 +267,22 @@
   color: var(--info);
 }
 
-.folder-name {
+.folder-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   flex: 1;
-  font-weight: 500;
+  justify-content: center;
+}
+
+.folder-title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .folder-count {
@@ -290,8 +294,8 @@
 .folder-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+  gap: 4px;
+  margin-top: auto;
 }
 
 .folder-action-btn {
@@ -318,13 +322,6 @@
 .folder-action-btn svg {
   width: 14px;
   height: 14px;
-}
-
-.folder-chevron {
-  width: 14px;
-  height: 14px;
-  color: color-mix(in oklch, var(--muted) 55%, transparent);
-  flex-shrink: 0;
 }
 
 .folders-status {
@@ -626,6 +623,10 @@
 
   .folders-section {
     padding: 0 16px 18px;
+  }
+
+  .folders-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }
 
