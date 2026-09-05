@@ -74,10 +74,10 @@ function AppSidebar({
               <span className="count">{counts.favorites}</span>
             )}
           </a>
-          <a href="#" className={linkClass("trash")}>
+          <Link to="/trash" className={linkClass("trash")}>
             <Trash strokeWidth={1.6} />
             <span className="link-label">Корзина</span>
-          </a>
+          </Link>
         </div>
 
         <div className="sidebar-divider"></div>

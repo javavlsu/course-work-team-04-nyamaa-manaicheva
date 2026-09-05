@@ -46,6 +46,14 @@ public class NoteController {
         return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite, limit, cursor);
     }
 
+    @GetMapping("/trash")
+    public List<NoteContracts.NoteResponse> listTrash(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal
+    ) {
+        UUID ownerId = requireUserId(principal);
+        return noteService.GetTrashByOwnerId(ownerId);
+    }
+
     @GetMapping("/{id}")
     public NoteContracts.NoteResponse getNote(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
@@ -98,6 +106,24 @@ public class NoteController {
         requireOwnership(response, ownerId);
 
         noteService.DeleteNoteById(id);
+    }
+
+    @PatchMapping("/{id}/restore")
+    public NoteContracts.NoteResponse restoreNote(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        return noteService.RestoreNoteById(id, ownerId);
+    }
+
+    @DeleteMapping("/{id}/purge")
+    public void purgeNote(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID ownerId = requireUserId(principal);
+        noteService.PurgeNoteById(id, ownerId);
     }
 
     // NoteRevision

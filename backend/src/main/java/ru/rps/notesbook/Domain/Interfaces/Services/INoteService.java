@@ -3,6 +3,7 @@ package ru.rps.notesbook.Domain.Interfaces.Services;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface INoteService {
@@ -25,5 +26,11 @@ public interface INoteService {
     void DeleteNoteById(UUID id);
 
     void DeleteNoteById(UUID id, Long expectedVersion);
+
+    List<NoteContracts.NoteResponse> GetTrashByOwnerId(UUID ownerId);
+
+    NoteContracts.NoteResponse RestoreNoteById(UUID id, UUID ownerId);
+
+    void PurgeNoteById(UUID id, UUID ownerId);
 
 }
