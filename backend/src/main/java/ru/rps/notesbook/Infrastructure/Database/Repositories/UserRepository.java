@@ -47,6 +47,12 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
+    public Optional<User> GetUserByPasswordResetTokenHash(String tokenHash)
+    {
+        return userAdapterJPA.findByPasswordResetTokenHash(tokenHash).map(userMapper::ToDomain);
+    }
+
+    @Override
     @Transactional
     public User SaveUser(User user) {
         UserEntity entity = userMapper.ToEntity(user);

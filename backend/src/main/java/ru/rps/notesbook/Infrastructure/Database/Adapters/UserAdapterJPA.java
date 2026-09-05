@@ -12,4 +12,6 @@ public interface UserAdapterJPA  extends JpaRepository<UserEntity, UUID> {
 
     Optional<UserEntity> findByEmail(String email);
 
+    Optional<UserEntity> findByPasswordResetTokenHash(String passwordResetTokenHash);
+
 }

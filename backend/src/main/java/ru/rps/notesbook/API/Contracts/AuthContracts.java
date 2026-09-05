@@ -23,4 +23,19 @@ public final class AuthContracts {
             UUID userId,
             String email
     ) {}
+
+    public record ForgotPasswordRequest(
+            String email
+    ) {}
+
+    public record ForgotPasswordResponse(
+            String message
+    ) {}
+
+    public record ResetPasswordRequest(
+            String token,
+            String newPassword,
+            String newPasswordConfirm
+    ) {}
+
 }

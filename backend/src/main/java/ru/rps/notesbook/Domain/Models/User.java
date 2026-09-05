@@ -17,6 +17,8 @@ public class User {
     private final LocalDateTime registrationDate;
     private String password;
     private RoleTypeEnum role;
+    private String passwordResetTokenHash;
+    private LocalDateTime passwordResetExpiresAt;
 
     public User(UUID id, String name, String surname, String email,
                 LocalDate birthdayDate, LocalDateTime registrationDate,
@@ -47,6 +49,8 @@ public class User {
     public LocalDateTime GetRegistrationDate() { return this.registrationDate; }
     public String GetPassword() { return this.password; }
     public RoleTypeEnum GetRole() { return this.role; }
+    public String GetPasswordResetTokenHash() { return this.passwordResetTokenHash; }
+    public LocalDateTime GetPasswordResetExpiresAt() { return this.passwordResetExpiresAt; }
 
     public void ChangeName(String name) {
         ValidateName(name);
@@ -71,6 +75,22 @@ public class User {
     public void ChangeRole(RoleTypeEnum role) {
         ValidateRole(role);
         this.role = role;
+    }
+
+    public void SetPasswordResetToken(String tokenHash, LocalDateTime expiresAt) {
+        if (tokenHash == null || tokenHash.isBlank()) {
+            throw new IllegalArgumentException("tokenHash can't be null or empty");
+        }
+        if (expiresAt == null) {
+            throw new IllegalArgumentException("expiresAt can't be null");
+        }
+        this.passwordResetTokenHash = tokenHash;
+        this.passwordResetExpiresAt = expiresAt;
+    }
+
+    public void ClearPasswordResetToken() {
+        this.passwordResetTokenHash = null;
+        this.passwordResetExpiresAt = null;
     }
 
     public void ValidateName(String name) {

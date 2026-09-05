@@ -34,6 +34,8 @@ public class SecurityConfig {
                             "/error",
                             "/api/auth/login",
                             "/api/auth/register",
+                            "/api/auth/forgot-password",
+                            "/api/auth/reset-password",
                             "/swagger-ui.html",
                             "/swagger-ui/**",
                             "/v3/api-docs",
@@ -86,4 +88,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

@@ -100,4 +100,41 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthContracts.ForgotPasswordResponse> forgotPassword(
+            @RequestBody AuthContracts.ForgotPasswordRequest request
+    ) {
+        if (request.email() == null || request.email().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите email");
+        }
+
+        userService.RequestPasswordReset(request.email());
+
+        return ResponseEntity.ok(new AuthContracts.ForgotPasswordResponse(
+                "Если такой email зарегистрирован, на него отправлено письмо с инструкциями по восстановлению пароля"
+        ));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody AuthContracts.ResetPasswordRequest request) {
+        if (request.token() == null || request.token().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите токен");
+        }
+        if (request.newPassword() == null || request.newPassword().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите новый пароль");
+        }
+        if (request.newPasswordConfirm() == null || !request.newPassword().equals(request.newPasswordConfirm())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пароли не совпадают");
+        }
+
+        try {
+            userService.ResetPassword(request.token(), request.newPassword());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
 }
