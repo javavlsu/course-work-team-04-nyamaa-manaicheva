@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Folder } from "lucide-react";
+import { ArrowLeft, Folder, Pencil, Trash2 } from "lucide-react";
 
 import * as notesApi from "../../api/notes.js";
 import * as directoriesApi from "../../api/directories.js";
 import AppSidebar from "../../components/layout/AppSidebar";
+import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "../../components/DirectoryModal";
 import NotesGrid from "../NotesFeedPage/NotesGrid";
 import EmptyState from "../NotesFeedPage/EmptyState";
+import FabGroup from "../NotesFeedPage/FabGroup";
 import "./DirectoriesPage.css";
 
 const FOLDER_TINTS = ["tint-orange", "tint-green", "tint-purple", "tint-blue"];
 
-function FolderCard({ folder, onClick }) {
+function FolderCard({ folder, onClick, onRename, onDelete, isBusy = false }) {
   return (
     <div
       className="folder-card"
@@ -25,12 +27,51 @@ function FolderCard({ folder, onClick }) {
         }
       }}
     >
-      <div className={`folder-icon ${folder.tint || ""}`}>
-        <Folder size={24} />
+      <div className="folder-card-top">
+        <div className={`folder-icon ${folder.tint || ""}`}>
+          <Folder size={22} />
+        </div>
+        {(onRename || onDelete) && (
+          <div className="folder-actions" onClick={(e) => e.stopPropagation()}>
+            {onRename && (
+              <button
+                type="button"
+                className="folder-action-btn"
+                title="Изменить директорию"
+                aria-label="Изменить директорию"
+                disabled={isBusy}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRename(folder);
+                }}
+              >
+                <Pencil size={15} strokeWidth={1.8} />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="folder-action-btn folder-action-btn-danger"
+                title="Удалить директорию"
+                aria-label="Удалить директорию"
+                disabled={isBusy}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(folder);
+                }}
+              >
+                <Trash2 size={15} strokeWidth={1.8} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="folder-info">
         <h3 className="folder-title">{folder.name}</h3>
-        <span className="folder-count">{folder.notesCount ?? 0} заметок</span>
+        <span className="folder-count">
+          <span className="folder-count-dot" aria-hidden="true" />
+          {folder.notesCount ?? 0} заметок
+        </span>
       </div>
     </div>
   );
@@ -46,6 +87,13 @@ export function DirectoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [folderDetail, setFolderDetail] = useState(null);
+  const [renamingFolderId, setRenamingFolderId] = useState(null);
+  const [deletingFolderId, setDeletingFolderId] = useState(null);
+  const [renamingFolder, setRenamingFolder] = useState(null);
+  const [deletingFolder, setDeletingFolder] = useState(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [folderActionError, setFolderActionError] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
@@ -184,12 +232,112 @@ export function DirectoriesPage() {
     }
   };
 
+  const handleCreateSubmit = async (title) => {
+    if (isCreating) return;
+
+    setIsCreating(true);
+    setFolderActionError(null);
+
+    try {
+      const created = await directoriesApi.create({ title });
+      const newFolder = {
+        key: created.id,
+        id: created.id,
+        name: created.title,
+        tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length],
+      };
+      setFolders((prev) => [...prev, newFolder]);
+      setIsCreateOpen(false);
+    } catch (err) {
+      setIsCreateOpen(false);
+      setFolderActionError(err.message || "Не удалось создать директорию");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleRenameFolder = (folder) => {
+    if (renamingFolderId || deletingFolderId) return;
+    setFolderActionError(null);
+    setRenamingFolder(folder);
+  };
+
+  const handleRenameSubmit = async (newTitle) => {
+    const folder = renamingFolder;
+    if (!folder || renamingFolderId || deletingFolderId) return;
+    const targetId = folder.id ?? folder.key;
+
+    setRenamingFolderId(targetId);
+    setFolderActionError(null);
+
+    try {
+      const updated = await directoriesApi.update(targetId, { title: newTitle });
+      const nextName = updated.title ?? newTitle;
+      setFolders((prev) =>
+        prev.map((f) =>
+          String(f.id ?? f.key) === String(targetId) ? { ...f, name: nextName } : f
+        )
+      );
+      setFolderDetail((prev) =>
+        prev && String(prev.id ?? prev.key) === String(targetId) ? { ...prev, name: nextName } : prev
+      );
+      setRenamingFolder(null);
+    } catch (err) {
+      setRenamingFolder(null);
+      setFolderActionError(err.message || "Не удалось изменить директорию");
+    } finally {
+      setRenamingFolderId(null);
+    }
+  };
+
+  const handleDeleteFolder = (folder) => {
+    if (renamingFolderId || deletingFolderId) return;
+    setFolderActionError(null);
+    setDeletingFolder(folder);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const folder = deletingFolder;
+    if (!folder || renamingFolderId || deletingFolderId) return;
+    const targetId = folder.id ?? folder.key;
+
+    setDeletingFolderId(targetId);
+    setFolderActionError(null);
+
+    try {
+      await directoriesApi.remove(targetId);
+      setFolders((prev) => prev.filter((f) => String(f.id ?? f.key) !== String(targetId)));
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        [...next.entries()].forEach(([noteId, dirId]) => {
+          if (String(dirId) === String(targetId)) next.delete(noteId);
+        });
+        return next;
+      });
+      if (folderDetail && String(folderDetail.id ?? folderDetail.key) === String(targetId)) {
+        setFolderDetail(null);
+      }
+      setDeletingFolder(null);
+      if (String(folderId) === String(targetId)) {
+        navigate("/directories");
+      }
+    } catch (err) {
+      setDeletingFolder(null);
+      setFolderActionError(err.message || "Не удалось удалить директорию");
+    } finally {
+      setDeletingFolderId(null);
+    }
+  };
+
   const favoritesCount = notesWithFolderId.filter((n) => n.isFavourite).length;
   const unassignedNotes = notesWithFolderId.filter((n) => n.folderId === null || n.folderId === undefined);
   const folderNotes = folderId ? notesWithFolderId.filter((n) => String(n.folderId) === String(folderId)) : [];
 
   const displayNotes = folderId ? folderNotes : unassignedNotes;
   const pageTitle = folderId ? (folderDetail?.name || "Папка") : "Директории";
+  const isDetailBusy =
+    (folderDetail && renamingFolderId === (folderDetail.id ?? folderDetail.key)) ||
+    (folderDetail && deletingFolderId === (folderDetail.id ?? folderDetail.key));
 
   return (
     <div className="app">
@@ -221,8 +369,44 @@ export function DirectoriesPage() {
               </span>
             )}
           </div>
-          <div className="topbar-right" />
+          <div className="topbar-right">
+            {folderId && folderDetail && (
+              <>
+                <button
+                  type="button"
+                  className="topbar-action-btn"
+                  title="Изменить директорию"
+                  aria-label="Изменить директорию"
+                  disabled={Boolean(renamingFolderId || deletingFolderId)}
+                  onClick={() => handleRenameFolder(folderDetail)}
+                >
+                  <Pencil size={16} strokeWidth={1.8} />
+                  <span>Изменить</span>
+                </button>
+                <button
+                  type="button"
+                  className="topbar-action-btn topbar-action-btn-danger"
+                  title="Удалить директорию"
+                  aria-label="Удалить директорию"
+                  disabled={Boolean(renamingFolderId || deletingFolderId)}
+                  onClick={() => handleDeleteFolder(folderDetail)}
+                >
+                  <Trash2 size={16} strokeWidth={1.8} />
+                  <span>Удалить</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {folderActionError && (
+          <div className="directory-action-error" role="alert">
+            <span>{folderActionError}</span>
+            <button type="button" onClick={() => setFolderActionError(null)}>
+              Скрыть
+            </button>
+          </div>
+        )}
 
         {isLoading && (
           <div className="notes-loading">
@@ -253,6 +437,12 @@ export function DirectoriesPage() {
                         key={folder.key}
                         folder={folder}
                         onClick={() => navigate(`/directories/${folder.id}`)}
+                        onRename={handleRenameFolder}
+                        onDelete={handleDeleteFolder}
+                        isBusy={
+                          renamingFolderId === (folder.id ?? folder.key) ||
+                          deletingFolderId === (folder.id ?? folder.key)
+                        }
                       />
                     ))
                   )}
@@ -265,15 +455,52 @@ export function DirectoriesPage() {
               </div>
             )}
             {folderId && (
-              displayNotes.length > 0 ? (
-                <NotesGrid notes={displayNotes} folders={foldersWithCount} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
-              ) : (
-                <EmptyState />
-              )
+              <div className="directories-page directories-page-detail">
+                {displayNotes.length > 0 ? (
+                  <NotesGrid notes={displayNotes} folders={foldersWithCount} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
+                ) : (
+                  <EmptyState />
+                )}
+              </div>
             )}
           </>
         )}
       </div>
+      <FabGroup
+        onNewFolder={() => {
+          setFolderActionError(null);
+          setIsCreateOpen(true);
+        }}
+      />
+      {renamingFolder && (
+        <RenameDirectoryModal
+          folderName={renamingFolder.name}
+          isSaving={Boolean(renamingFolderId)}
+          onClose={() => {
+            if (!renamingFolderId) setRenamingFolder(null);
+          }}
+          onSubmit={handleRenameSubmit}
+        />
+      )}
+      {deletingFolder && (
+        <DeleteDirectoryModal
+          folderName={deletingFolder.name}
+          isDeleting={Boolean(deletingFolderId)}
+          onClose={() => {
+            if (!deletingFolderId) setDeletingFolder(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+      {isCreateOpen && (
+        <CreateDirectoryModal
+          isCreating={isCreating}
+          onClose={() => {
+            if (!isCreating) setIsCreateOpen(false);
+          }}
+          onSubmit={handleCreateSubmit}
+        />
+      )}
     </div>
   );
 }

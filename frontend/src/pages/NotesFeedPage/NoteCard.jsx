@@ -4,6 +4,7 @@ import { EllipsisVertical, Folder } from "lucide-react";
 
 import { StarIcon } from "./icons";
 import FolderSelector from "../../components/FolderSelector";
+import { CreateDirectoryModal } from "../../components/DirectoryModal";
 
 /**
  * Вытаскивает читаемый текст-preview из поля content.
@@ -62,6 +63,8 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
 
   const [isOpen, setIsOpen] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -95,8 +98,7 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
   const handleCreateClick = (e) => {
     e.stopPropagation();
     setIsOpen(false);
-    const name = window.prompt("Название папки:");
-    if (name && name.trim() && onCreateAndMove) onCreateAndMove(note.id, name.trim());
+    if (onCreateAndMove) setShowCreateModal(true);
   };
 
   const handleSelectFolder = (targetId) => {
@@ -106,8 +108,18 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
 
   const handleCreateFromSelector = () => {
     setShowSelector(false);
-    const name = window.prompt("Название папки:");
-    if (name && name.trim() && onCreateAndMove) onCreateAndMove(note.id, name.trim());
+    if (onCreateAndMove) setShowCreateModal(true);
+  };
+
+  const handleCreateSubmit = async (title) => {
+    if (!onCreateAndMove || isCreatingFolder) return;
+    setIsCreatingFolder(true);
+    try {
+      await onCreateAndMove(note.id, title);
+      setShowCreateModal(false);
+    } finally {
+      setIsCreatingFolder(false);
+    }
   };
 
   return (
@@ -154,6 +166,12 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
           </div>
         </div>
         <p className="note-card-preview">{excerpt}</p>
+        {folderId && folderName && (
+          <div className="note-folder-badge">
+            <Folder size={12} />
+            <span>{folderName}</span>
+          </div>
+        )}
         <div className="note-card-footer">
           <span className="note-card-meta">{createdAt}</span>
           {tag && <span className="note-card-tag">{tag}</span>}
@@ -165,12 +183,6 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
             </div>
           )}
         </div>
-        {folderId && folderName && (
-          <div className="note-folder-badge">
-            <Folder size={12} />
-            <span>{folderName}</span>
-          </div>
-        )}
       </div>
       {showSelector && (
         <FolderSelector
@@ -179,6 +191,15 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
           onSelect={handleSelectFolder}
           onCreate={handleCreateFromSelector}
           onClose={() => setShowSelector(false)}
+        />
+      )}
+      {showCreateModal && (
+        <CreateDirectoryModal
+          isCreating={isCreatingFolder}
+          onClose={() => {
+            if (!isCreatingFolder) setShowCreateModal(false);
+          }}
+          onSubmit={handleCreateSubmit}
         />
       )}
     </>

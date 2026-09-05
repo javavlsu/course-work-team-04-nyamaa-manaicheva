@@ -46,43 +46,50 @@ function FoldersSection({
                 }
               }}
             >
-              <div className={`folder-icon ${folder.tint || ""}`}>
-                <Folder size={24} />
+              <div className={`folder-card-top`}>
+                <div className={`folder-icon ${folder.tint || ""}`}>
+                  <Folder size={22} />
+                </div>
+                {!isSystemFolder && (onRename || onDelete) && (
+                  <div className="folder-actions" onClick={(e) => e.stopPropagation()}>
+                    {onRename && (
+                      <button
+                        className="folder-action-btn"
+                        title="Изменить директорию"
+                        aria-label="Изменить директорию"
+                        disabled={isBusy}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRename(folder);
+                        }}
+                      >
+                        <Pencil strokeWidth={1.8} />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        className="folder-action-btn folder-action-btn-danger"
+                        title="Удалить директорию"
+                        aria-label="Удалить директорию"
+                        disabled={isBusy}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(folder);
+                        }}
+                      >
+                        <Trash2 strokeWidth={1.8} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="folder-info">
                 <h3 className="folder-title">{folder.name}</h3>
-                <span className="folder-count">{notesCount} заметок</span>
+                <span className="folder-count">
+                  <span className="folder-count-dot" aria-hidden="true" />
+                  {notesCount} заметок
+                </span>
               </div>
-              {!isSystemFolder && (onRename || onDelete) && (
-                <div className="folder-actions">
-                  {onRename && (
-                    <button
-                      className="folder-action-btn"
-                      title="Переименовать"
-                      disabled={isBusy}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRename(folder);
-                      }}
-                    >
-                      <Pencil strokeWidth={1.6} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      className="folder-action-btn"
-                      title="Удалить"
-                      disabled={isBusy}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(folder);
-                      }}
-                    >
-                      <Trash2 strokeWidth={1.6} />
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
