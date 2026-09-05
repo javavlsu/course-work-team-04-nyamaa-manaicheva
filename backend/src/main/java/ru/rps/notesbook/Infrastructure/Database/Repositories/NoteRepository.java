@@ -53,6 +53,21 @@ public class NoteRepository implements INoteRepository {
     }
 
     @Override
+    public Optional<Note> GetDeletedNoteById(UUID id)
+    {
+        return noteAdapterJPA.findByIdAndDeletedAtIsNotNull(id).map(noteMapper::ToDomain);
+    }
+
+    @Override
+    public List<Note> GetDeletedNotesByOwnerId(UUID ownerId)
+    {
+        return noteAdapterJPA.findByOwner_IdAndDeletedAtIsNotNull(ownerId)
+                .stream()
+                .map(noteMapper::ToDomain)
+                .toList();
+    }
+
+    @Override
     public List<Note> GetNotesUpdatedAfter(LocalDateTime timestamp)
     {
         return noteAdapterJPA.findByUpdatedAtAfter(timestamp)

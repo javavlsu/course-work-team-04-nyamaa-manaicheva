@@ -3,19 +3,26 @@ package ru.rps.notesbook.Domain.Services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import ru.rps.notesbook.API.Contracts.NoteContracts;
 import ru.rps.notesbook.Domain.Enum.NoteTypeEnum;
+import ru.rps.notesbook.Domain.Interfaces.Repository.IAttachmentRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.ICommentRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryNoteRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRevisionRepository;
+import ru.rps.notesbook.Domain.Interfaces.Repository.INoteTagRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IPermissionAccessRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.INoteService;
+import ru.rps.notesbook.Domain.Interfaces.Storage.IFileStorageService;
+import ru.rps.notesbook.Domain.Models.Attachment;
 import ru.rps.notesbook.Domain.Models.DirectoryNote;
 import ru.rps.notesbook.Domain.Models.Note;
 import ru.rps.notesbook.Domain.Models.NoteRevision;
@@ -33,12 +40,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NoteService implements INoteService {
 
+    private static final Logger log = LoggerFactory.getLogger(NoteService.class);
+
     private final INoteRepository noteRepository;
     private final IUserRepository userRepository;
     private final INoteRevisionRepository noteRevisionRepository;
     private final IPermissionAccessRepository permissionAccessRepository;
     private final IDirectoryRepository directoryRepository;
     private final IDirectoryNoteRepository directoryNoteRepository;
+    private final INoteTagRepository noteTagRepository;
+    private final ICommentRepository commentRepository;
+    private final IAttachmentRepository attachmentRepository;
+    private final IFileStorageService fileStorageService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -208,6 +221,61 @@ public class NoteService implements INoteService {
         note.MarkDeleted();
 
         noteRepository.SaveNote(note);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NoteContracts.NoteResponse> GetTrashByOwnerId(UUID ownerId) {
+        return noteRepository.GetDeletedNotesByOwnerId(ownerId).stream()
+                .sorted(Comparator.comparing(Note::GetDeletedAt, Comparator.reverseOrder()))
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public NoteContracts.NoteResponse RestoreNoteById(UUID id, UUID ownerId) {
+        Note note = noteRepository.GetDeletedNoteById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found in trash"));
+
+        if (!note.GetOwner().GetId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Только владелец может восстановить заметку");
+        }
+
+        note.Restore();
+
+        return toResponse(noteRepository.SaveNote(note));
+    }
+
+    @Override
+    @Transactional
+    public void PurgeNoteById(UUID id, UUID ownerId) {
+        Note note = noteRepository.GetDeletedNoteById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found in trash"));
+
+        if (!note.GetOwner().GetId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Только владелец может удалить заметку навсегда");
+        }
+
+        List<Attachment> attachments = attachmentRepository.GetAttachmentsByNoteId(id);
+
+        commentRepository.DeleteCommentsByNoteId(id);
+        noteRevisionRepository.DeleteRevisionsByNoteId(id);
+        noteTagRepository.DeleteNoteTagByNoteId(id);
+        directoryNoteRepository.DeleteDirectoryNoteByNoteId(id);
+        attachmentRepository.DeleteAttachmentsByNoteId(id);
+        permissionAccessRepository.DeletePermissionAccessByNoteId(id);
+
+        noteRepository.DeleteNoteById(id);
+
+        for (Attachment attachment : attachments) {
+            try {
+                fileStorageService.Delete(attachment.GetStorageKey());
+            } catch (RuntimeException e) {
+                log.error("Failed to delete storage object for purged note {} (key={}); DB metadata already removed",
+                        id, attachment.GetStorageKey(), e);
+            }
+        }
     }
 
     private String writeContent(Object content) {

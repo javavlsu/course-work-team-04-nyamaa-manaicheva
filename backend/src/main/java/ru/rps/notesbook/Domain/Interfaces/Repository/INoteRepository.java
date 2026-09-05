@@ -16,6 +16,9 @@ public interface INoteRepository {
     Note SaveNote(Note note);
     void DeleteNoteById(UUID id);
 
+    Optional<Note> GetDeletedNoteById(UUID id);
+    List<Note> GetDeletedNotesByOwnerId(UUID ownerId);
+
     List<Note> GetNotesUpdatedAfter(LocalDateTime timestamp);
 
 }

@@ -18,6 +18,10 @@ public interface NoteAdapterJPA extends JpaRepository<NoteEntity, UUID> {
 
     Optional<NoteEntity> findByIdAndDeletedAtIsNull(UUID id);
 
+    Optional<NoteEntity> findByIdAndDeletedAtIsNotNull(UUID id);
+
+    List<NoteEntity> findByOwner_IdAndDeletedAtIsNotNull(UUID ownerId);
+
     List<NoteEntity> findByUpdatedAtAfter(LocalDateTime timestamp);
 
 }
