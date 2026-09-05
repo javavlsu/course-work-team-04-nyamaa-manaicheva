@@ -29,8 +29,7 @@ public final class AuthContracts {
     ) {}
 
     public record ForgotPasswordResponse(
-            String message,
-            String token
+            String message
     ) {}
 
     public record ResetPasswordRequest(

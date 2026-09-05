@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.UserContracts;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
+import ru.rps.notesbook.Domain.Interfaces.Services.IEmailService;
 import ru.rps.notesbook.Domain.Interfaces.Services.IUserService;
 import ru.rps.notesbook.Domain.Models.User;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
@@ -39,6 +40,7 @@ public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IEmailService emailService;
 
     @Override
     @Transactional(readOnly = true)
@@ -145,14 +147,14 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public String RequestPasswordReset(String email) {
+    public void RequestPasswordReset(String email) {
         if (email == null || email.isBlank()) {
-            return null;
+            return;
         }
 
         Optional<User> maybeUser = userRepository.GetUserByEmail(email.trim().toLowerCase());
         if (maybeUser.isEmpty()) {
-            return null;
+            return;
         }
 
         User user = maybeUser.get();
@@ -164,7 +166,7 @@ public class UserService implements IUserService {
         user.SetPasswordResetToken(hashToken(rawToken), LocalDateTime.now().plus(PASSWORD_RESET_TOKEN_TTL));
         userRepository.SaveUser(user);
 
-        return rawToken;
+        emailService.SendPasswordResetEmail(user.GetEmail(), rawToken);
     }
 
     @Override

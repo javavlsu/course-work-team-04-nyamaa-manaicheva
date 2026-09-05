@@ -23,7 +23,7 @@ public interface IUserService {
 
     void register(String name, String surname, String email, LocalDate birthday, String rawPassword);
 
-    String RequestPasswordReset(String email);
+    void RequestPasswordReset(String email);
 
     void ResetPassword(String token, String newPassword);
 

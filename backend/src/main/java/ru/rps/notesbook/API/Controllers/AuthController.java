@@ -109,11 +109,10 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите email");
         }
 
-        String token = userService.RequestPasswordReset(request.email());
+        userService.RequestPasswordReset(request.email());
 
         return ResponseEntity.ok(new AuthContracts.ForgotPasswordResponse(
-                "Если такой email зарегистрирован, для него создан токен восстановления пароля",
-                token
+                "Если такой email зарегистрирован, на него отправлено письмо с инструкциями по восстановлению пароля"
         ));
     }
 
