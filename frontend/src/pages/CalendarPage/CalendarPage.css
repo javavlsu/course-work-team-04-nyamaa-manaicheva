@@ -1,0 +1,363 @@
+.app {
+  --success: #3a8f6e;
+  --danger: #c44;
+  --on-accent: #ffffff;
+  --sidebar-w: 260px;
+  --sidebar-collapsed-w: 64px;
+  display: flex;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+[data-theme="dark"] .app {
+  --danger: #f87171;
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.22s ease;
+}
+
+.sidebar.collapsed ~ .main {
+  margin-left: var(--sidebar-collapsed-w);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklch, var(--bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+[data-theme="dark"] .topbar {
+  background: color-mix(in oklch, var(--bg) 88%, transparent);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+
+.app .btn:active {
+  transform: scale(0.96);
+}
+
+.app .btn-secondary {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.app .btn-secondary:hover {
+  background: color-mix(in oklch, var(--fg) 12%, transparent);
+}
+
+.nav-arrows {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-arrows button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.nav-arrows button:hover {
+  background: var(--fg-soft);
+}
+
+.nav-arrows button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.calendar-container {
+  padding: 24px 32px;
+  flex: 1;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.calendar-month {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.calendar-day-header {
+  padding: 12px 8px;
+  background: var(--fg-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-align: center;
+}
+
+.calendar-day {
+  background: var(--surface);
+  min-height: 110px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: var(--fg-soft);
+}
+
+.calendar-day.other-month {
+  background: color-mix(in oklch, var(--bg) 60%, var(--surface));
+}
+
+.calendar-day.other-month .day-number {
+  color: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+
+.calendar-day.today {
+  background: var(--accent-soft);
+}
+
+.calendar-day.today .day-number {
+  background: var(--accent);
+  color: var(--surface);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+
+.day-number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.day-event {
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-event.work {
+  background: color-mix(in oklch, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.day-event.personal {
+  background: color-mix(in oklch, var(--success) 12%, transparent);
+  color: var(--success);
+}
+
+.day-event.deadline {
+  background: color-mix(in oklch, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+.day-detail {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 380px;
+  max-width: 90vw;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+}
+
+.day-detail.open {
+  display: block;
+}
+
+.day-detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklch, var(--fg) 30%, transparent);
+  z-index: 40;
+}
+
+.day-detail-overlay.open {
+  display: block;
+}
+
+.day-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.day-detail-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.day-detail-close {
+  padding: 4px;
+  color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.day-detail-close:hover {
+  background: var(--fg-soft);
+}
+
+.day-detail-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.day-detail-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-detail-event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--fg-soft);
+  border-radius: var(--radius);
+}
+
+.day-detail-event .event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-detail-event .event-info {
+  flex: 1;
+}
+
+.day-detail-event .event-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.day-detail-event .event-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+@media (max-width: 920px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    margin-left: 0 !important;
+  }
+
+  .calendar-container {
+    padding: 16px;
+  }
+
+  .calendar-day {
+    min-height: 70px;
+    padding: 4px 6px;
+  }
+
+  .day-event {
+    font-size: 10px;
+  }
+}
+
+[data-theme="dark"] .calendar-day.other-month {
+  background: color-mix(in oklch, var(--bg) 50%, var(--surface));
+}

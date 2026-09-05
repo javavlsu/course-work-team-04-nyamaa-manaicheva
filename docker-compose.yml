@@ -1,0 +1,97 @@
+services:
+  postgres-db:
+    image: postgres:17
+    container_name: notesbook-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-cursework}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cursework}
+      POSTGRES_DB: ${DB_NAME:-notesbook}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-cursework} -d ${DB_NAME:-notesbook}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./automate/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - notesbook-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: notesbook-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - notesbook-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: notesbook-mailhog
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+    networks:
+      - notesbook-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: notesbook-backend
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-notesbook}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-cursework}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-cursework}
+      SERVER_PORT: ${PORT:-8080}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_ENDPOINT: http://localhost:${MINIO_API_PORT:-9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-notesbook-attachments}
+      CORS_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    networks:
+      - notesbook-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: notesbook-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - notesbook-network
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  notesbook-network:
+    driver: bridge
