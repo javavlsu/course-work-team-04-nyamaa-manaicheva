@@ -34,7 +34,7 @@ spring:
 
 notesbook:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   storage:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
@@ -44,7 +44,7 @@ notesbook:
   mail:
     from: ${MAIL_FROM:no-reply@notesbook.local}
   frontend:
-    base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+    base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
 
 logging:
   file:
