@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as notesApi from "../../api/notes.js";
 import * as directoriesApi from "../../api/directories.js";
 import AppSidebar from "../../components/layout/AppSidebar";
+import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "../../components/DirectoryModal";
 import Topbar from "./Topbar";
 import Toolbar from "./Toolbar";
 import FoldersSection from "./FoldersSection";
@@ -60,6 +61,9 @@ export function NotesFeedPage() {
   const [isCreatingFolder, setIsCreatingFolder]   = useState(false);
   const [renamingFolderId, setRenamingFolderId]   = useState(null);
   const [deletingFolderId, setDeletingFolderId]   = useState(null);
+  const [renamingFolder, setRenamingFolder]       = useState(null);
+  const [deletingFolder, setDeletingFolder]       = useState(null);
+  const [isCreateOpen, setIsCreateOpen]           = useState(false);
   const [folderActionError, setFolderActionError] = useState(null);
 
   // activeFolder читается внутри loadMore/fetchNotesPage через ref,
@@ -368,25 +372,30 @@ export function NotesFeedPage() {
     // когда изменится debouncedSearch/effectiveSearchKey.
   };
 
-  const addFolder = async () => {
+  const addFolder = () => {
     if (isCreatingFolder) return;
+    setFolderActionError(null);
+    setIsCreateOpen(true);
+  };
 
-    const title = window.prompt("Название новой папки:");
-    if (!title || !title.trim()) return;
+  const handleCreateSubmit = async (title) => {
+    if (isCreatingFolder) return;
 
     setIsCreatingFolder(true);
     setFolderActionError(null);
 
     try {
-      const created = await directoriesApi.create({ title: title.trim() });
+      const created = await directoriesApi.create({ title });
       // Адаптация DirectoryResponse { id, title } → формат FoldersSection { key, name, tint },
       // тот же принцип, что и при загрузке списка.
       setFolders((prev) => [
         ...prev,
         { key: created.id, name: created.title, tint: FOLDER_TINTS[prev.length % FOLDER_TINTS.length] },
       ]);
+      setIsCreateOpen(false);
     } catch (err) {
-      setFolderActionError(err.message || "Не удалось создать папку");
+      setIsCreateOpen(false);
+      setFolderActionError(err.message || "Не удалось создать директорию");
     } finally {
       setIsCreatingFolder(false);
     }
@@ -397,24 +406,30 @@ export function NotesFeedPage() {
    * rename/delete-действий через renamingFolderId/deletingFolderId. Права проверяет только
    * backend (владелец, иначе 403).
    */
-  const handleRenameFolder = async (folder) => {
+  const handleRenameFolder = (folder) => {
     if (renamingFolderId || deletingFolderId) return;
+    setFolderActionError(null);
+    setRenamingFolder(folder);
+  };
 
-    const newTitle = window.prompt("Новое название папки:", folder.name);
-    if (!newTitle || !newTitle.trim() || newTitle.trim() === folder.name) return;
+  const handleRenameSubmit = async (newTitle) => {
+    const folder = renamingFolder;
+    if (!folder || renamingFolderId || deletingFolderId) return;
 
     setRenamingFolderId(folder.key);
     setFolderActionError(null);
 
     try {
-      const updated = await directoriesApi.update(folder.key, { title: newTitle.trim() });
+      const updated = await directoriesApi.update(folder.key, { title: newTitle });
       setFolders((prev) =>
         prev.map((f) =>
-          f.key === folder.key ? { ...f, name: updated.title ?? newTitle.trim() } : f
+          f.key === folder.key ? { ...f, name: updated.title ?? newTitle } : f
         )
       );
+      setRenamingFolder(null);
     } catch (err) {
-      setFolderActionError(err.message || "Не удалось переименовать папку");
+      setRenamingFolder(null);
+      setFolderActionError(err.message || "Не удалось изменить директорию");
     } finally {
       setRenamingFolderId(null);
     }
@@ -425,13 +440,15 @@ export function NotesFeedPage() {
    * выбрана как activeFolder — возвращаемся к "Все заметки" через уже существующий
    * handleSelectAll. Заметки внутри папки не удаляются (backend удаляет только самую директорию).
    */
-  const handleDeleteFolder = async (folder) => {
+  const handleDeleteFolder = (folder) => {
     if (renamingFolderId || deletingFolderId) return;
+    setFolderActionError(null);
+    setDeletingFolder(folder);
+  };
 
-    const confirmed = window.confirm(
-      `Удалить папку «${folder.name}»? Заметки внутри нее не удаляются.`
-    );
-    if (!confirmed) return;
+  const handleDeleteConfirm = async () => {
+    const folder = deletingFolder;
+    if (!folder || renamingFolderId || deletingFolderId) return;
 
     setDeletingFolderId(folder.key);
     setFolderActionError(null);
@@ -442,8 +459,10 @@ export function NotesFeedPage() {
       if (activeFolder === folder.key) {
         handleSelectAll();
       }
+      setDeletingFolder(null);
     } catch (err) {
-      setFolderActionError(err.message || "Не удалось удалить папку");
+      setDeletingFolder(null);
+      setFolderActionError(err.message || "Не удалось удалить директорию");
     } finally {
       setDeletingFolderId(null);
     }
@@ -462,11 +481,100 @@ export function NotesFeedPage() {
     setIsFavouriteFilter(true);
   };
 
-  // Counts для sidebar: всего и избранных (в рамках текущего загруженного источника)
-  const favoritesCount = notes.filter((n) => n.isFavourite).length;
+  const [noteFolderMap, setNoteFolderMap] = useState(new Map());
 
-  // Counts для FoldersSection (пока только "all" — количество загруженных notes текущего источника)
-  const counts = { all: notes.length };
+  useEffect(() => {
+    const realFolders = folders.filter((f) => f.key !== "all");
+    if (realFolders.length === 0) {
+      setNoteFolderMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    async function fetchMap() {
+      const map = new Map();
+      await Promise.all(
+        realFolders.map(async (folder) => {
+          try {
+            const links = await directoriesApi.listNotes(folder.key);
+            links.forEach((link) => {
+              if (!map.has(link.noteId)) map.set(link.noteId, link.directoryId);
+            });
+          } catch {
+            return;
+          }
+        })
+      );
+      if (!cancelled) setNoteFolderMap(new Map(map));
+    }
+    fetchMap();
+    return () => { cancelled = true; };
+  }, [folders]);
+
+  const foldersForSelector = folders
+    .filter((f) => f.key !== "all")
+    .map((f) => ({
+      id: f.key,
+      name: f.name,
+      tint: f.tint,
+      notesCount: [...noteFolderMap.values()].filter((v) => String(v) === String(f.key)).length,
+    }));
+
+  const notesEnriched = notes.map((n) => ({
+    ...n,
+    folderId: noteFolderMap.get(n.id) || null,
+  }));
+
+  const handleMoveNote = async (noteId, targetFolderId) => {
+    const current = noteFolderMap.get(noteId) || null;
+    if (String(current) === String(targetFolderId)) return;
+    try {
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(targetFolderId, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, targetFolderId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleRemoveNote = async (noteId) => {
+    const current = noteFolderMap.get(noteId);
+    if (!current) return;
+    try {
+      await directoriesApi.removeNote(current, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.delete(noteId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleCreateAndMove = async (noteId, title) => {
+    const current = noteFolderMap.get(noteId) || null;
+    try {
+      const created = await directoriesApi.create({ title });
+      const newFolder = { key: created.id, name: created.title, tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length] };
+      setFolders((prev) => [...prev, newFolder]);
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(created.id, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, created.id);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const favoritesCount = notes.filter((n) => n.isFavourite).length;
+  const directoriesCount = Math.max(0, folders.length - 1);
 
   return (
     <div className="app">
@@ -474,71 +582,13 @@ export function NotesFeedPage() {
         active={isFavouriteFilter === true ? "favorites" : "notes"}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        counts={{ all: notes.length, favorites: favoritesCount }}
+        counts={{ all: notes.length, directories: directoriesCount, favorites: favoritesCount }}
         onSelectAll={handleSelectAll}
         onSelectFavorites={handleSelectFavorites}
       />
       <div className="main">
         <Topbar count={notes.length} pluralRu={pluralRu} />
         <Toolbar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
-
-        {/* Directories loading/error state (первая загрузка) */}
-        {isFoldersLoading && (
-          <div className="folders-section">
-            <p className="folders-status">Загрузка папок…</p>
-          </div>
-        )}
-
-        {!isFoldersLoading && foldersError && (
-          <div className="folders-section">
-            <p className="folders-status folders-status-error">{foldersError}</p>
-          </div>
-        )}
-
-        {/* Directories list + infinite scroll */}
-        {!isFoldersLoading && !foldersError && (
-          <>
-            <FoldersSection
-              folders={folders}
-              activeFolder={activeFolder}
-              counts={counts}
-              onSelect={setActiveFolder}
-              onAdd={addFolder}
-              isCreating={isCreatingFolder}
-              onRename={handleRenameFolder}
-              onDelete={handleDeleteFolder}
-              renamingFolderId={renamingFolderId}
-              deletingFolderId={deletingFolderId}
-            />
-
-            {/* Ошибка create/rename/delete директорий — минимальный state, тот же паттерн, что и foldersError */}
-            {folderActionError && (
-              <p className="folders-status folders-status-error">{folderActionError}</p>
-            )}
-
-            {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы папок */}
-            {foldersHasMore && (
-              <div ref={foldersSentinelRef} className="folders-load-more-sentinel">
-                {isFoldersLoadingMore && (
-                  <div className="notes-load-more">
-                    <div className="notes-loading-spinner notes-loading-spinner-sm" />
-                    <span>Загрузка папок…</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Ошибка подгрузки следующей страницы папок — уже загруженные folders остаются */}
-            {foldersLoadMoreError && (
-              <div className="notes-load-more-error">
-                <span>{foldersLoadMoreError}</span>
-                <button className="btn btn-secondary" onClick={loadMoreFolders}>
-                  Повторить
-                </button>
-              </div>
-            )}
-          </>
-        )}
 
         {/* Notes loading state (первая загрузка / смена директории) */}
         {isLoading && (
@@ -563,9 +613,9 @@ export function NotesFeedPage() {
 
         {/* Notes list + infinite scroll */}
         {!isLoading && !error && (
-          notes.length > 0 ? (
+          notesEnriched.length > 0 ? (
             <>
-              <NotesGrid notes={notes} onToggle={toggleFavorite} />
+              <NotesGrid notes={notesEnriched} folders={foldersForSelector} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
 
               {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы */}
               {hasMore && (
@@ -594,7 +644,36 @@ export function NotesFeedPage() {
           )
         )}
       </div>
-      <FabGroup />
+      <FabGroup onNewFolder={addFolder} />
+      {renamingFolder && (
+        <RenameDirectoryModal
+          folderName={renamingFolder.name}
+          isSaving={Boolean(renamingFolderId)}
+          onClose={() => {
+            if (!renamingFolderId) setRenamingFolder(null);
+          }}
+          onSubmit={handleRenameSubmit}
+        />
+      )}
+      {deletingFolder && (
+        <DeleteDirectoryModal
+          folderName={deletingFolder.name}
+          isDeleting={Boolean(deletingFolderId)}
+          onClose={() => {
+            if (!deletingFolderId) setDeletingFolder(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+      {isCreateOpen && (
+        <CreateDirectoryModal
+          isCreating={isCreatingFolder}
+          onClose={() => {
+            if (!isCreatingFolder) setIsCreateOpen(false);
+          }}
+          onSubmit={handleCreateSubmit}
+        />
+      )}
     </div>
   );
 }

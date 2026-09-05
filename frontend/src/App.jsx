@@ -7,6 +7,7 @@ import { RecoverPage } from "./pages/RecoverPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { AccountPage } from "./pages/AccountPage";
 import { NotesFeedPage } from "./pages/NotesFeedPage";
+import { DirectoriesPage } from "./pages/DirectoriesPage";
 import { NoteEditorPage } from "./pages/NoteEditorPage";
 import { KanbanBoardPage } from "./pages/KanbanBoardPage";
 import { CalendarPage } from "./pages/CalendarPage";
@@ -16,12 +17,19 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { ForbiddenPage } from "./pages/ForbiddenPage";
 import { ServerErrorPage } from "./pages/ServerErrorPage";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+
+function RootRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
+  return isAuthenticated ? <NotesFeedPage /> : <HomePage />;
+}
 
 function App() {
   return (
     <Routes>
       {/* Публичные маршруты */}
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<RootRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/recover" element={<RecoverPage />} />
@@ -33,6 +41,22 @@ function App() {
       <Route path="*" element={<NotFoundPage />} />
 
       {/* Защищённые маршруты */}
+      <Route
+        path="/directories"
+        element={
+          <ProtectedRoute>
+            <DirectoriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/directories/:folderId"
+        element={
+          <ProtectedRoute>
+            <DirectoriesPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/account"
         element={
