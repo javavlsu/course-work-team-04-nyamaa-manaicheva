@@ -462,6 +462,98 @@ export function NotesFeedPage() {
     setIsFavouriteFilter(true);
   };
 
+  const [noteFolderMap, setNoteFolderMap] = useState(new Map());
+
+  useEffect(() => {
+    const realFolders = folders.filter((f) => f.key !== "all");
+    if (realFolders.length === 0) {
+      setNoteFolderMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    async function fetchMap() {
+      const map = new Map();
+      await Promise.all(
+        realFolders.map(async (folder) => {
+          try {
+            const links = await directoriesApi.listNotes(folder.key);
+            links.forEach((link) => {
+              if (!map.has(link.noteId)) map.set(link.noteId, link.directoryId);
+            });
+          } catch {
+            return;
+          }
+        })
+      );
+      if (!cancelled) setNoteFolderMap(new Map(map));
+    }
+    fetchMap();
+    return () => { cancelled = true; };
+  }, [folders]);
+
+  const foldersForSelector = folders
+    .filter((f) => f.key !== "all")
+    .map((f) => ({
+      id: f.key,
+      name: f.name,
+      tint: f.tint,
+      notesCount: [...noteFolderMap.values()].filter((v) => String(v) === String(f.key)).length,
+    }));
+
+  const notesEnriched = notes.map((n) => ({
+    ...n,
+    folderId: noteFolderMap.get(n.id) || null,
+  }));
+
+  const handleMoveNote = async (noteId, targetFolderId) => {
+    const current = noteFolderMap.get(noteId) || null;
+    if (String(current) === String(targetFolderId)) return;
+    try {
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(targetFolderId, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, targetFolderId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleRemoveNote = async (noteId) => {
+    const current = noteFolderMap.get(noteId);
+    if (!current) return;
+    try {
+      await directoriesApi.removeNote(current, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.delete(noteId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleCreateAndMove = async (noteId, title) => {
+    const current = noteFolderMap.get(noteId) || null;
+    try {
+      const created = await directoriesApi.create({ title });
+      const newFolder = { key: created.id, name: created.title, tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length] };
+      setFolders((prev) => [...prev, newFolder]);
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(created.id, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, created.id);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
   const favoritesCount = notes.filter((n) => n.isFavourite).length;
   const directoriesCount = Math.max(0, folders.length - 1);
 
@@ -502,9 +594,9 @@ export function NotesFeedPage() {
 
         {/* Notes list + infinite scroll */}
         {!isLoading && !error && (
-          notes.length > 0 ? (
+          notesEnriched.length > 0 ? (
             <>
-              <NotesGrid notes={notes} onToggle={toggleFavorite} />
+              <NotesGrid notes={notesEnriched} folders={foldersForSelector} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
 
               {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы */}
               {hasMore && (

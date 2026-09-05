@@ -365,6 +365,12 @@
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
   height: 260px;
   overflow: hidden;
+  position: relative;
+}
+
+.note-card:has(.dropdown-menu) {
+  z-index: 5;
+  overflow: visible;
 }
 
 .note-card:hover {
@@ -378,6 +384,90 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 6px;
+}
+
+.note-card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.note-actions {
+  position: relative;
+}
+
+.actions-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  color: var(--muted);
+  opacity: 1;
+  transition: opacity 0.15s, background 0.12s, color 0.12s;
+}
+
+.actions-btn:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+}
+
+.dropdown-item {
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--fg);
+  transition: background 0.12s;
+}
+
+.dropdown-item:hover {
+  background: var(--fg-soft);
+}
+
+.dropdown-item-danger {
+  color: #d14343;
+}
+
+.dropdown-item-danger:hover {
+  background: color-mix(in oklch, #d14343 10%, transparent);
+}
+
+.note-folder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 3px 8px;
+  background: var(--fg-soft);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.note-folder-badge span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .note-card-title {
@@ -605,6 +695,12 @@
 }
 
 /* ── Responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .actions-btn {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 920px) {
   .main {
     margin-left: 0 !important;

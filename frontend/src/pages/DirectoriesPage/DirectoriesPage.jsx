@@ -135,6 +135,55 @@ export function DirectoriesPage() {
     }
   };
 
+  const handleMoveNote = async (noteId, targetFolderId) => {
+    const current = noteFolderMap.get(noteId) || null;
+    if (String(current) === String(targetFolderId)) return;
+    try {
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(targetFolderId, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, targetFolderId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleRemoveNote = async (noteId) => {
+    const current = noteFolderMap.get(noteId);
+    if (!current) return;
+    try {
+      await directoriesApi.removeNote(current, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.delete(noteId);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
+  const handleCreateAndMove = async (noteId, title) => {
+    const current = noteFolderMap.get(noteId) || null;
+    try {
+      const created = await directoriesApi.create({ title });
+      const newFolder = { key: created.id, id: created.id, name: created.title, tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length] };
+      setFolders((prev) => [...prev, newFolder]);
+      if (current) await directoriesApi.removeNote(current, noteId);
+      await directoriesApi.addNote(created.id, noteId);
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.set(noteId, created.id);
+        return next;
+      });
+    } catch {
+      return;
+    }
+  };
+
   const favoritesCount = notesWithFolderId.filter((n) => n.isFavourite).length;
   const unassignedNotes = notesWithFolderId.filter((n) => n.folderId === null || n.folderId === undefined);
   const folderNotes = folderId ? notesWithFolderId.filter((n) => String(n.folderId) === String(folderId)) : [];
@@ -194,32 +243,33 @@ export function DirectoriesPage() {
         {!isLoading && !error && (
           <>
             {!folderId && (
-              <>
-                <div className="folders-section">
+              <div className="directories-page">
+                <div className="folders-grid">
                   {foldersWithCount.length === 0 ? (
                     <p className="folders-status">Папок нет</p>
                   ) : (
-                    <div className="folders-grid">
-                      {foldersWithCount.map((folder) => (
-                        <FolderCard
-                          key={folder.key}
-                          folder={folder}
-                          onClick={() => navigate(`/directories/${folder.id}`)}
-                        />
-                      ))}
-                    </div>
+                    foldersWithCount.map((folder) => (
+                      <FolderCard
+                        key={folder.key}
+                        folder={folder}
+                        onClick={() => navigate(`/directories/${folder.id}`)}
+                      />
+                    ))
                   )}
                 </div>
-                <div className="notes-section-divider">
-                  <span className="notes-section-title">Заметки без папки</span>
-                </div>
-              </>
+                {displayNotes.length > 0 ? (
+                  <NotesGrid notes={displayNotes} folders={foldersWithCount} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
+                ) : (
+                  <EmptyState />
+                )}
+              </div>
             )}
-
-            {displayNotes.length > 0 ? (
-              <NotesGrid notes={displayNotes} onToggle={toggleFavorite} />
-            ) : (
-              <EmptyState />
+            {folderId && (
+              displayNotes.length > 0 ? (
+                <NotesGrid notes={displayNotes} folders={foldersWithCount} onToggle={toggleFavorite} onMove={handleMoveNote} onRemove={handleRemoveNote} onCreateAndMove={handleCreateAndMove} />
+              ) : (
+                <EmptyState />
+              )
             )}
           </>
         )}
