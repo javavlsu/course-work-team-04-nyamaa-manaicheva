@@ -80,3 +80,37 @@ export function toggleFavourite(id) {
 export function remove(id) {
   return api.delete(`/api/notes/${id}`);
 }
+
+/**
+ * Загружает список удалённых заметок (корзину) текущего пользователя.
+ *
+ * Backend: GET /api/notes/trash
+ * Response: NoteResponse[] (без пагинации)
+ *
+ * @returns {Promise<object[]>}
+ */
+export function listTrash() {
+  return api.get("/api/notes/trash");
+}
+
+/**
+ * Восстанавливает заметку из корзины (снимает soft-delete).
+ *
+ * @param {string} id
+ * @returns {Promise<object>}
+ */
+export function restore(id) {
+  return api.patch(`/api/notes/${id}/restore`);
+}
+
+/**
+ * Безвозвратно удаляет заметку из корзины вместе со всеми связями
+ * (ревизии, теги, вложения, комментарии, доступы) и файлами в MinIO.
+ * Необратимо; можно вызывать только для заметок, уже находящихся в корзине.
+ *
+ * @param {string} id
+ * @returns {Promise<void>}
+ */
+export function purge(id) {
+  return api.delete(`/api/notes/${id}/purge`);
+}

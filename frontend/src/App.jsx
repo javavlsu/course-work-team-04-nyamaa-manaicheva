@@ -7,6 +7,7 @@ import { RecoverPage } from "./pages/RecoverPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { AccountPage } from "./pages/AccountPage";
 import { NotesFeedPage } from "./pages/NotesFeedPage";
+import { TrashPage } from "./pages/TrashPage";
 import { DirectoriesPage } from "./pages/DirectoriesPage";
 import { NoteEditorPage } from "./pages/NoteEditorPage";
 import { KanbanBoardPage } from "./pages/KanbanBoardPage";
@@ -62,6 +63,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AccountPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trash"
+        element={
+          <ProtectedRoute>
+            <TrashPage />
           </ProtectedRoute>
         }
       />
