@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Lock, Plus, Trash, Upload } from "lucide-react";
 
-import { privacyOptions } from "../../../lib/utils/mockData";
+import { privacyOptions } from "../../../../lib/utils/mockData";
 import DirectoryMenu from "./DirectoryMenu";
 import {
   EyeIcon,
