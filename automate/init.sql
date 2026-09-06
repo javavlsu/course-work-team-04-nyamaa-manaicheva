@@ -3,6 +3,7 @@
 CREATE TYPE role_type AS ENUM ('Admin', 'Client');
 CREATE TYPE note_type AS ENUM ('Empty', 'List', 'Table', 'Kanban', 'Calendar');
 CREATE TYPE permission_type AS ENUM ('View', 'Edit');
+CREATE TYPE kanban_task_status AS ENUM ('Todo', 'InProgress', 'Done');
 
 -- USER
 CREATE TABLE "User" (
@@ -151,4 +152,44 @@ CREATE TABLE "comment" (
         FOREIGN KEY (note_id) REFERENCES note(id),
     CONSTRAINT fk_comment_author
         FOREIGN KEY (author_id) REFERENCES "User"(id)
+);
+
+-- KANBAN_BOARD
+CREATE TABLE kanban_board (
+    id          UUID PRIMARY KEY,
+    owner_id    UUID NOT NULL UNIQUE,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
+    CONSTRAINT fk_kanbanboard_owner
+        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+);
+
+-- KANBAN_COLUMN
+CREATE TABLE kanban_column (
+    id          UUID PRIMARY KEY,
+    board_id    UUID NOT NULL,
+    title       VARCHAR(100) NOT NULL,
+    position    INTEGER NOT NULL,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
+    CONSTRAINT fk_kanbancolumn_board
+        FOREIGN KEY (board_id) REFERENCES kanban_board(id)
+);
+
+-- KANBAN_TASK
+CREATE TABLE kanban_task (
+    id           UUID PRIMARY KEY,
+    column_id    UUID NOT NULL,
+    title        VARCHAR(150) NOT NULL,
+    description  TEXT,
+    position     INTEGER NOT NULL,
+    status       kanban_task_status NOT NULL,
+    archived     BOOLEAN NOT NULL DEFAULT FALSE,
+    note_id      UUID NULL,
+    created_at   TIMESTAMP NOT NULL,
+    updated_at   TIMESTAMP NOT NULL,
+    CONSTRAINT fk_kanbantask_column
+        FOREIGN KEY (column_id) REFERENCES kanban_column(id),
+    CONSTRAINT fk_kanbantask_note
+        FOREIGN KEY (note_id) REFERENCES note(id)
 );
