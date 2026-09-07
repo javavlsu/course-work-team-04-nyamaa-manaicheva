@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "./KanbanBoardPage.css";
+import "../KanbanBoardPage.css";
 
 /**
  * Универсальная модалка подтверждения деструктивного действия (удаление колонки/задачи).
