@@ -193,3 +193,31 @@ CREATE TABLE kanban_task (
     CONSTRAINT fk_kanbantask_note
         FOREIGN KEY (note_id) REFERENCES note(id)
 );
+
+-- CALENDAR
+CREATE TABLE calendar (
+    id          UUID PRIMARY KEY,
+    owner_id    UUID NOT NULL UNIQUE,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
+    CONSTRAINT fk_calendar_owner
+        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+);
+
+-- CALENDAR_EVENT
+CREATE TABLE calendar_event (
+    id           UUID PRIMARY KEY,
+    calendar_id  UUID NOT NULL,
+    title        VARCHAR(150) NOT NULL,
+    description  TEXT,
+    start_at     TIMESTAMP NOT NULL,
+    end_at       TIMESTAMP NOT NULL,
+    all_day      BOOLEAN NOT NULL DEFAULT FALSE,
+    note_id      UUID NULL,
+    created_at   TIMESTAMP NOT NULL,
+    updated_at   TIMESTAMP NOT NULL,
+    CONSTRAINT fk_calendarevent_calendar
+        FOREIGN KEY (calendar_id) REFERENCES calendar(id),
+    CONSTRAINT fk_calendarevent_note
+        FOREIGN KEY (note_id) REFERENCES note(id)
+);
