@@ -1,19 +1,28 @@
-import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import AppSidebar from "../../../components/layout/AppSidebar";
-import Topbar from "./Topbar";
-import StatCards from "./StatCards";
-import ChartPanel from "./ChartPanel";
-import WeeklyBars from "./WeeklyBars";
-import DirectoryBars from "./DirectoryBars";
-import ProgressDonut from "./ProgressDonut";
-import ActivityList from "./ActivityList";
+import { useAnalytics } from "./hooks/useAnalytics";
+import Topbar from "./components/Topbar";
+import StatCards from "./components/StatCards";
+import ChartPanel from "./components/ChartPanel";
+import WeeklyBars from "./components/WeeklyBars";
+import DirectoryBars from "./components/DirectoryBars";
+import ProgressDonut from "./components/ProgressDonut";
+import ActivityList from "./components/ActivityList";
 import "./AnalyticsPage.css";
 
 export function AnalyticsPage() {
   const { collapsed, onToggleSidebar } = useOutletContext();
-  const [period, setPeriod] = useState("Месяц");
+  const {
+    period,
+    onPeriodChange,
+    stats,
+    weeklyNotes,
+    directoryNotes,
+    progress,
+    donut,
+    activity,
+  } = useAnalytics();
 
   return (
     <>
@@ -23,17 +32,17 @@ export function AnalyticsPage() {
         onToggle={onToggleSidebar}
       />
       <div className="main">
-        <Topbar period={period} onPeriodChange={setPeriod} />
+        <Topbar period={period} onPeriodChange={onPeriodChange} />
         <div className="analytics-content">
-          <StatCards />
+          <StatCards stats={stats} />
           <div className="chart-grid">
             <ChartPanel title="Создано заметок по неделям">
               <div className="chart-canvas">
-                <WeeklyBars />
+                <WeeklyBars data={weeklyNotes} />
               </div>
             </ChartPanel>
             <ChartPanel title="Прогресс выполнения">
-              <ProgressDonut />
+              <ProgressDonut progress={progress} data={donut} />
             </ChartPanel>
           </div>
           <ChartPanel
@@ -41,11 +50,11 @@ export function AnalyticsPage() {
             style={{ marginBottom: "32px" }}
           >
             <div className="chart-canvas">
-              <DirectoryBars />
+              <DirectoryBars data={directoryNotes} />
             </div>
           </ChartPanel>
           <ChartPanel title="Последняя активность">
-            <ActivityList />
+            <ActivityList activity={activity} />
           </ChartPanel>
         </div>
       </div>

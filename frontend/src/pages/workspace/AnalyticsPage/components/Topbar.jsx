@@ -1,4 +1,4 @@
-const PERIODS = ["Неделя", "Месяц", "Квартал"];
+import { PERIODS } from "../hooks/useAnalytics";
 
 function Topbar({ period, onPeriodChange }) {
   return (

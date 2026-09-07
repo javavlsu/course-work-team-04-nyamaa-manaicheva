@@ -1,11 +1,11 @@
 import { ResponsiveBar } from "@nivo/bar";
 
-import { notesPerWeek } from "../../../lib/utils/mockData";
+import { nivoTheme } from "../nivoTheme";
 
-function WeeklyBars() {
+function WeeklyBars({ data }) {
   return (
     <ResponsiveBar
-      data={notesPerWeek}
+      data={data}
       keys={["value"]}
       indexBy="week"
       margin={{ top: 8, right: 0, bottom: 24, left: 0 }}
@@ -19,17 +19,7 @@ function WeeklyBars() {
       colors="var(--accent)"
       enableLabel={false}
       isInteractive={false}
-      theme={{
-        axis: {
-          ticks: {
-            text: {
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              fill: "var(--muted)",
-            },
-          },
-        },
-      }}
+      theme={nivoTheme}
     />
   );
 }

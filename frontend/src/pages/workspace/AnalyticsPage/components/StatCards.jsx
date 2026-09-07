@@ -1,11 +1,9 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { analyticsStats } from "../../../lib/utils/mockData";
-
-function StatCards() {
+function StatCards({ stats }) {
   return (
     <div className="stat-row">
-      {analyticsStats.map((stat) => (
+      {stats.map((stat) => (
         <div className="stat-card" key={stat.label}>
           <span className="stat-card-label">{stat.label}</span>
           <span

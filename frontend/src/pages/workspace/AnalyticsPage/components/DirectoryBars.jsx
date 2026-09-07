@@ -1,11 +1,11 @@
 import { ResponsiveBar } from "@nivo/bar";
 
-import { directoryNotes } from "../../../lib/utils/mockData";
+import { nivoTheme } from "../nivoTheme";
 
-function DirectoryBars() {
+function DirectoryBars({ data }) {
   return (
     <ResponsiveBar
-      data={directoryNotes}
+      data={data}
       keys={["value"]}
       indexBy="dir"
       margin={{ top: 8, right: 0, bottom: 24, left: 0 }}
@@ -23,17 +23,7 @@ function DirectoryBars() {
       }
       enableLabel={false}
       isInteractive={false}
-      theme={{
-        axis: {
-          ticks: {
-            text: {
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              fill: "var(--muted)",
-            },
-          },
-        },
-      }}
+      theme={nivoTheme}
     />
   );
 }

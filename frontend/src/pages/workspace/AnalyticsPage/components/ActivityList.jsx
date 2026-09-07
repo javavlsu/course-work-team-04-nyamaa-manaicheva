@@ -1,17 +1,15 @@
 import { Check, Plus, Share2 } from "lucide-react";
 
-import { recentActivity } from "../../../lib/utils/mockData";
-
 const ICONS = {
   create: Plus,
   complete: Check,
   share: Share2,
 };
 
-function ActivityList() {
+function ActivityList({ activity }) {
   return (
     <div className="activity-list">
-      {recentActivity.map((item) => {
+      {activity.map((item) => {
         const Icon = ICONS[item.type];
         return (
           <div className="activity-item" key={item.text}>
