@@ -3,20 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { EllipsisVertical, Folder } from "lucide-react";
 
 import { StarIcon } from "./icons";
-import FolderSelector from "../../../components/FolderSelector";
-import { CreateDirectoryModal } from "../../../components/modals/DirectoryModal";
+import FolderSelector from "../FolderSelector";
+import { CreateDirectoryModal } from "../modals/DirectoryModal";
 
-/**
- * Вытаскивает читаемый текст-preview из поля content.
- *
- * Backend хранит content как Object (может быть строкой-Markdown,
- * JSON-объектом для структурированных типов, или null).
- * Для карточки нам нужен просто текст ≤ нескольких строк.
- */
 function extractExcerpt(content) {
   if (!content) return "";
   if (typeof content === "string") return content;
-  // Если content — объект (например, JSON для Kanban/Table) — сериализуем как fallback
   try {
     return JSON.stringify(content);
   } catch {
@@ -24,10 +16,6 @@ function extractExcerpt(content) {
   }
 }
 
-/**
- * Форматирует ISO-дату в читаемый вид «14 авг 2026».
- * Если дата некорректна — возвращает пустую строку.
- */
 function formatDate(isoString) {
   if (!isoString) return "";
   try {
@@ -41,9 +29,6 @@ function formatDate(isoString) {
   }
 }
 
-/**
- * Маппинг noteType (backend enum) → человекочитаемый тег на карточке.
- */
 const NOTE_TYPE_LABELS = {
   Empty:    "Заметка",
   List:     "Список",
