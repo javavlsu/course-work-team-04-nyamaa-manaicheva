@@ -1,15 +1,22 @@
-import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import ruLocale from "@fullcalendar/core/locales/ru";
+
 import AppSidebar from "../../../components/layout/AppSidebar";
-import Topbar from "./Topbar";
-import CalendarGrid from "./CalendarGrid";
-import DayDetailModal from "./DayDetailModal";
+import DayDetailModal from "./components/DayDetailModal";
+import { useCalendar } from "./hooks/useCalendar";
 import "./CalendarPage.css";
+
+function eventClassNames({ event }) {
+  return `fc-event-${event.extendedProps.category}`;
+}
 
 export function CalendarPage() {
   const { collapsed, onToggleSidebar } = useOutletContext();
-  const [selectedDay, setSelectedDay] = useState(null);
+  const { events, selectedDate, openDay, closeDay, getDayEvents } = useCalendar();
 
   return (
     <>
@@ -19,13 +26,28 @@ export function CalendarPage() {
         onToggle={onToggleSidebar}
       />
       <div className="main">
-        <Topbar />
         <div className="calendar-container">
-          <CalendarGrid onSelectDay={setSelectedDay} />
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            locale={ruLocale}
+            initialDate="2026-08-01"
+            initialView="dayGridMonth"
+            headerToolbar={{ left: "prev,next title", right: "today" }}
+            height="auto"
+            fixedWeekCount
+            events={events}
+            eventClassNames={eventClassNames}
+            dateClick={({ dateStr }) => openDay(dateStr)}
+            eventClick={({ event }) => openDay(event.startStr)}
+          />
         </div>
       </div>
-      {selectedDay !== null && (
-        <DayDetailModal day={selectedDay} onClose={() => setSelectedDay(null)} />
+      {selectedDate && (
+        <DayDetailModal
+          date={new Date(`${selectedDate}T00:00:00`)}
+          events={getDayEvents(selectedDate)}
+          onClose={closeDay}
+        />
       )}
     </>
   );

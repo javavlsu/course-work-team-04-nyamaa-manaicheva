@@ -152,42 +152,6 @@ REST API для регистрации, логина и восстановлен
   },
 ];
 
-export const calendarEvents = {
-  3: [{ label: "Спринт Q3", type: "work" }],
-  5: [{ label: "Встреча с заказчиком", type: "personal" }],
-  8: [{ label: "ТЗ: API", type: "work" }],
-  10: [{ label: "Дедлайн API", type: "deadline" }],
-  12: [{ label: "Приоритеты Q3", type: "work" }],
-  14: [
-    { label: "Дизайн-ревью", type: "work" },
-    { label: "Дедлайн ТЗ", type: "personal" },
-  ],
-  18: [{ label: "Типографика", type: "deadline" }],
-  19: [{ label: "Google Calendar", type: "work" }],
-  20: [{ label: "Hover-состояния", type: "work" }],
-  21: [{ label: "Оптимизация", type: "work" }],
-  22: [{ label: "Mobile-adaptive", type: "personal" }],
-  25: [{ label: "Документация API", type: "work" }],
-};
-
-export const calendarDayDetails = {
-  3: [{ title: "Спринт Q3 — старт", cat: "Рабочие задачи", color: "var(--accent)" }],
-  5: [{ title: "Встреча с заказчиком: тренд-анализ", cat: "Личные заметки", color: "var(--success)" }],
-  8: [{ title: "Техническое задание: API авторизации", cat: "Рабочие задачи", color: "var(--accent)" }],
-  10: [{ title: "Дедлайн: REST API", cat: "Рабочие задачи", color: "var(--danger)" }],
-  12: [{ title: "Спринт Q3 — приоритеты", cat: "Рабочие задачи", color: "var(--accent)" }],
-  14: [
-    { title: "Дизайн-ревью интерфейса v2", cat: "Рабочие задачи", color: "var(--accent)" },
-    { title: "Дедлайн: ТЗ API", cat: "Личные заметки", color: "var(--success)" },
-  ],
-  18: [{ title: "Согласовать типографику", cat: "Рабочие задачи", color: "var(--danger)" }],
-  19: [{ title: "Интеграция с Google Calendar", cat: "Рабочие задачи", color: "var(--accent)" }],
-  20: [{ title: "Hover-состояния кнопок", cat: "Рабочие задачи", color: "var(--accent)" }],
-  21: [{ title: "Оптимизация изображений", cat: "Рабочие задачи", color: "var(--accent)" }],
-  22: [{ title: "Mobile-adaptive проверка", cat: "Личные заметки", color: "var(--success)" }],
-  25: [{ title: "Документация API", cat: "Рабочие задачи", color: "var(--accent)" }],
-};
-
 export const mockColumns = [
   {
     key: "todo",
