@@ -86,12 +86,22 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  /**
+   * Обновляет данные текущего пользователя в контексте.
+   * Используется после успешного PUT /api/users/{id} в настройках профиля,
+   * чтобы имя/инициалы в сайдбаре обновились без перезагрузки.
+   *
+   * @param {object} user актуальный UserResponse
+   */
+  const updateUser = useCallback((user) => setCurrentUser(user), []);
+
   const value = {
     currentUser,
     isLoading,
     isAuthenticated: currentUser !== null,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -100,7 +110,7 @@ export function AuthProvider({ children }) {
 /**
  * Хук для доступа к auth контексту.
  *
- * @returns {{ currentUser: object|null, isLoading: boolean, isAuthenticated: boolean, login: Function, logout: Function }}
+ * @returns {{ currentUser: object|null, isLoading: boolean, isAuthenticated: boolean, login: Function, logout: Function, updateUser: Function }}
  */
 export function useAuth() {
   const context = useContext(AuthContext);

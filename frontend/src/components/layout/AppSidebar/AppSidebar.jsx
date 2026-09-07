@@ -12,18 +12,39 @@ import {
 import { useAuth } from "../../../context/AuthContext.jsx";
 import "./AppSidebar.css";
 
+const DEFAULT_MODULES = { kanban: true, calendar: true, analytics: true };
+const MODULES_STORAGE_KEY = "nb-modules";
+
+function readStoredModules() {
+  try {
+    const raw = localStorage.getItem(MODULES_STORAGE_KEY);
+    if (!raw) return DEFAULT_MODULES;
+    const parsed = JSON.parse(raw);
+    const modules = { ...DEFAULT_MODULES };
+    for (const key of ["kanban", "calendar", "analytics"]) {
+      if (typeof parsed[key] === "boolean") {
+        modules[key] = parsed[key];
+      }
+    }
+    return modules;
+  } catch {
+    return DEFAULT_MODULES;
+  }
+}
+
 function AppSidebar({
   active,
   counts = {},
   collapsed,
   onToggle,
-  modules = { kanban: true, calendar: true, analytics: true },
+  modules,
   onSelectAll,
   onSelectFavorites,
 }) {
   const { currentUser, logout } = useAuth();
+  const resolvedModules = modules ?? readStoredModules();
   const linkClass = (key) => (active === key ? "sidebar-link active" : "sidebar-link");
-  const modClass = (key) => (!modules[key] ? " disabled" : "");
+  const modClass = (key) => (!resolvedModules[key] ? " disabled" : "");
 
   // Строим имя и инициалы из данных backend (UserResponse: name, surname, email)
   const displayName = currentUser
@@ -87,14 +108,14 @@ function AppSidebar({
             <KanbanIcon />
             <span className="link-label">Канбан</span>
           </Link>
-          <a href="#" className={linkClass("calendar") + modClass("calendar")}>
+          <Link to="/calendar" className={linkClass("calendar") + modClass("calendar")}>
             <CalendarIcon />
             <span className="link-label">Календарь</span>
-          </a>
-          <a href="#" className={linkClass("analytics") + modClass("analytics")}>
+          </Link>
+          <Link to="/analytics" className={linkClass("analytics") + modClass("analytics")}>
             <AnalyticsIcon />
             <span className="link-label">Аналитика</span>
-          </a>
+          </Link>
         </div>
       </div>
       <div className="sidebar-footer">
