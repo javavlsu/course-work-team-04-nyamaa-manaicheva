@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as directoriesApi from "../../../../api/directories.js";
 
@@ -10,23 +10,7 @@ const FOLDER_TINTS = ["tint-orange", "tint-green", "tint-purple", "tint-blue"];
 
 export function useFolders({ activeFolder, onSelectAll }) {
   // --- Directories (реальный API) ---
-  const [folders, setFolders]                   = useState([ALL_FOLDER]);
-  const [isFoldersLoading, setIsFoldersLoading] = useState(true);
-  const [foldersError, setFoldersError]         = useState(null);
-
-  // --- Directories infinite scroll state ---
-  const [foldersNextCursor, setFoldersNextCursor]       = useState(null);
-  const [foldersHasMore, setFoldersHasMore]             = useState(false);
-  const [isFoldersLoadingMore, setIsFoldersLoadingMore] = useState(false);
-  const [foldersLoadMoreError, setFoldersLoadMoreError] = useState(null);
-
-  const foldersCursorRef        = useRef(null);
-  const foldersHasMoreRef       = useRef(false);
-  const isFoldersLoadingMoreRef = useRef(false);
-
-  useEffect(() => { foldersCursorRef.current = foldersNextCursor; }, [foldersNextCursor]);
-  useEffect(() => { foldersHasMoreRef.current = foldersHasMore; }, [foldersHasMore]);
-  useEffect(() => { isFoldersLoadingMoreRef.current = isFoldersLoadingMore; }, [isFoldersLoadingMore]);
+  const [folders, setFolders] = useState([ALL_FOLDER]);
 
   // --- Directory CRUD state ---
   const [isCreatingFolder, setIsCreatingFolder]   = useState(false);
@@ -37,97 +21,31 @@ export function useFolders({ activeFolder, onSelectAll }) {
   const [isCreateOpen, setIsCreateOpen]           = useState(false);
   const [folderActionError, setFolderActionError] = useState(null);
 
-  // Загрузка первой страницы директорий при монтировании
+  // Загрузка директорий при монтировании
   useEffect(() => {
     let cancelled = false;
 
     async function fetchDirectories() {
-      setIsFoldersLoading(true);
-      setFoldersError(null);
       try {
         const page = await directoriesApi.list({ limit: PAGE_LIMIT });
         if (!cancelled) {
-          // Адаптация DirectoryResponse { id, title } → формат FoldersSection { key, name, tint }
+          // Адаптация DirectoryResponse { id, title } → формат { key, name, tint }
           const mapped = (page.items ?? []).map((dir, index) => ({
             key: dir.id,
             name: dir.title,
             tint: FOLDER_TINTS[index % FOLDER_TINTS.length],
           }));
           setFolders([ALL_FOLDER, ...mapped]);
-          setFoldersNextCursor(page.nextCursor ?? null);
-          setFoldersHasMore(Boolean(page.hasMore));
         }
-      } catch (err) {
-        if (!cancelled) {
-          setFoldersError(err.message || "Не удалось загрузить папки");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsFoldersLoading(false);
-        }
+      } catch {
+        // Ошибка загрузки папок не рендерится (список папок живёт на /directories),
+        // папки нужны здесь только для noteFolderMap и foldersForSelector.
       }
     }
 
     fetchDirectories();
     return () => { cancelled = true; };
   }, []);
-
-  /**
-   * Подгружает следующую страницу директорий по cursor из предыдущего
-   * ответа backend. Тот же паттерн, что и loadMore для Notes.
-   */
-  const loadMoreFolders = useCallback(async () => {
-    if (isFoldersLoadingMoreRef.current || !foldersHasMoreRef.current) return;
-
-    isFoldersLoadingMoreRef.current = true;
-    setIsFoldersLoadingMore(true);
-    setFoldersLoadMoreError(null);
-
-    try {
-      const page = await directoriesApi.list({
-        limit: PAGE_LIMIT,
-        cursor: foldersCursorRef.current,
-      });
-      const mapped = (page.items ?? []).map((dir, index) => ({
-        key: dir.id,
-        name: dir.title,
-        tint: FOLDER_TINTS[index % FOLDER_TINTS.length],
-      }));
-      // Append — существующие folders не заменяются
-      setFolders((prev) => [...prev, ...mapped]);
-      setFoldersNextCursor(page.nextCursor ?? null);
-      setFoldersHasMore(Boolean(page.hasMore));
-    } catch (err) {
-      // Уже загруженные folders остаются на экране
-      setFoldersLoadMoreError(err.message || "Не удалось загрузить ещё папки");
-    } finally {
-      isFoldersLoadingMoreRef.current = false;
-      setIsFoldersLoadingMore(false);
-    }
-  }, []);
-
-  // Callback ref на sentinel-элемент после списка папок.
-  const foldersObserverInstanceRef = useRef(null);
-  const foldersSentinelRef = useCallback(
-    (node) => {
-      if (foldersObserverInstanceRef.current) {
-        foldersObserverInstanceRef.current.disconnect();
-        foldersObserverInstanceRef.current = null;
-      }
-      if (!node) return;
-
-      foldersObserverInstanceRef.current = new IntersectionObserver(
-        (entries) => {
-          if (entries[0]?.isIntersecting) {
-            loadMoreFolders();
-          }
-        },
-        { rootMargin: "200px" }
-      );
-      foldersObserverInstanceRef.current.observe(node);
-    },
-    [loadMoreFolders]
-  );
 
   const addFolder = () => {
     if (isCreatingFolder) return;
@@ -314,13 +232,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
 
   return {
     folders,
-    isFoldersLoading,
-    foldersError,
-    foldersHasMore,
-    isFoldersLoadingMore,
-    foldersLoadMoreError,
-    loadMoreFolders,
-    foldersSentinelRef,
     isCreatingFolder,
     renamingFolderId,
     deletingFolderId,
@@ -330,7 +241,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
     setDeletingFolder,
     isCreateOpen,
     setIsCreateOpen,
-    folderActionError,
     setFolderActionError,
     addFolder,
     handleCreateSubmit,
