@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
-import { FileText, Folder, Trash } from "lucide-react";
-
 import {
-  MenuIcon,
-  StarIcon,
-  KanbanIcon,
-  CalendarIcon,
-  AnalyticsIcon,
-  SettingsIcon,
-} from "./icons";
-import { useAuth } from "../../../context/AuthContext.jsx";
+  Calendar,
+  ChartNoAxesColumn,
+  FileText,
+  Folder,
+  Menu,
+  Settings,
+  SquareKanban,
+  Star,
+  Trash,
+} from "lucide-react";
+
+import { useAuth } from "@/context/AuthContext.jsx";
 import "./AppSidebar.css";
 
 const DEFAULT_MODULES = { kanban: true, calendar: true, analytics: true };
@@ -64,7 +66,7 @@ function AppSidebar({
     <aside className={collapsed ? "sidebar collapsed" : "sidebar"}>
       <div className="sidebar-brand">
         <button className="hamburger-btn" title="Свернуть/развернуть меню" onClick={onToggle}>
-          <MenuIcon />
+          <Menu strokeWidth={1.8} aria-hidden="true" />
         </button>
         <span>NotesBook</span>
       </div>
@@ -89,7 +91,7 @@ function AppSidebar({
               onSelectFavorites?.();
             }}
           >
-            <StarIcon filled={false} />
+            <Star strokeWidth={1.6} fill="none" aria-hidden="true" />
             <span className="link-label">Избранное</span>
             {counts.favorites !== undefined && (
               <span className="count">{counts.favorites}</span>
@@ -105,22 +107,22 @@ function AppSidebar({
         <div className="sidebar-section">
           <div className="sidebar-section-title">Модули</div>
           <Link to="/kanban" className={linkClass("kanban") + modClass("kanban")}>
-            <KanbanIcon />
+            <SquareKanban strokeWidth={1.6} aria-hidden="true" />
             <span className="link-label">Канбан</span>
           </Link>
           <Link to="/calendar" className={linkClass("calendar") + modClass("calendar")}>
-            <CalendarIcon />
+            <Calendar strokeWidth={1.6} aria-hidden="true" />
             <span className="link-label">Календарь</span>
           </Link>
           <Link to="/analytics" className={linkClass("analytics") + modClass("analytics")}>
-            <AnalyticsIcon />
+            <ChartNoAxesColumn strokeWidth={1.6} aria-hidden="true" />
             <span className="link-label">Аналитика</span>
           </Link>
         </div>
       </div>
       <div className="sidebar-footer">
         <Link to="/settings" className={linkClass("settings")} style={{ padding: "8px 8px" }}>
-          <SettingsIcon />
+          <Settings strokeWidth={1.6} aria-hidden="true" />
           <span className="link-label">Настройки</span>
         </Link>
         <div className="user-row" style={{ marginTop: "10px", padding: "0 8px" }}>

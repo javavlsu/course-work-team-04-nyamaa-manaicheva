@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
-import { Link } from "lucide-react";
-
-import { PaperclipIcon } from "./icons";
+import { Link, Paperclip } from "lucide-react";
 
 export default function FormatToolbar({
   onFileSelect,
@@ -67,7 +65,7 @@ export default function FormatToolbar({
         onClick={handleAttachClick}
         disabled={isUploading || uploadDisabled}
       >
-        <PaperclipIcon />
+        <Paperclip strokeWidth={1.8} aria-hidden="true" />
       </button>
       <input
         type="file"

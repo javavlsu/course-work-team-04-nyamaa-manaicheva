@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "@/context/AuthContext.jsx";
 import useTheme from "./hooks/useTheme";
 import useModules from "./hooks/useModules";
 import useExport from "./hooks/useExport";
@@ -16,13 +15,17 @@ import ProfileCard from "./ProfileCard";
 import "./SettingsPage.css";
 
 export function SettingsPage() {
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
   const { currentUser } = useAuth();
   const theme = useTheme();
   const modules = useModules();
   const exportData = useExport();
   const sync = useSync();
   const [editing, setEditing] = useState(false);
+
+  useLayoutEffect(() => {
+    setSidebarProps({ active: "settings", modules: modules.modules });
+  }, [setSidebarProps, modules.modules]);
 
   const initials = currentUser
     ? `${(currentUser.name?.[0] || "").toUpperCase()}${(currentUser.surname?.[0] || "").toUpperCase()}`
@@ -33,19 +36,12 @@ export function SettingsPage() {
 
   return (
     <>
-      <AppSidebar
-        active="settings"
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-        modules={modules.modules}
-      />
-      <div className="main">
-        <div className="topbar">
-          <div className="topbar-left">
-            <span className="topbar-title">Настройки</span>
-          </div>
+      <div className="topbar">
+        <div className="topbar-left">
+          <span className="topbar-title">Настройки</span>
         </div>
-        <div className="settings-content">
+      </div>
+      <div className="settings-content">
           {editing ? (
             <ProfileSection onBack={() => setEditing(false)} />
           ) : (
@@ -62,7 +58,6 @@ export function SettingsPage() {
               <DataSection sync={sync} exportData={exportData} />
             </>
           )}
-        </div>
       </div>
     </>
   );

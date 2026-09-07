@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "@/context/AuthContext.jsx";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
@@ -20,7 +19,7 @@ export function NoteEditorPage() {
   const { currentUser } = useAuth();
   const isNew = id === "new";
 
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
   const [mode, setMode] = useState("edit");
 
   const comments = useNoteComments(id, isNew);
@@ -42,64 +41,44 @@ export function NoteEditorPage() {
     doc.ownerId !== null &&
     currentUser?.id === doc.ownerId;
 
+  useLayoutEffect(() => {
+    setSidebarProps({ active: "" });
+  }, [setSidebarProps]);
+
   // --- Loading state ---
   if (doc.isLoading) {
     return (
-      <>
-        <AppSidebar
-          active=""
-          collapsed={collapsed}
-          onToggle={onToggleSidebar}
-        />
-        <div className="main">
-          <div className="editor-loading">
-            <div className="editor-loading-spinner" />
-            <span>Загрузка заметки…</span>
-          </div>
-        </div>
-      </>
+      <div className="editor-loading">
+        <div className="editor-loading-spinner" />
+        <span>Загрузка заметки…</span>
+      </div>
     );
   }
 
   // --- Error state ---
   if (doc.error) {
     return (
-      <>
-        <AppSidebar
-          active=""
-          collapsed={collapsed}
-          onToggle={onToggleSidebar}
-        />
-        <div className="main">
-          <div className="editor-error">
-            <p>{doc.error.message}</p>
-            <div className="editor-error-actions">
-              {doc.error.type !== "not-found" && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => window.location.reload()}
-                >
-                  Попробовать снова
-                </button>
-              )}
-              <Link to="/notes" className="btn btn-secondary">
-                Назад к заметкам
-              </Link>
-            </div>
-          </div>
+      <div className="editor-error">
+        <p>{doc.error.message}</p>
+        <div className="editor-error-actions">
+          {doc.error.type !== "not-found" && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => window.location.reload()}
+            >
+              Попробовать снова
+            </button>
+          )}
+          <Link to="/notes" className="btn btn-secondary">
+            Назад к заметкам
+          </Link>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
     <>
-      <AppSidebar
-        active=""
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-      />
-      <div className="main">
         <EditorTopbar
           mode={mode}
           onModeChange={setMode}
@@ -248,7 +227,6 @@ export function NoteEditorPage() {
             />
           </div>
         </div>
-      </div>
     </>
   );
 }

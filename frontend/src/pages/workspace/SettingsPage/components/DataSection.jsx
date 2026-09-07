@@ -1,4 +1,4 @@
-import { DownloadIcon, SyncIcon } from "./icons";
+import { Download, RefreshCw } from "lucide-react";
 
 function formatDateTime(value) {
   const date = new Date(value);
@@ -35,7 +35,7 @@ function DataSection({ sync, exportData }) {
             onClick={exportData.exportAll}
             disabled={exportData.isExporting}
           >
-            <DownloadIcon />
+            <Download strokeWidth={1.6} aria-hidden="true" />
             {exportData.isExporting ? "Загрузка…" : "Скачать"}
           </button>
         </div>
@@ -59,7 +59,7 @@ function DataSection({ sync, exportData }) {
             onClick={sync.sync}
             disabled={sync.isSyncing}
           >
-            <SyncIcon />
+            <RefreshCw strokeWidth={1.6} aria-hidden="true" />
             {sync.isSyncing ? "Синхронизация…" : "Синхронизировать"}
           </button>
         </div>

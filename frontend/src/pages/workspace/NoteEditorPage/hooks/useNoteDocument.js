@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import * as notesApi from "../../../../api/notes.js";
+import * as notesApi from "@/api/notes.js";
 import { blankNote, extractContentText, formatDateTime } from "../utils";
 
 export function useNoteDocument(

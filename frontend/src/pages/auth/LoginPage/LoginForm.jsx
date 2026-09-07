@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
-import { emailValidation, passwordValidation } from "../../../lib/utils/inputValidations";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { emailValidation, passwordValidation } from "@/lib/utils/inputValidations";
+import { useAuth } from "@/context/AuthContext.jsx";
 
 function LoginForm() {
   const navigate = useNavigate();

@@ -1,11 +1,11 @@
+import { useLayoutEffect } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
-import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "../../../components/modals/DirectoryModal";
-import NotesGrid from "../../../components/notes/NotesGrid";
-import EmptyState from "../../../components/notes/EmptyState";
-import FabGroup from "../../../components/notes/FabGroup";
+import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "@/components/modals/DirectoryModal";
+import NotesGrid from "@/components/notes/NotesGrid";
+import EmptyState from "@/components/notes/EmptyState";
+import FabGroup from "@/components/notes/FabGroup";
 import { useDirectories } from "./hooks/useDirectories";
 import FolderCard from "./components/FolderCard";
 import "./DirectoriesPage.css";
@@ -13,22 +13,26 @@ import "./DirectoriesPage.css";
 export function DirectoriesPage() {
   const { folderId } = useParams();
   const navigate = useNavigate();
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
 
   const dirs = useDirectories({ folderId });
 
+  useLayoutEffect(() => {
+    setSidebarProps({
+      active: "directories",
+      counts: {
+        all: dirs.notes.length,
+        directories: dirs.folders.length,
+        favorites: dirs.favoritesCount,
+      },
+      onSelectAll: () => navigate("/"),
+      onSelectFavorites: () => navigate("/"),
+    });
+  }, [setSidebarProps, dirs.notes, dirs.folders, dirs.favoritesCount]);
+
   return (
     <>
-      <AppSidebar
-        active="directories"
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-        counts={{ all: dirs.notes.length, directories: dirs.folders.length, favorites: dirs.favoritesCount }}
-        onSelectAll={() => navigate("/")}
-        onSelectFavorites={() => navigate("/")}
-      />
-      <div className="main">
-        <div className="topbar">
+      <div className="topbar">
           <div className="topbar-left">
             {folderId && (
               <button onClick={() => navigate("/directories")} className="back-button">
@@ -143,7 +147,6 @@ export function DirectoriesPage() {
             )}
           </>
         )}
-      </div>
       <FabGroup
         onNewFolder={() => {
           dirs.setFolderActionError(null);

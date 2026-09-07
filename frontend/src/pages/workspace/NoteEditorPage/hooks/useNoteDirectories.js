@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import * as directoriesApi from "../../../../api/directories.js";
+import * as directoriesApi from "@/api/directories.js";
 
 export function useNoteDirectories(id, isNew, currentUser) {
   // --- Note ↔ Directory membership (только для owner, так же как permissions) ---

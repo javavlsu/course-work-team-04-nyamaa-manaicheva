@@ -1,11 +1,11 @@
-import { SearchIcon, SortIcon } from "./icons";
+import { ArrowUpDown, Search } from "lucide-react";
 
 function Toolbar({ searchQuery, onSearchChange }) {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
         <div className="search-box">
-          <SearchIcon />
+          <Search strokeWidth={1.6} aria-hidden="true" />
           <input
             type="text"
             placeholder="Поиск заметок…"
@@ -15,8 +15,12 @@ function Toolbar({ searchQuery, onSearchChange }) {
         </div>
       </div>
       <div className="toolbar-right">
-        <button className="filter-pill" onClick={() => console.log("Sort")}>
-          <SortIcon />
+        <button
+          className="filter-pill"
+          disabled
+          title="Сортировка недоступна"
+        >
+          <ArrowUpDown strokeWidth={1.6} aria-hidden="true" />
           Сортировка
         </button>
       </div>

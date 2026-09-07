@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import * as notesApi from "../../../../api/notes.js";
-import * as directoriesApi from "../../../../api/directories.js";
+import * as notesApi from "@/api/notes.js";
+import * as directoriesApi from "@/api/directories.js";
 
 const PAGE_LIMIT = 20;
 

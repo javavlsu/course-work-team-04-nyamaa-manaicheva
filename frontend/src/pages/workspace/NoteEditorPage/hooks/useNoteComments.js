@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import * as commentsApi from "../../../../api/comments.js";
+import * as commentsApi from "@/api/comments.js";
 import { adaptComment } from "../utils";
 
 export function useNoteComments(id, isNew) {

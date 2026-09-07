@@ -1,18 +1,18 @@
-import { ClipboardNotesIcon, KanbanIcon, TrendIcon } from "./icons";
+import { ChartLine, ClipboardList, SquareKanban } from "lucide-react";
 
 const FEATURES = [
   {
-    icon: ClipboardNotesIcon,
+    icon: ClipboardList,
     title: "Заметки и шаблоны",
     text: "Создавайте заметки по готовым шаблонам или с нуля. Markdown-редактор с полным форматированием.",
   },
   {
-    icon: KanbanIcon,
+    icon: SquareKanban,
     title: "Канбан и календарь",
     text: "Управляйте задачами через доски статусов и визуальный календарь с дедлайнами.",
   },
   {
-    icon: TrendIcon,
+    icon: ChartLine,
     title: "Аналитика прогресса",
     text: "Отслеживайте эффективность через графики, диаграммы и статистику по задачам.",
   },
@@ -22,7 +22,7 @@ function FeatureCard({ icon: Icon, title, text }) {
   return (
     <div className="feature-card">
       <div className="feature-icon">
-        <Icon />
+        <Icon aria-hidden="true" />
       </div>
       <h3>{title}</h3>
       <p>{text}</p>

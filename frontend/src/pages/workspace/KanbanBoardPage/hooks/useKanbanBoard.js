@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import * as kanbanApi from "../../../../api/kanban.js";
+import * as kanbanApi from "@/api/kanban.js";
 
 export function useKanbanBoard() {
   const [board, setBoard] = useState(null);

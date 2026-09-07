@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
-import * as notesApi from "../../../api/notes.js";
-import AppSidebar from "../../../components/layout/AppSidebar";
+import * as notesApi from "@/api/notes.js";
+import { Trash2 } from "lucide-react";
 import TrashItem from "./TrashItem";
 import PurgeConfirmModal from "./PurgeConfirmModal";
 import "./TrashPage.css";
@@ -17,7 +17,7 @@ function pluralRuNotes(n) {
 
 export function TrashPage() {
   const navigate = useNavigate();
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
 
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +29,14 @@ export function TrashPage() {
   const [purgingId, setPurgingId] = useState(null);
   const [purgingNote, setPurgingNote] = useState(null); // заметка, ожидающая подтверждения в модалке
   const [actionError, setActionError] = useState(null);
+
+  useLayoutEffect(() => {
+    setSidebarProps({
+      active: "trash",
+      onSelectAll: () => navigate("/"),
+      onSelectFavorites: () => navigate("/"),
+    });
+  }, [setSidebarProps]);
 
   const fetchTrash = useCallback(async () => {
     setIsLoading(true);
@@ -90,17 +98,9 @@ export function TrashPage() {
 
   return (
     <>
-      <AppSidebar
-        active="trash"
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-        onSelectAll={() => navigate("/")}
-        onSelectFavorites={() => navigate("/")}
-      />
-      <div className="main">
-        <div className="topbar">
-          <div className="topbar-left">
-            <span className="topbar-title">Корзина</span>
+      <div className="topbar">
+        <div className="topbar-left">
+          <span className="topbar-title">Корзина</span>
             {!isLoading && !error && (
               <span style={{ fontSize: "14px", color: "var(--muted)", marginLeft: "8px" }}>
                 {notes.length} {pluralRuNotes(notes.length)}
@@ -152,14 +152,11 @@ export function TrashPage() {
             </div>
           ) : (
             <div className="empty-state">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" />
-              </svg>
+              <Trash2 strokeWidth={1.4} aria-hidden="true" />
               <p>Корзина пуста.</p>
             </div>
           )
         )}
-      </div>
 
       {purgingNote && (
         <PurgeConfirmModal

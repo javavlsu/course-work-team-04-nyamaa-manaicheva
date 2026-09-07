@@ -1,4 +1,4 @@
-import { SendIcon } from "./icons";
+import { Send } from "lucide-react";
 
 export default function CommentsSection({
   comments,
@@ -89,7 +89,7 @@ export default function CommentsSection({
           onClick={onSend}
           disabled={isSending}
         >
-          <SendIcon />
+          <Send strokeWidth={1.8} aria-hidden="true" />
         </button>
       </div>
       {sendError && (

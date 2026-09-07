@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
-import { CheckCircleIcon } from "./icons";
-import { registerPasswordValidation, confirmPasswordValidation } from "../../../lib/utils/inputValidations";
-import { resetPassword } from "../../../api/auth.js";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { CircleCheck } from "lucide-react";
+import { registerPasswordValidation, confirmPasswordValidation } from "@/lib/utils/inputValidations";
+import { resetPassword } from "@/api/auth.js";
 
 function ResetPasswordForm() {
   const [searchParams] = useSearchParams();
@@ -49,7 +49,7 @@ function ResetPasswordForm() {
   if (done) {
     return (
       <div className="reset-success">
-        <CheckCircleIcon />
+        <CircleCheck strokeWidth={2} aria-hidden="true" />
         <h2>Пароль изменён</h2>
         <p>Теперь вы можете войти с новым паролем</p>
         <Link to="/login" className="back-link">← Перейти к входу</Link>

@@ -17,8 +17,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import {
   emailValidation,
   firstNameValidation,
@@ -26,8 +26,8 @@ import {
   phoneValidation,
   registerPasswordValidation,
   confirmPasswordValidation,
-} from "../../../lib/utils/inputValidations";
-import { register as apiRegister } from "../../../api/auth.js";
+} from "@/lib/utils/inputValidations";
+import { register as apiRegister } from "@/api/auth.js";
 
 function RegisterForm() {
   const navigate = useNavigate();

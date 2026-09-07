@@ -2,16 +2,12 @@
  * Users API
  *
  * Backend:
- *   GET /api/users            — весь список пользователей. ТОЛЬКО Admin (403 иначе).
  *   GET /api/users/search?q=… — поиск по email/имени/фамилии, доступен любому
  *                                аутентифицированному пользователю. Возвращает
  *                                минимальный публичный набор полей (без surname/role).
  *   PUT /api/users/{id}       — обновление профиля (только сам пользователь или Admin).
  *   DELETE /api/users/{id}    — удаление аккаунта (только сам пользователь или Admin);
  *                               409, если с пользователем связаны данные.
- *
- * UserResponse fields (только для Admin, list()):
- *   id (UUID), name, surname, email, birthdayDate, registrationDate, role
  *
  * UserSearchResponse fields (search()):
  *   id (UUID), email, name
@@ -21,16 +17,6 @@
  */
 
 import { api } from "./client.js";
-
-/**
- * Загружает полный список пользователей. Доступно только Admin — использовать
- * для Sharing/резолва произвольных userId НЕЛЬЗЯ, обычный пользователь получит 403.
- *
- * @returns {Promise<object[]>}
- */
-export function list() {
-  return api.get("/api/users");
-}
 
 /**
  * Ищет пользователей по подстроке (email/имя/фамилия). Доступно любому

@@ -1,6 +1,6 @@
+import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
 import { useAnalytics } from "./hooks/useAnalytics";
 import Topbar from "./components/Topbar";
 import StatCards from "./components/StatCards";
@@ -12,7 +12,7 @@ import ActivityList from "./components/ActivityList";
 import "./AnalyticsPage.css";
 
 export function AnalyticsPage() {
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
   const {
     period,
     onPeriodChange,
@@ -24,15 +24,13 @@ export function AnalyticsPage() {
     activity,
   } = useAnalytics();
 
+  useLayoutEffect(() => {
+    setSidebarProps({ active: "analytics" });
+  }, [setSidebarProps]);
+
   return (
     <>
-      <AppSidebar
-        active="analytics"
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-      />
-      <div className="main">
-        <Topbar period={period} onPeriodChange={onPeriodChange} />
+      <Topbar period={period} onPeriodChange={onPeriodChange} />
         <div className="analytics-content">
           <StatCards stats={stats} />
           <div className="chart-grid">
@@ -57,7 +55,6 @@ export function AnalyticsPage() {
             <ActivityList activity={activity} />
           </ChartPanel>
         </div>
-      </div>
     </>
   );
 }

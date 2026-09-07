@@ -2,37 +2,6 @@
   --star: #e67e22;
   --success: #3a8f6e;
   --info: #6e5fc4;
-  --on-accent: #ffffff;
-  --sidebar-w: 260px;
-  --sidebar-collapsed-w: 64px;
-  display: flex;
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.5;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-}
-
-.app button {
-  font: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-}
-
-.main {
-  flex: 1;
-  margin-left: var(--sidebar-w);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  transition: margin-left 0.22s ease;
-}
-
-.sidebar.collapsed ~ .main {
-  margin-left: var(--sidebar-collapsed-w);
 }
 
 .topbar {
@@ -670,10 +639,6 @@
 }
 
 @media (max-width: 920px) {
-  .main {
-    margin-left: 0 !important;
-  }
-
   .topbar {
     padding-left: 16px;
     padding-right: 16px;

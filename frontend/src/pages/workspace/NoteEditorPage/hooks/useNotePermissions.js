@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import * as permissionsApi from "../../../../api/permissions.js";
-import * as usersApi from "../../../../api/users.js";
+import * as permissionsApi from "@/api/permissions.js";
+import * as usersApi from "@/api/users.js";
 import { adaptPermission } from "../utils";
 
 export function useNotePermissions(id, isNew, currentUser) {

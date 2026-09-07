@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { EllipsisVertical, Folder } from "lucide-react";
+import { EllipsisVertical, Folder, Star } from "lucide-react";
 
-import { StarIcon } from "./icons";
 import FolderSelector from "../FolderSelector";
 import { CreateDirectoryModal } from "../modals/DirectoryModal";
 
@@ -113,8 +112,9 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
         <div className="note-card-header">
           <span className="note-card-title">{note.title || "Без названия"}</span>
           <div className="note-card-header-actions">
-            <StarIcon
-              filled={favorited}
+            <Star
+              strokeWidth={1.6}
+              fill={favorited ? "currentColor" : "none"}
               className={`note-card-star${favorited ? " favorited" : ""}`}
               onClick={(e) => {
                 e.stopPropagation();

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Input from "../../../../components/ui/Input";
+import Input from "@/components/ui/Input";
 
 const currentPasswordValidation = {
   type: "password",

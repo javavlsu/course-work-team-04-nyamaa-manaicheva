@@ -1,9 +1,9 @@
 import { useLayoutEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 
-import Logo from "../../../components/layout/Logo";
+import Logo from "@/components/layout/Logo";
+import { FileText } from "lucide-react";
 
-import NotesCardIcon from "./icons";
 import RegisterForm from "./RegisterForm";
 import "./RegisterPage.css";
 
@@ -12,7 +12,7 @@ export function RegisterPage() {
 
   useLayoutEffect(() => {
     setPanel({
-      icon: <NotesCardIcon />,
+      icon: <FileText strokeWidth={1.4} aria-hidden="true" />,
       title: "NotesBook",
       description: "Присоединяйтесь к нам",
     });

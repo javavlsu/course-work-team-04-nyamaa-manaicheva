@@ -6,7 +6,7 @@ import {
   notesPerWeek,
   progressData,
   recentActivity,
-} from "../../../../lib/utils/mockData";
+} from "@/lib/utils/mockData";
 
 export const PERIODS = ["Неделя", "Месяц", "Квартал"];
 

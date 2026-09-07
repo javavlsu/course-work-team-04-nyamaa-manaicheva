@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Input from "../../../../components/ui/Input";
+import Input from "@/components/ui/Input";
 import {
   emailValidation,
   firstNameValidation,
   lastNameValidation,
-} from "../../../../lib/utils/inputValidations";
-import { useAuth } from "../../../../context/AuthContext.jsx";
-import { update, remove } from "../../../../api/users.js";
-import { BackIcon, CalendarIcon, UserIcon } from "./icons";
+} from "@/lib/utils/inputValidations";
+import { useAuth } from "@/context/AuthContext.jsx";
+import { update, remove } from "@/api/users.js";
+import { ArrowLeft, Calendar, User } from "lucide-react";
 import DeleteAccountModal from "./DeleteAccountModal";
 
 export function roleLabel(role) {
@@ -112,17 +112,17 @@ function ProfileSection({ onBack }) {
   return (
     <div className="account-section visible">
       <button type="button" className="account-back" onClick={onBack}>
-        <BackIcon />
+        <ArrowLeft strokeWidth={1.6} aria-hidden="true" />
         Назад к настройкам
       </button>
       <div className="account-title">Аккаунт</div>
       <div className="account-meta">
         <div className="account-badge">
-          <CalendarIcon />
+          <Calendar strokeWidth={1.6} aria-hidden="true" />
           Дата регистрации: <strong>{registrationDate}</strong>
         </div>
         <div className="account-badge">
-          <UserIcon />
+          <User strokeWidth={1.6} aria-hidden="true" />
           Роль: <strong>{roleLabel(currentUser?.role)}</strong>
         </div>
       </div>

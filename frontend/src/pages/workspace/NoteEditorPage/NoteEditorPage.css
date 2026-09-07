@@ -1,33 +1,6 @@
 .app {
   --star: #e67e22;
   --danger: #c44;
-  --on-accent: #ffffff;
-  --sidebar-w: 260px;
-  --sidebar-collapsed-w: 64px;
-  display: flex;
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.5;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-}
-
-.app a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.app button {
-  font: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-}
-
-.app input {
-  font: inherit;
 }
 
 [data-theme="dark"] .app {
@@ -162,18 +135,6 @@
 
 .comments-status-error {
   color: var(--fg);
-}
-
-.main {
-  flex: 1;
-  margin-left: var(--sidebar-w);
-  display: flex;
-  flex-direction: column;
-  transition: margin-left 0.22s ease;
-}
-
-.sidebar.collapsed ~ .main {
-  margin-left: var(--sidebar-collapsed-w);
 }
 
 .editor-topbar {
@@ -1046,14 +1007,6 @@
 }
 
 @media (max-width: 920px) {
-  .sidebar {
-    display: none;
-  }
-
-  .main {
-    margin-left: 0 !important;
-  }
-
   .editor-body {
     padding: 24px 16px 60px;
   }

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import * as attachmentsApi from "../../../../api/attachments.js";
+import * as attachmentsApi from "@/api/attachments.js";
 
 export function useNoteAttachments(id, isNew) {
   // --- Attachments: POST /api/notes/:id/attachments ---

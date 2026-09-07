@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
 
-import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
-import { MailCheckIcon } from "./icons";
-import { emailValidation } from "../../../lib/utils/inputValidations";
-import { forgotPassword } from "../../../api/auth.js";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import { MailCheck } from "lucide-react";
+import { emailValidation } from "@/lib/utils/inputValidations";
+import { forgotPassword } from "@/api/auth.js";
 
 function RecoverForm() {
   const methods = useForm({ mode: "onSubmit" });
@@ -33,7 +33,7 @@ function RecoverForm() {
   if (sent) {
     return (
       <div className="recover-success">
-        <MailCheckIcon />
+        <MailCheck strokeWidth={2} aria-hidden="true" />
         <h2>Письмо отправлено</h2>
         <p>Если такой email зарегистрирован, на него отправлена ссылка для восстановления пароля</p>
         <Link to="/login" className="back-link">← Вернуться к входу</Link>

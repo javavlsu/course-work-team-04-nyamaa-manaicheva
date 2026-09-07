@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
 import { useKanbanBoard } from "./hooks/useKanbanBoard";
 import { useKanbanDnd } from "./hooks/useKanbanDnd";
 import Topbar from "./components/Topbar";
@@ -10,9 +9,13 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import "./KanbanBoardPage.css";
 
 export function KanbanBoardPage() {
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
 
   const [showArchived, setShowArchived] = useState(false);
+
+  useLayoutEffect(() => {
+    setSidebarProps({ active: "kanban" });
+  }, [setSidebarProps]);
 
   const {
     board,
@@ -51,10 +54,8 @@ export function KanbanBoardPage() {
 
   return (
     <>
-      <AppSidebar active="kanban" collapsed={collapsed} onToggle={onToggleSidebar} />
-      <div className="main">
-        <Topbar
-          showArchived={showArchived}
+      <Topbar
+        showArchived={showArchived}
           onToggleShowArchived={() => setShowArchived((v) => !v)}
           onAddColumn={() => setIsAddingColumn(true)}
         />
@@ -115,7 +116,6 @@ export function KanbanBoardPage() {
             />
           </>
         )}
-      </div>
 
       {deletingColumn && (
         <ConfirmDialog

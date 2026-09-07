@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { sync as syncApi } from "../../../../api/sync";
+import { sync as syncApi } from "@/api/sync";
 
 const LAST_SYNC_KEY = "nb_last_sync";
 

@@ -1,10 +1,10 @@
+import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
-import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "../../../components/modals/DirectoryModal";
-import NotesGrid from "../../../components/notes/NotesGrid";
-import EmptyState from "../../../components/notes/EmptyState";
-import FabGroup from "../../../components/notes/FabGroup";
+import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "@/components/modals/DirectoryModal";
+import NotesGrid from "@/components/notes/NotesGrid";
+import EmptyState from "@/components/notes/EmptyState";
+import FabGroup from "@/components/notes/FabGroup";
 import { useNotesFeed } from "./hooks/useNotesFeed";
 import { useFolders } from "./hooks/useFolders";
 import Topbar from "./Topbar";
@@ -20,7 +20,7 @@ function pluralRu(n) {
 }
 
 export function NotesFeedPage() {
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
 
   const feed = useNotesFeed();
   const dirs = useFolders({ activeFolder: feed.activeFolder, onSelectAll: feed.handleSelectAll });
@@ -30,21 +30,22 @@ export function NotesFeedPage() {
     folderId: dirs.noteFolderMap.get(n.id) || null,
   }));
 
-  const favoritesCount = feed.notes.filter((n) => n.isFavourite).length;
-  const directoriesCount = Math.max(0, dirs.folders.length - 1);
+  useLayoutEffect(() => {
+    setSidebarProps({
+      active: feed.isFavouriteFilter === true ? "favorites" : "notes",
+      counts: {
+        all: feed.notes.length,
+        directories: Math.max(0, dirs.folders.length - 1),
+        favorites: feed.notes.filter((n) => n.isFavourite).length,
+      },
+      onSelectAll: feed.handleSelectAll,
+      onSelectFavorites: feed.handleSelectFavorites,
+    });
+  }, [setSidebarProps, feed.isFavouriteFilter, feed.notes, dirs.folders]);
 
   return (
     <>
-      <AppSidebar
-        active={feed.isFavouriteFilter === true ? "favorites" : "notes"}
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-        counts={{ all: feed.notes.length, directories: directoriesCount, favorites: favoritesCount }}
-        onSelectAll={feed.handleSelectAll}
-        onSelectFavorites={feed.handleSelectFavorites}
-      />
-      <div className="main">
-        <Topbar count={feed.notes.length} pluralRu={pluralRu} />
+      <Topbar count={feed.notes.length} pluralRu={pluralRu} />
         <Toolbar searchQuery={feed.searchQuery} onSearchChange={feed.handleSearchChange} />
 
         {/* Notes loading state (первая загрузка / смена директории) */}
@@ -100,7 +101,6 @@ export function NotesFeedPage() {
             <EmptyState />
           )
         )}
-      </div>
       <FabGroup onNewFolder={dirs.addFolder} />
       {dirs.renamingFolder && (
         <RenameDirectoryModal

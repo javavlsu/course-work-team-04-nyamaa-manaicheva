@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import FullCalendar from "@fullcalendar/react";
@@ -5,7 +6,6 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ruLocale from "@fullcalendar/core/locales/ru";
 
-import AppSidebar from "../../../components/layout/AppSidebar";
 import DayDetailModal from "./components/DayDetailModal";
 import { useCalendar } from "./hooks/useCalendar";
 import "./CalendarPage.css";
@@ -15,18 +15,16 @@ function eventClassNames({ event }) {
 }
 
 export function CalendarPage() {
-  const { collapsed, onToggleSidebar } = useOutletContext();
+  const { setSidebarProps } = useOutletContext();
   const { events, selectedDate, openDay, closeDay, getDayEvents } = useCalendar();
+
+  useLayoutEffect(() => {
+    setSidebarProps({ active: "calendar" });
+  }, [setSidebarProps]);
 
   return (
     <>
-      <AppSidebar
-        active="calendar"
-        collapsed={collapsed}
-        onToggle={onToggleSidebar}
-      />
-      <div className="main">
-        <div className="calendar-container">
+      <div className="calendar-container">
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             locale={ruLocale}
@@ -41,7 +39,6 @@ export function CalendarPage() {
             eventClick={({ event }) => openDay(event.startStr)}
           />
         </div>
-      </div>
       {selectedDate && (
         <DayDetailModal
           date={new Date(`${selectedDate}T00:00:00`)}

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { BookText } from "lucide-react";
 
-import Button from "../../ui/Button";
+import Button from "@/components/ui/Button";
 import "./Header.css";
 
 function Header() {

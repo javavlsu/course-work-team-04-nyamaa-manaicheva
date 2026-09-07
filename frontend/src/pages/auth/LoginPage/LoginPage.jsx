@@ -2,7 +2,7 @@ import { useLayoutEffect } from "react";
 import { BookText } from "lucide-react";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 
-import Logo from "../../../components/layout/Logo";
+import Logo from "@/components/layout/Logo";
 
 import LoginForm from "./LoginForm";
 import "./LoginPage.css";

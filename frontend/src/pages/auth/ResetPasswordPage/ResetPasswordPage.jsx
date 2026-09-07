@@ -1,9 +1,9 @@
 import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import Logo from "../../../components/layout/Logo";
+import Logo from "@/components/layout/Logo";
+import { KeyRound } from "lucide-react";
 
-import { KeyIcon } from "./icons";
 import ResetPasswordForm from "./ResetPasswordForm";
 import "./ResetPasswordPage.css";
 
@@ -13,7 +13,7 @@ export function ResetPasswordPage() {
   useLayoutEffect(() => {
     setPanel({
       glow: true,
-      icon: <KeyIcon />,
+      icon: <KeyRound strokeWidth={1.5} aria-hidden="true" />,
       title: "NotesBook",
       description: "Придумайте новый надёжный пароль",
     });

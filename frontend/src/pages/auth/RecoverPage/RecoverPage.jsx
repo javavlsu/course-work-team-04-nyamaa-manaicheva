@@ -1,9 +1,9 @@
 import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
-import Logo from "../../../components/layout/Logo";
+import Logo from "@/components/layout/Logo";
+import { ShieldCheck } from "lucide-react";
 
-import { ShieldCheckIcon } from "./icons";
 import RecoverForm from "./RecoverForm";
 import "./RecoverPage.css";
 
@@ -13,7 +13,7 @@ export function RecoverPage() {
   useLayoutEffect(() => {
     setPanel({
       glow: true,
-      icon: <ShieldCheckIcon />,
+      icon: <ShieldCheck strokeWidth={1.5} aria-hidden="true" />,
       title: "NotesBook",
       description: "Безопасность — наш приоритет",
     });

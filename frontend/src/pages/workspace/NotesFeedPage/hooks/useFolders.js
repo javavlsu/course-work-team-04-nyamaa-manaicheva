@@ -1,12 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
-import * as directoriesApi from "../../../../api/directories.js";
+import * as directoriesApi from "@/api/directories.js";
+import {
+  adaptDirectories,
+  adaptFolder,
+  buildNoteFolderMap,
+  countNotesInFolder,
+  createAndMoveNote,
+  moveNote,
+  removeNoteFromFolder,
+} from "@/hooks/folderOperations.js";
 
 const PAGE_LIMIT = 20;
 
 // "all" — синтетический пункт на frontend, backend такого понятия не имеет.
 const ALL_FOLDER = { key: "all", name: "Все заметки", tint: "tint-blue" };
-const FOLDER_TINTS = ["tint-orange", "tint-green", "tint-purple", "tint-blue"];
 
 export function useFolders({ activeFolder, onSelectAll }) {
   // --- Directories (реальный API) ---
@@ -29,13 +37,7 @@ export function useFolders({ activeFolder, onSelectAll }) {
       try {
         const page = await directoriesApi.list({ limit: PAGE_LIMIT });
         if (!cancelled) {
-          // Адаптация DirectoryResponse { id, title } → формат { key, name, tint }
-          const mapped = (page.items ?? []).map((dir, index) => ({
-            key: dir.id,
-            name: dir.title,
-            tint: FOLDER_TINTS[index % FOLDER_TINTS.length],
-          }));
-          setFolders([ALL_FOLDER, ...mapped]);
+          setFolders([ALL_FOLDER, ...adaptDirectories(page.items)]);
         }
       } catch {
         // Ошибка загрузки папок не рендерится (список папок живёт на /directories),
@@ -61,11 +63,9 @@ export function useFolders({ activeFolder, onSelectAll }) {
 
     try {
       const created = await directoriesApi.create({ title });
-      // Адаптация DirectoryResponse { id, title } → формат FoldersSection { key, name, tint },
-      // тот же принцип, что и при загрузке списка.
       setFolders((prev) => [
         ...prev,
-        { key: created.id, name: created.title, tint: FOLDER_TINTS[prev.length % FOLDER_TINTS.length] },
+        adaptFolder(created, prev.length),
       ]);
       setIsCreateOpen(false);
     } catch (err) {
@@ -153,19 +153,7 @@ export function useFolders({ activeFolder, onSelectAll }) {
     }
     let cancelled = false;
     async function fetchMap() {
-      const map = new Map();
-      await Promise.all(
-        realFolders.map(async (folder) => {
-          try {
-            const links = await directoriesApi.listNotes(folder.key);
-            links.forEach((link) => {
-              if (!map.has(link.noteId)) map.set(link.noteId, link.directoryId);
-            });
-          } catch {
-            return;
-          }
-        })
-      );
+      const map = await buildNoteFolderMap(realFolders);
       if (!cancelled) setNoteFolderMap(new Map(map));
     }
     fetchMap();
@@ -178,56 +166,30 @@ export function useFolders({ activeFolder, onSelectAll }) {
       id: f.key,
       name: f.name,
       tint: f.tint,
-      notesCount: [...noteFolderMap.values()].filter((v) => String(v) === String(f.key)).length,
+      notesCount: countNotesInFolder(noteFolderMap, f.key),
     }));
 
   const handleMoveNote = async (noteId, targetFolderId) => {
-    const current = noteFolderMap.get(noteId) || null;
-    if (String(current) === String(targetFolderId)) return;
-    try {
-      if (current) await directoriesApi.removeNote(current, noteId);
-      await directoriesApi.addNote(targetFolderId, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.set(noteId, targetFolderId);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const next = await moveNote({ noteFolderMap, noteId, targetFolderId });
+    if (next) setNoteFolderMap(next);
   };
 
   const handleRemoveNote = async (noteId) => {
-    const current = noteFolderMap.get(noteId);
-    if (!current) return;
-    try {
-      await directoriesApi.removeNote(current, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.delete(noteId);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const next = await removeNoteFromFolder({ noteFolderMap, noteId });
+    if (next) setNoteFolderMap(next);
   };
 
   const handleCreateAndMove = async (noteId, title) => {
-    const current = noteFolderMap.get(noteId) || null;
-    try {
-      const created = await directoriesApi.create({ title });
-      const newFolder = { key: created.id, name: created.title, tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length] };
-      setFolders((prev) => [...prev, newFolder]);
-      if (current) await directoriesApi.removeNote(current, noteId);
-      await directoriesApi.addNote(created.id, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.set(noteId, created.id);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const result = await createAndMoveNote({
+      noteFolderMap,
+      noteId,
+      title,
+      folderCount: folders.length,
+    });
+    if (!result) return;
+    const { folder, noteFolderMap: next } = result;
+    setFolders((prev) => [...prev, folder]);
+    setNoteFolderMap(next);
   };
 
   return {

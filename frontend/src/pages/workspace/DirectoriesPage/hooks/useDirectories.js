@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import * as notesApi from "../../../../api/notes.js";
-import * as directoriesApi from "../../../../api/directories.js";
-
-const FOLDER_TINTS = ["tint-orange", "tint-green", "tint-purple", "tint-blue"];
+import * as notesApi from "@/api/notes.js";
+import * as directoriesApi from "@/api/directories.js";
+import {
+  adaptDirectories,
+  adaptFolder,
+  buildNoteFolderMap,
+  countNotesInFolder,
+  createAndMoveNote,
+  moveNote,
+  removeNoteFromFolder,
+} from "@/hooks/folderOperations.js";
 
 export function useDirectories({ folderId }) {
   const navigate = useNavigate();
@@ -30,28 +37,9 @@ export function useDirectories({ folderId }) {
         directoriesApi.list({ limit: 50 }),
         notesApi.list({ limit: 50 }),
       ]);
-      const mappedFolders = (dirsPage.items ?? []).map((dir, index) => ({
-        key: dir.id,
-        id: dir.id,
-        name: dir.title,
-        tint: FOLDER_TINTS[index % FOLDER_TINTS.length],
-      }));
+      const mappedFolders = (dirsPage.items ?? []).map(adaptFolder);
       const fetchedNotes = notesPage.items ?? [];
-      const map = new Map();
-      await Promise.all(
-        mappedFolders.map(async (folder) => {
-          try {
-            const links = await directoriesApi.listNotes(folder.id);
-            links.forEach((link) => {
-              if (!map.has(link.noteId)) {
-                map.set(link.noteId, link.directoryId);
-              }
-            });
-          } catch {
-            return;
-          }
-        })
-      );
+      const map = await buildNoteFolderMap(mappedFolders);
       setFolders(mappedFolders);
       setNotes(fetchedNotes);
       setNoteFolderMap(map);
@@ -97,7 +85,7 @@ export function useDirectories({ folderId }) {
 
   const foldersWithCount = folders.map((f) => ({
     ...f,
-    notesCount: [...noteFolderMap.values()].filter((v) => String(v) === String(f.id)).length,
+    notesCount: countNotesInFolder(noteFolderMap, f.id),
   }));
 
   const toggleFavorite = async (id) => {
@@ -111,52 +99,26 @@ export function useDirectories({ folderId }) {
   };
 
   const handleMoveNote = async (noteId, targetFolderId) => {
-    const current = noteFolderMap.get(noteId) || null;
-    if (String(current) === String(targetFolderId)) return;
-    try {
-      if (current) await directoriesApi.removeNote(current, noteId);
-      await directoriesApi.addNote(targetFolderId, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.set(noteId, targetFolderId);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const next = await moveNote({ noteFolderMap, noteId, targetFolderId });
+    if (next) setNoteFolderMap(next);
   };
 
   const handleRemoveNote = async (noteId) => {
-    const current = noteFolderMap.get(noteId);
-    if (!current) return;
-    try {
-      await directoriesApi.removeNote(current, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.delete(noteId);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const next = await removeNoteFromFolder({ noteFolderMap, noteId });
+    if (next) setNoteFolderMap(next);
   };
 
   const handleCreateAndMove = async (noteId, title) => {
-    const current = noteFolderMap.get(noteId) || null;
-    try {
-      const created = await directoriesApi.create({ title });
-      const newFolder = { key: created.id, id: created.id, name: created.title, tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length] };
-      setFolders((prev) => [...prev, newFolder]);
-      if (current) await directoriesApi.removeNote(current, noteId);
-      await directoriesApi.addNote(created.id, noteId);
-      setNoteFolderMap((prev) => {
-        const next = new Map(prev);
-        next.set(noteId, created.id);
-        return next;
-      });
-    } catch {
-      return;
-    }
+    const result = await createAndMoveNote({
+      noteFolderMap,
+      noteId,
+      title,
+      folderCount: folders.length,
+    });
+    if (!result) return;
+    const { folder, noteFolderMap: next } = result;
+    setFolders((prev) => [...prev, folder]);
+    setNoteFolderMap(next);
   };
 
   const handleCreateSubmit = async (title) => {
@@ -167,13 +129,7 @@ export function useDirectories({ folderId }) {
 
     try {
       const created = await directoriesApi.create({ title });
-      const newFolder = {
-        key: created.id,
-        id: created.id,
-        name: created.title,
-        tint: FOLDER_TINTS[folders.length % FOLDER_TINTS.length],
-      };
-      setFolders((prev) => [...prev, newFolder]);
+      setFolders((prev) => [...prev, adaptFolder(created, prev.length)]);
       setIsCreateOpen(false);
     } catch (err) {
       setIsCreateOpen(false);

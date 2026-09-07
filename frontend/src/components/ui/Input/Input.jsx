@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 
-import { EyeIcon, EyeOffIcon } from "./icons";
 import "./Input.css";
 
 function Input({ name, label, type, placeholder, autoComplete, validation }) {
@@ -31,7 +31,7 @@ function Input({ name, label, type, placeholder, autoComplete, validation }) {
             aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
             onClick={() => setVisible((value) => !value)}
           >
-            {visible ? <EyeOffIcon /> : <EyeIcon />}
+            {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
           </button>
         )}
       </div>

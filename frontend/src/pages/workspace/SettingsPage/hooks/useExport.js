@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { list as listNotes } from "../../../../api/notes";
+import { list as listNotes } from "@/api/notes";
 
 export default function useExport() {
   const [isExporting, setIsExporting] = useState(false);
