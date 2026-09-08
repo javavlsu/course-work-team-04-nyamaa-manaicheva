@@ -234,11 +234,6 @@ export function useEditorActions(textareaRef, setContent) {
     toggleInline(textareaRef.current, "~~", "~~", setContent);
   }, [textareaRef, setContent]);
 
-  const underline = useCallback(() => {
-    if (!textareaRef.current) return;
-    toggleInline(textareaRef.current, "<u>", "</u>", setContent);
-  }, [textareaRef, setContent]);
-
   const heading = useCallback((level) => {
     if (!textareaRef.current) return;
     applyHeading(textareaRef.current, level, setContent);
@@ -292,9 +287,10 @@ export function useEditorActions(textareaRef, setContent) {
     const { start: lineStart, end: lineEnd } = getLineRange(text, pos);
     const lineText = text.slice(lineStart, lineEnd);
 
-    const taskMatch = lineText.match(/^(\s*[-*+])\s\[[ x]\]\s(.*)/);
+    const taskMatch = lineText.match(/^(\s*)([-*+])\s\[[ x]\]\s(.*)/);
     if (taskMatch) {
-      const content = taskMatch[2];
+      const indent = taskMatch[1];
+      const content = taskMatch[3];
       if (content.trim() === "") {
         const newText = text.slice(0, lineStart) + text.slice(lineEnd);
         setContent(newText);
@@ -305,7 +301,7 @@ export function useEditorActions(textareaRef, setContent) {
         });
         return true;
       }
-      const newLine = `\n${taskMatch[1]}- [ ] `;
+      const newLine = `\n${indent}- [ ] `;
       const newText = text.slice(0, pos) + newLine + text.slice(lineEnd);
       setContent(newText);
       requestAnimationFrame(() => {
@@ -317,10 +313,11 @@ export function useEditorActions(textareaRef, setContent) {
       return true;
     }
 
-    const bulletMatch = lineText.match(/^(\s*)[-*+]\s(.*)/);
+    const bulletMatch = lineText.match(/^(\s*)([-*+])\s(.*)/);
     if (bulletMatch) {
-      const content = bulletMatch[2];
       const indent = bulletMatch[1];
+      const marker = bulletMatch[2];
+      const content = bulletMatch[3];
       if (content.trim() === "") {
         const newText = text.slice(0, lineStart) + text.slice(lineEnd);
         setContent(newText);
@@ -331,7 +328,7 @@ export function useEditorActions(textareaRef, setContent) {
         });
         return true;
       }
-      const newLine = `\n${indent}- `;
+      const newLine = `\n${indent}${marker} `;
       const newText = text.slice(0, pos) + newLine + text.slice(lineEnd);
       setContent(newText);
       requestAnimationFrame(() => {
@@ -377,7 +374,6 @@ export function useEditorActions(textareaRef, setContent) {
     bold,
     italic,
     strikethrough,
-    underline,
     heading,
     link,
     bulletList,

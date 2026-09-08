@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
   Strikethrough,
-  Underline,
   Heading,
   Link,
   Paperclip,
@@ -21,7 +20,6 @@ export default function FormatToolbar({
   onBold,
   onItalic,
   onStrikethrough,
-  onUnderline,
   onHeading,
   onLink,
   onBulletList,
@@ -36,8 +34,19 @@ export default function FormatToolbar({
   onPaste,
 }) {
   const [headingOpen, setHeadingOpen] = useState(false);
-  const headingRef = useRef(null);
+  const headingWrapRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!headingOpen) return;
+    const handleOutside = (e) => {
+      if (headingWrapRef.current && !headingWrapRef.current.contains(e.target)) {
+        setHeadingOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [headingOpen]);
 
   const handleHeadingSelect = (level) => {
     onHeading(level);
@@ -64,14 +73,11 @@ export default function FormatToolbar({
         <button className="fmt-btn" title="Жирный" onClick={onBold}>
           <Bold strokeWidth={2} />
         </button>
-        <button className="fmt-btn" title="Подчёркнутый" onClick={onUnderline}>
-          <Underline strokeWidth={2} />
-        </button>
         <button className="fmt-btn" title="Зачёркнутый" onClick={onStrikethrough}>
           <Strikethrough strokeWidth={2} />
         </button>
 
-        <div className="fmt-heading-wrap" ref={headingRef}>
+        <div className="fmt-heading-wrap" ref={headingWrapRef}>
           <button
             className="fmt-btn"
             title="Заголовок"
@@ -95,6 +101,8 @@ export default function FormatToolbar({
           )}
         </div>
       </div>
+
+      <div className="fmt-sep" />
 
       <div className="fmt-group">
         <button className="fmt-btn" title="Вставить ссылку" onClick={onLink}>
@@ -133,7 +141,11 @@ export default function FormatToolbar({
         <button className="fmt-btn" title="Нумерованный список" onClick={onNumberedList}>
           <ListOrdered strokeWidth={2} />
         </button>
-        <button className="fmt-btn" title="Список задач" onClick={onTaskList}>
+        <button
+          className="fmt-btn"
+          title="Список задач — поставьте x, чтобы завершить задачу"
+          onClick={onTaskList}
+        >
           <ListTodo strokeWidth={2} />
         </button>
       </div>

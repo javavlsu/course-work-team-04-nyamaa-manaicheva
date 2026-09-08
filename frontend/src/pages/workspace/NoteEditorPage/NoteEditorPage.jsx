@@ -186,7 +186,6 @@ export function NoteEditorPage() {
               onBold={actions.bold}
               onItalic={actions.italic}
               onStrikethrough={actions.strikethrough}
-              onUnderline={actions.underline}
               onHeading={actions.heading}
               onLink={() => setLinkModalOpen(true)}
               onBulletList={actions.bulletList}

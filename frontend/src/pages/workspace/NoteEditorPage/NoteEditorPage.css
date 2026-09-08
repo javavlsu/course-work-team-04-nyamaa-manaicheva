@@ -535,7 +535,6 @@
 }
 
 .format-toolbar {
-  width: 44px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -546,7 +545,6 @@
   border-right: 1px solid var(--border);
   z-index: 5;
   box-shadow: var(--shadow);
-  overflow-y: auto;
 }
 
 .fmt-group {
@@ -558,15 +556,14 @@
 }
 
 .fmt-group-table {
-  margin-top: auto;
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .format-toolbar .fmt-sep {
   width: 24px;
   height: 1px;
   background: var(--border);
-  margin: 6px 0;
+  margin: 8px 0;
   flex-shrink: 0;
 }
 
@@ -610,7 +607,6 @@
 .fmt-btn svg {
   width: 16px;
   height: 16px;
-  pointer-events: none;
 }
 
 .fmt-heading-wrap {
