@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext.jsx";
@@ -7,11 +7,14 @@ import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
 import AttachmentsSection from "./components/AttachmentsSection";
 import CommentsSection from "./components/CommentsSection";
+import LinkModal from "./components/LinkModal";
+import TableModal from "./components/TableModal";
 import { useNoteDocument } from "./hooks/useNoteDocument";
 import { useNoteComments } from "./hooks/useNoteComments";
 import { useNoteAttachments } from "./hooks/useNoteAttachments";
 import { useNotePermissions } from "./hooks/useNotePermissions";
 import { useNoteDirectories } from "./hooks/useNoteDirectories";
+import { useEditorActions } from "./hooks/useEditorActions";
 import "./NoteEditorPage.css";
 
 export function NoteEditorPage() {
@@ -36,6 +39,13 @@ export function NoteEditorPage() {
     directories.load,
   );
 
+  const textareaRef = useRef(null);
+
+  const actions = useEditorActions(textareaRef, doc.setContent);
+
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [tableModalOpen, setTableModalOpen] = useState(false);
+
   const showDirectoryMenu =
     !isNew &&
     doc.ownerId !== null &&
@@ -45,7 +55,6 @@ export function NoteEditorPage() {
     setSidebarProps({ active: "" });
   }, [setSidebarProps]);
 
-  // --- Loading state ---
   if (doc.isLoading) {
     return (
       <div className="editor-loading">
@@ -55,7 +64,6 @@ export function NoteEditorPage() {
     );
   }
 
-  // --- Error state ---
   if (doc.error) {
     return (
       <div className="editor-error">
@@ -110,7 +118,6 @@ export function NoteEditorPage() {
           directoriesLoading={directories.isLoading}
         />
 
-        {/* Ошибка сохранения — в т.ч. 409 Conflict. Локальные title/content не затираются. */}
         {doc.saveError && (
           <div className={`editor-save-banner editor-save-banner-${doc.saveError.type}`}>
             <span>{doc.saveError.message}</span>
@@ -129,7 +136,6 @@ export function NoteEditorPage() {
             </div>
           </div>
         )}
-        {/* Загрузка/ошибка attachment — минимальный state, переиспользованы те же баннеры, что и для save */}
         {attachments.error && (
           <div className="editor-save-banner editor-save-banner-generic">
             <span>{attachments.error}</span>
@@ -148,7 +154,6 @@ export function NoteEditorPage() {
             <span>Загрузка файла…</span>
           </div>
         )}
-        {/* Ошибка загрузки permissions — минимальный state, тот же баннер, что и для attachment */}
         {permissions.error && (
           <div className="editor-save-banner editor-save-banner-generic">
             <span>{permissions.error}</span>
@@ -162,7 +167,6 @@ export function NoteEditorPage() {
             </div>
           </div>
         )}
-        {/* Ошибка add/remove Note↔Directory — тот же паттерн, что и для permissions */}
         {directories.error && (
           <div className="editor-save-banner editor-save-banner-generic">
             <span>{directories.error}</span>
@@ -179,26 +183,39 @@ export function NoteEditorPage() {
         <div className="editor-content-wrap">
           {mode === "edit" && (
             <FormatToolbar
+              onBold={actions.bold}
+              onItalic={actions.italic}
+              onStrikethrough={actions.strikethrough}
+              onUnderline={actions.underline}
+              onHeading={actions.heading}
+              onLink={() => setLinkModalOpen(true)}
+              onBulletList={actions.bulletList}
+              onNumberedList={actions.numberedList}
+              onTaskList={actions.taskList}
+              onTable={() => setTableModalOpen(true)}
               onFileSelect={attachments.upload}
               isUploading={attachments.isUploading}
               uploadDisabled={isNew}
+              onCopy={actions.copy}
+              onCut={actions.cut}
+              onPaste={actions.paste}
             />
           )}
-          {/* data-note-version хранит текущий version для optimistic locking, не влияет на UI */}
           <div className="editor-body" data-note-version={doc.version ?? undefined}>
             <MarkdownArea
+              ref={textareaRef}
               mode={mode}
               title={doc.title}
               onTitleChange={(e) => doc.setTitle(e.target.value)}
               content={doc.content}
               onContentChange={(e) => doc.setContent(e.target.value)}
+              onKeyDown={actions.handleListEnter}
             />
             <div className="note-dates">
               <span>Создано: {doc.createdAt}</span>
               <span>Изменено: {doc.updatedAt}</span>
             </div>
 
-            {/* Список загруженных в этой сессии attachments. Для "new" не показывается. */}
             {!isNew && attachments.list.length > 0 && (
               <AttachmentsSection
                 attachments={attachments.list}
@@ -227,6 +244,17 @@ export function NoteEditorPage() {
             />
           </div>
         </div>
+
+        <LinkModal
+          open={linkModalOpen}
+          onClose={() => setLinkModalOpen(false)}
+          onInsert={actions.link}
+        />
+        <TableModal
+          open={tableModalOpen}
+          onClose={() => setTableModalOpen(false)}
+          onInsert={actions.table}
+        />
     </>
   );
 }
