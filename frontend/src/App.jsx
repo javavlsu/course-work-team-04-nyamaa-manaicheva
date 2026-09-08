@@ -1,129 +1,86 @@
-import { Routes, Route } from "react-router-dom";
+import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 
-import { HomePage } from "./pages/HomePage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { RecoverPage } from "./pages/RecoverPage";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { AccountPage } from "./pages/AccountPage";
-import { NotesFeedPage } from "./pages/NotesFeedPage";
-import { TrashPage } from "./pages/TrashPage";
-import { DirectoriesPage } from "./pages/DirectoriesPage";
-import { NoteEditorPage } from "./pages/NoteEditorPage";
-import { KanbanBoardPage } from "./pages/KanbanBoardPage";
-import { CalendarPage } from "./pages/CalendarPage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
-import { ForbiddenPage } from "./pages/ForbiddenPage";
-import { ServerErrorPage } from "./pages/ServerErrorPage";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute.jsx";
+import { HomePage } from "./pages/home/HomePage";
+import { LoginPage } from "./pages/auth/LoginPage";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import { RecoverPage } from "./pages/auth/RecoverPage";
+import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
+import { AccountPage } from "./pages/workspace/AccountPage";
+import { NotesFeedPage } from "./pages/workspace/NotesFeedPage";
+import { TrashPage } from "./pages/workspace/TrashPage";
+import { DirectoriesPage } from "./pages/workspace/DirectoriesPage";
+import { NoteEditorPage } from "./pages/workspace/NoteEditorPage";
+import { KanbanBoardPage } from "./pages/workspace/KanbanBoardPage";
+import { CalendarPage } from "./pages/workspace/CalendarPage";
+import { AnalyticsPage } from "./pages/workspace/AnalyticsPage";
+import { SettingsPage } from "./pages/workspace/SettingsPage";
+import { NotFoundPage } from "./pages/system/NotFoundPage";
+import { ForbiddenPage } from "./pages/system/ForbiddenPage";
+import { ServerErrorPage } from "./pages/system/ServerErrorPage";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { WorkspaceLayout } from "./layouts/WorkspaceLayout";
+import { PublicRoute } from "./routes/PublicRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { useAuth } from "./context/AuthContext.jsx";
 
-function RootRoute() {
+function RootGate() {
   const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return null;
-  return isAuthenticated ? <NotesFeedPage /> : <HomePage />;
+  const { pathname } = useLocation();
+
+  // Ждём завершения начальной проверки сессии — не делаем flash redirect
+  if (isLoading) {
+    return null;
+  }
+
+  // Корневой путь: гостю — лендинг, авторизованному — рабочая область
+  if (!isAuthenticated && pathname === "/") {
+    return <HomePage />;
+  }
+
+  // Прочие пути отдаём вложенным маршрутам (guards сделают redirect при необходимости)
+  return <Outlet />;
 }
 
 function App() {
   return (
     <Routes>
-      {/* Публичные маршруты */}
-      <Route path="/" element={<RootRoute />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/recover" element={<RecoverPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      {/* Корневой путь: лендинг для гостей, рабочая область для авторизованных */}
+      <Route path="/" element={<RootGate />}>
+        <Route element={<ProtectedRoute />}>
+          <Route element={<WorkspaceLayout />}>
+            <Route index element={<NotesFeedPage />} />
+            <Route path="notes" element={<NotesFeedPage />} />
+            <Route path="notes/:id" element={<NoteEditorPage />} />
+            <Route path="directories" element={<DirectoriesPage />} />
+            <Route path="directories/:folderId" element={<DirectoriesPage />} />
+            <Route path="kanban" element={<KanbanBoardPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="trash" element={<TrashPage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* Публичные auth-маршруты */}
+      <Route element={<PublicRoute />}>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/recover" element={<RecoverPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Route>
+      </Route>
+
+      {/* Отдельный защищённый маршрут вне workspace shell */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/account" element={<AccountPage />} />
+      </Route>
 
       {/* Статичные error-страницы — публичные */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />
-
-      {/* Защищённые маршруты */}
-      <Route
-        path="/directories"
-        element={
-          <ProtectedRoute>
-            <DirectoriesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/directories/:folderId"
-        element={
-          <ProtectedRoute>
-            <DirectoriesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/account"
-        element={
-          <ProtectedRoute>
-            <AccountPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/trash"
-        element={
-          <ProtectedRoute>
-            <TrashPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/notes">
-        <Route
-          index
-          element={
-            <ProtectedRoute>
-              <NotesFeedPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path=":id"
-          element={
-            <ProtectedRoute>
-              <NoteEditorPage />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-      <Route
-        path="/kanban"
-        element={
-          <ProtectedRoute>
-            <KanbanBoardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/calendar"
-        element={
-          <ProtectedRoute>
-            <CalendarPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <ProtectedRoute>
-            <AnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <SettingsPage />
-          </ProtectedRoute>
-        }
-      />
     </Routes>
   );
 }
