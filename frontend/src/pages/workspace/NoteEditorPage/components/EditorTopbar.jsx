@@ -1,27 +1,23 @@
 import { useState } from "react";
-import {
-  Eye,
-  Globe,
-  Link,
-  Lock,
-  Plus,
-  Save,
-  Shield,
-  SquarePen,
-  Star,
-  Trash,
-  Upload,
-  Users,
-} from "lucide-react";
+import { Link, Lock, Plus, Trash, Upload } from "lucide-react";
 
 import { privacyOptions } from "@/lib/utils/mockData";
 import DirectoryMenu from "./DirectoryMenu";
+import {
+  EyeIcon,
+  GlobeIcon,
+  PenIcon,
+  SaveIcon,
+  ShieldIcon,
+  StarIcon,
+  UsersIcon,
+} from "./icons";
 
 const privacyIcons = {
   private: Lock,
   link: Link,
-  team: Users,
-  public: Globe,
+  team: UsersIcon,
+  public: GlobeIcon,
 };
 
 function PrivacyMenu({
@@ -49,11 +45,11 @@ function PrivacyMenu({
         title="Настройки приватности"
         onClick={onToggle}
       >
-        <Shield strokeWidth={1.8} aria-hidden="true" />
+        <ShieldIcon />
       </button>
       <div className={open ? "privacy-dropdown open" : "privacy-dropdown"}>
         <h4>
-          <Shield strokeWidth={1.8} aria-hidden="true" />
+          <ShieldIcon />
           Приватность и доступ
         </h4>
         <div className="privacy-options">
@@ -66,7 +62,7 @@ function PrivacyMenu({
                 data-privacy={opt.key}
                 onClick={() => onSelect(opt.key)}
               >
-                <Icon strokeWidth={1.8} aria-hidden="true" />
+                <Icon strokeWidth={1.8} />
                 <span className="opt-label">
                   {opt.label} <span className="opt-desc">{opt.desc}</span>
                 </span>
@@ -147,14 +143,14 @@ export default function EditorTopbar({
             title="Режим редактирования"
             onClick={() => onModeChange("edit")}
           >
-            <SquarePen strokeWidth={1.8} aria-hidden="true" />
+            <PenIcon />
           </button>
           <button
             className={mode === "preview" ? "active" : ""}
             title="Режим просмотра"
             onClick={() => onModeChange("preview")}
           >
-            <Eye strokeWidth={1.8} aria-hidden="true" />
+            <EyeIcon />
           </button>
         </div>
         <button
@@ -162,7 +158,7 @@ export default function EditorTopbar({
           title="Добавить в избранное"
           onClick={onToggleFavorite}
         >
-          <Star strokeWidth={1.6} fill={favorited ? "currentColor" : "none"} />
+          <StarIcon filled={favorited} />
         </button>
         <PrivacyMenu
           open={privacyOpen}
@@ -212,7 +208,7 @@ export default function EditorTopbar({
           Экспорт
         </button>
         <button className="btn btn-primary" onClick={onSave} disabled={isSaving}>
-          <Save strokeWidth={1.6} aria-hidden="true" />
+          <SaveIcon />
           {isSaving ? "Сохранение…" : justSaved ? "Сохранено" : "Сохранить"}
         </button>
       </div>
