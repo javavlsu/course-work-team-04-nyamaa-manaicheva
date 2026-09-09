@@ -52,7 +52,9 @@
   color: var(--fg);
   outline: none;
   width: 100%;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .directory-modal-input:focus {
@@ -88,7 +90,9 @@
   color: var(--muted);
   padding: 8px 14px;
   border-radius: var(--radius);
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 
 .directory-modal-cancel:hover {
@@ -104,12 +108,15 @@
 .directory-modal-primary {
   font-size: 13px;
   font-weight: 500;
-  color: #fff;
+  color: #02133b;
   background: var(--accent);
   padding: 8px 18px;
   border-radius: 999px;
   box-shadow: 0 2px 10px color-mix(in oklch, var(--accent) 25%, transparent);
-  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
 }
 
 .directory-modal-primary:hover {
@@ -129,7 +136,10 @@
   padding: 8px 18px;
   border-radius: 999px;
   box-shadow: 0 2px 10px color-mix(in oklch, #d14343 25%, transparent);
-  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
 }
 
 .directory-modal-danger:hover {
