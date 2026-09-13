@@ -26,7 +26,9 @@ export function LoginPage() {
       <Logo />
       <h1 className="auth-title">Вход в аккаунт</h1>
       <p className="auth-subtitle">
-        {justRegistered ? "Аккаунт создан — войдите, чтобы продолжить" : "Добро пожаловать обратно"}
+        {justRegistered
+          ? "Аккаунт создан — можете войти!"
+          : "Войдите в аккаунт, чтобы получить доступ ко всем функциям!"}
       </p>
 
       {justRegistered && (
@@ -39,7 +41,9 @@ export function LoginPage() {
 
       <p className="auth-footer">
         Нет аккаунта?{" "}
-        <Link to="/register" className="link-accent">Зарегистрироваться</Link>
+        <Link to="/register" className="link-accent">
+          Зарегистрироваться
+        </Link>
       </p>
     </div>
   );

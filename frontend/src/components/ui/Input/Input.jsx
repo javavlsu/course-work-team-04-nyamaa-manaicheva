@@ -4,16 +4,29 @@ import { Eye, EyeOff } from "lucide-react";
 
 import "./Input.css";
 
-function Input({ name, label, type, placeholder, autoComplete, validation }) {
-  const { register, formState: { errors } } = useFormContext();
+function Input({
+  name,
+  label,
+  type,
+  placeholder,
+  autoComplete,
+  validation,
+  requiredIndicator = false,
+}) {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
   const [visible, setVisible] = useState(false);
   const isPassword = type === "password";
   const error = errors[name];
+  const showRequired = requiredIndicator && Boolean(validation?.required);
 
   return (
     <div className="input-group">
       <label className="input-label" htmlFor={name}>
         {label}
+        {showRequired && <span className="input-label-required">*</span>}
       </label>
       <div className="input-wrapper">
         <input
