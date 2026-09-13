@@ -162,6 +162,18 @@
   gap: 8px;
 }
 
+.editor-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .app .btn {
   display: inline-flex;
   align-items: center;

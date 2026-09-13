@@ -1,11 +1,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
+import { Link, useOutletContext, useParams, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext.jsx";
 import { refreshNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
+import TaskListEditor from "./components/TaskListEditor";
+import TableEditor from "./components/TableEditor";
 import AttachmentsSection from "./components/AttachmentsSection";
 import CommentsSection from "./components/CommentsSection";
 import LinkModal from "./components/LinkModal";
@@ -16,6 +18,7 @@ import { useNoteAttachments } from "./hooks/useNoteAttachments";
 import { useNotePermissions } from "./hooks/useNotePermissions";
 import { useNoteDirectories } from "./hooks/useNoteDirectories";
 import { useEditorActions } from "./hooks/useEditorActions";
+import { serializeListContent, serializeTableContent } from "./utils";
 import "./NoteEditorPage.css";
 
 // Временное отключение вложений (MinIO-сервис на backend не запущен).
@@ -25,7 +28,12 @@ const ATTACHMENTS_ENABLED = false;
 export function NoteEditorPage() {
   const { id } = useParams();
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const isNew = id === "new";
+
+  const templateParam = searchParams.get("type");
+  const templateType =
+    templateParam === "List" || templateParam === "Table" ? templateParam : "Empty";
 
   const { setSidebarProps } = useOutletContext();
   const sidebarCounts = useNotesCounts({ autoFetch: true });
@@ -43,7 +51,10 @@ export function NoteEditorPage() {
     attachments.load,
     permissions.load,
     directories.load,
+    templateType,
   );
+
+  const editorType = isNew ? templateType : doc.noteType || "Empty";
 
   const textareaRef = useRef(null);
 
@@ -108,6 +119,7 @@ export function NoteEditorPage() {
   return (
     <>
         <EditorTopbar
+          noteType={editorType}
           mode={mode}
           onModeChange={setMode}
           favorited={doc.favorited}
@@ -201,8 +213,9 @@ export function NoteEditorPage() {
           </div>
         )}
         <div className="editor-content-wrap">
-          {mode === "edit" && (
+          {mode === "edit" && editorType === "Empty" && (
             <FormatToolbar
+              noteType={editorType}
               onBold={actions.bold}
               onItalic={actions.italic}
               onStrikethrough={actions.strikethrough}
@@ -222,15 +235,47 @@ export function NoteEditorPage() {
             />
           )}
           <div className="editor-body" data-note-version={doc.version ?? undefined}>
-            <MarkdownArea
-              ref={textareaRef}
-              mode={mode}
-              title={doc.title}
-              onTitleChange={(e) => doc.setTitle(e.target.value)}
-              content={doc.content}
-              onContentChange={(e) => doc.setContent(e.target.value)}
-              onKeyDown={actions.handleListEnter}
-            />
+            {editorType === "List" && (
+              <>
+                <input
+                  className="editor-title"
+                  type="text"
+                  placeholder="Без названия…"
+                  value={doc.title}
+                  onChange={(e) => doc.setTitle(e.target.value)}
+                />
+                <TaskListEditor
+                  items={doc.content?.items ?? []}
+                  onItemsChange={(items) => doc.setContent(serializeListContent(items))}
+                />
+              </>
+            )}
+            {editorType === "Table" && (
+              <>
+                <input
+                  className="editor-title"
+                  type="text"
+                  placeholder="Без названия…"
+                  value={doc.title}
+                  onChange={(e) => doc.setTitle(e.target.value)}
+                />
+                <TableEditor
+                  rows={doc.content?.rows ?? []}
+                  onRowsChange={(rows) => doc.setContent(serializeTableContent(rows))}
+                />
+              </>
+            )}
+            {editorType === "Empty" && (
+              <MarkdownArea
+                ref={textareaRef}
+                mode={mode}
+                title={doc.title}
+                onTitleChange={(e) => doc.setTitle(e.target.value)}
+                content={doc.content}
+                onContentChange={(e) => doc.setContent(e.target.value)}
+                onKeyDown={actions.handleListEnter}
+              />
+            )}
             <div className="note-dates">
               <span>Создано: {doc.createdAt}</span>
               <span>Изменено: {doc.updatedAt}</span>

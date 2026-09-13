@@ -105,6 +105,7 @@ function PrivacyMenu({
 }
 
 export default function EditorTopbar({
+  noteType = "Empty",
   mode,
   onModeChange,
   favorited,
@@ -134,25 +135,33 @@ export default function EditorTopbar({
   updatingDirectoryIds,
   directoriesLoading = false,
 }) {
+  const typeLabel =
+    noteType === "List" ? "Список"
+      : noteType === "Table" ? "Таблица"
+        : "";
+
   return (
     <div className="editor-topbar">
       <div className="editor-topbar-left">
-        <div className="mode-toggle">
-          <button
-            className={mode === "edit" ? "active" : ""}
-            title="Режим редактирования"
-            onClick={() => onModeChange("edit")}
-          >
-            <PenIcon />
-          </button>
-          <button
-            className={mode === "preview" ? "active" : ""}
-            title="Режим просмотра"
-            onClick={() => onModeChange("preview")}
-          >
-            <EyeIcon />
-          </button>
-        </div>
+        {typeLabel && <span className="editor-type-badge">{typeLabel}</span>}
+        {!typeLabel && (
+          <div className="mode-toggle">
+            <button
+              className={mode === "edit" ? "active" : ""}
+              title="Режим редактирования"
+              onClick={() => onModeChange("edit")}
+            >
+              <PenIcon />
+            </button>
+            <button
+              className={mode === "preview" ? "active" : ""}
+              title="Режим просмотра"
+              onClick={() => onModeChange("preview")}
+            >
+              <EyeIcon />
+            </button>
+          </div>
+        )}
         <button
           className="btn btn-ghost"
           title="Добавить в избранное"
