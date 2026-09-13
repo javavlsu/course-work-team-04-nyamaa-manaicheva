@@ -1,10 +1,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Link, useOutletContext, useParams } from "react-router-dom";
+import { Link, useOutletContext, useParams, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext.jsx";
+import { refreshNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
+import TaskListEditor from "./components/TaskListEditor";
+import TableEditor from "./components/TableEditor";
 import AttachmentsSection from "./components/AttachmentsSection";
 import CommentsSection from "./components/CommentsSection";
 import LinkModal from "./components/LinkModal";
@@ -15,14 +18,25 @@ import { useNoteAttachments } from "./hooks/useNoteAttachments";
 import { useNotePermissions } from "./hooks/useNotePermissions";
 import { useNoteDirectories } from "./hooks/useNoteDirectories";
 import { useEditorActions } from "./hooks/useEditorActions";
+import { serializeListContent, serializeTableContent } from "./utils";
 import "./NoteEditorPage.css";
+
+// Временное отключение вложений (MinIO-сервис на backend не запущен).
+// Чтобы вернуть: поставьте true и включите MinIO на бэкенде (MINIO_ENABLED=true).
+const ATTACHMENTS_ENABLED = false;
 
 export function NoteEditorPage() {
   const { id } = useParams();
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const isNew = id === "new";
 
+  const templateParam = searchParams.get("type");
+  const templateType =
+    templateParam === "List" || templateParam === "Table" ? templateParam : "Empty";
+
   const { setSidebarProps } = useOutletContext();
+  const sidebarCounts = useNotesCounts({ autoFetch: true });
   const [mode, setMode] = useState("edit");
 
   const comments = useNoteComments(id, isNew);
@@ -37,7 +51,10 @@ export function NoteEditorPage() {
     attachments.load,
     permissions.load,
     directories.load,
+    templateType,
   );
+
+  const editorType = isNew ? templateType : doc.noteType || "Empty";
 
   const textareaRef = useRef(null);
 
@@ -52,8 +69,22 @@ export function NoteEditorPage() {
     currentUser?.id === doc.ownerId;
 
   useLayoutEffect(() => {
-    setSidebarProps({ active: "" });
-  }, [setSidebarProps]);
+    setSidebarProps({
+      active: "",
+      counts: {
+        all: sidebarCounts.totalNotesCount ?? undefined,
+        directories: sidebarCounts.directoriesCount ?? undefined,
+        favorites: sidebarCounts.favouritesCount ?? undefined,
+      },
+    });
+  }, [setSidebarProps, sidebarCounts]);
+
+  const handleToggleFavorite = async () => {
+    await doc.toggleFavorite();
+    if (!isNew) {
+      refreshNotesCounts();
+    }
+  };
 
   if (doc.isLoading) {
     return (
@@ -88,10 +119,11 @@ export function NoteEditorPage() {
   return (
     <>
         <EditorTopbar
+          noteType={editorType}
           mode={mode}
           onModeChange={setMode}
           favorited={doc.favorited}
-          onToggleFavorite={doc.toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
           privacyOpen={permissions.privacyOpen}
           onTogglePrivacy={permissions.togglePrivacy}
           privacy={permissions.privacy}
@@ -181,8 +213,9 @@ export function NoteEditorPage() {
           </div>
         )}
         <div className="editor-content-wrap">
-          {mode === "edit" && (
+          {mode === "edit" && editorType === "Empty" && (
             <FormatToolbar
+              noteType={editorType}
               onBold={actions.bold}
               onItalic={actions.italic}
               onStrikethrough={actions.strikethrough}
@@ -195,27 +228,64 @@ export function NoteEditorPage() {
               onFileSelect={attachments.upload}
               isUploading={attachments.isUploading}
               uploadDisabled={isNew}
+              attachmentsEnabled={ATTACHMENTS_ENABLED}
               onCopy={actions.copy}
               onCut={actions.cut}
               onPaste={actions.paste}
             />
           )}
           <div className="editor-body" data-note-version={doc.version ?? undefined}>
-            <MarkdownArea
-              ref={textareaRef}
-              mode={mode}
-              title={doc.title}
-              onTitleChange={(e) => doc.setTitle(e.target.value)}
-              content={doc.content}
-              onContentChange={(e) => doc.setContent(e.target.value)}
-              onKeyDown={actions.handleListEnter}
-            />
+            {editorType === "List" && (
+              <>
+                <input
+                  className="editor-title"
+                  type="text"
+                  placeholder="Без названия…"
+                  value={doc.title}
+                  onChange={(e) => doc.setTitle(e.target.value)}
+                />
+                <TaskListEditor
+                  items={doc.content?.items ?? []}
+                  onItemsChange={(items) => doc.setContent(serializeListContent(items))}
+                />
+              </>
+            )}
+            {editorType === "Table" && (
+              <>
+                <input
+                  className="editor-title"
+                  type="text"
+                  placeholder="Без названия…"
+                  value={doc.title}
+                  onChange={(e) => doc.setTitle(e.target.value)}
+                />
+                <TableEditor
+                  rows={doc.content?.rows ?? []}
+                  onRowsChange={(rows) => doc.setContent(serializeTableContent(rows))}
+                />
+              </>
+            )}
+            {editorType === "Empty" && (
+              <MarkdownArea
+                ref={textareaRef}
+                mode={mode}
+                title={doc.title}
+                onTitleChange={(e) => doc.setTitle(e.target.value)}
+                content={doc.content}
+                onContentChange={(e) => doc.setContent(e.target.value)}
+                onKeyDown={actions.handleListEnter}
+              />
+            )}
             <div className="note-dates">
               <span>Создано: {doc.createdAt}</span>
               <span>Изменено: {doc.updatedAt}</span>
             </div>
 
-            {!isNew && attachments.list.length > 0 && (
+            {!ATTACHMENTS_ENABLED && !isNew && (
+              <p className="comments-status">Вложения временно отключены</p>
+            )}
+
+            {!isNew && ATTACHMENTS_ENABLED && attachments.list.length > 0 && (
               <AttachmentsSection
                 attachments={attachments.list}
                 onDownload={attachments.download}

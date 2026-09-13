@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 28px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -609,6 +609,16 @@
 .app .fab-primary:hover .fab-label {
   display: inline;
   opacity: 1;
+}
+
+.app .fab-main,
+.app .fab-main:hover,
+.app .fab-main:focus,
+.app .fab-main:active {
+  width: 52px;
+  border-radius: 50%;
+  padding: 0;
+  gap: 0;
 }
 
 .app .fab-secondary {

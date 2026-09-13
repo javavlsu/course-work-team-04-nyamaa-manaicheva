@@ -23,9 +23,7 @@ export function ResetPasswordPage() {
     <div className="reset-box">
       <Logo />
       <h1 className="auth-title">Новый пароль</h1>
-      <p className="auth-subtitle">
-        Введите новый пароль для вашего аккаунта
-      </p>
+      <p className="auth-subtitle">Введите новый пароль для вашего аккаунта</p>
 
       <ResetPasswordForm />
     </div>

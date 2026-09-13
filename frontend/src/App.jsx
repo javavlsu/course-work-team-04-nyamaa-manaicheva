@@ -7,6 +7,7 @@ import { RecoverPage } from "./pages/auth/RecoverPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { AccountPage } from "./pages/workspace/AccountPage";
 import { NotesFeedPage } from "./pages/workspace/NotesFeedPage";
+import { FavouritesPage } from "./pages/workspace/FavouritesPage";
 import { TrashPage } from "./pages/workspace/TrashPage";
 import { DirectoriesPage } from "./pages/workspace/DirectoriesPage";
 import { NoteEditorPage } from "./pages/workspace/NoteEditorPage";
@@ -50,6 +51,7 @@ function App() {
           <Route element={<WorkspaceLayout />}>
             <Route index element={<NotesFeedPage />} />
             <Route path="notes" element={<NotesFeedPage />} />
+            <Route path="favourites" element={<FavouritesPage />} />
             <Route path="notes/:id" element={<NoteEditorPage />} />
             <Route path="directories" element={<DirectoriesPage />} />
             <Route path="directories/:folderId" element={<DirectoriesPage />} />

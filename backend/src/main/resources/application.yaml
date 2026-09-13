@@ -36,6 +36,9 @@ notesbook:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   storage:
+    # Временное отключение MinIO (образ minio/minio недоступен).
+    # Чтобы вернуть хранилище: поставьте enabled: true (или MINIO_ENABLED=true).
+    enabled: ${MINIO_ENABLED:false}
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:minioadmin}

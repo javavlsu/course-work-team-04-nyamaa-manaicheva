@@ -7,13 +7,19 @@ import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import ru.rps.notesbook.Domain.Interfaces.Storage.IFileStorageService;
 
 import java.io.InputStream;
 import java.time.Duration;
 
+// Временное отключение MinIO (образ minio/minio недоступен).
+// Реализация подключается только при notesbook.storage.enabled=true (MINIO_ENABLED=true);
+// иначе Spring использует DisabledFileStorageService-заглушку.
+// Чтобы вернуть MinIO: включите флаг, код менять не нужно.
 @Component
+@ConditionalOnProperty(name = "notesbook.storage.enabled", havingValue = "true")
 public class MinioFileStorageService implements IFileStorageService {
 
     private final MinioClient minioClient;

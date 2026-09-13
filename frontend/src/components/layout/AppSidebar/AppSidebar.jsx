@@ -41,7 +41,6 @@ function AppSidebar({
   onToggle,
   modules,
   onSelectAll,
-  onSelectFavorites,
 }) {
   const { currentUser, logout } = useAuth();
   const resolvedModules = modules ?? readStoredModules();
@@ -83,20 +82,13 @@ function AppSidebar({
             <span className="link-label">Директории</span>
             {counts.directories !== undefined && <span className="count">{counts.directories}</span>}
           </Link>
-          <a
-            href="#"
-            className={linkClass("favorites")}
-            onClick={(e) => {
-              e.preventDefault();
-              onSelectFavorites?.();
-            }}
-          >
+          <Link to="/favourites" className={linkClass("favorites")}>
             <Star strokeWidth={1.6} fill="none" aria-hidden="true" />
             <span className="link-label">Избранное</span>
             {counts.favorites !== undefined && (
               <span className="count">{counts.favorites}</span>
             )}
-          </a>
+          </Link>
           <Link to="/trash" className={linkClass("trash")}>
             <Trash strokeWidth={1.6} />
             <span className="link-label">Корзина</span>

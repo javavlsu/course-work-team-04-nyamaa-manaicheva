@@ -41,10 +41,6 @@ function LoginForm() {
         <Input {...passwordValidation} />
 
         <div className="form-actions">
-          <label className="checkbox">
-            <input type="checkbox" {...methods.register("remember")} />
-            Запомнить меня
-          </label>
           <Link to="/recover" className="link-accent">Забыли пароль?</Link>
         </div>
 

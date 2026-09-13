@@ -2,7 +2,35 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import * as notesApi from "@/api/notes.js";
-import { blankNote, extractContentText, formatDateTime } from "../utils";
+import {
+  blankNote,
+  createBlankListContent,
+  createBlankTableContent,
+  extractContentText,
+  formatDateTime,
+  listToMarkdown,
+  parseListContent,
+  parseTableContent,
+  serializeListContent,
+  serializeTableContent,
+  tableToMarkdown,
+} from "../utils";
+
+function normalizeInitialType(type) {
+  return type === "List" || type === "Table" ? type : "Empty";
+}
+
+function templateTitleFor(type) {
+  if (type === "List") return "Список задач";
+  if (type === "Table") return "Таблица";
+  return blankNote.title;
+}
+
+function resolveEditorContent(noteType, rawContent) {
+  if (noteType === "List") return serializeListContent(parseListContent(rawContent));
+  if (noteType === "Table") return serializeTableContent(parseTableContent(rawContent));
+  return extractContentText(rawContent);
+}
 
 export function useNoteDocument(
   id,
@@ -11,8 +39,11 @@ export function useNoteDocument(
   loadAttachments,
   loadPermissions,
   loadDirectories,
+  initialType = "",
 ) {
   const navigate = useNavigate();
+
+  const templateType = normalizeInitialType(initialType);
 
   // --- Загрузка существующей заметки: GET /api/notes/:id ---
   const [isLoading, setIsLoading] = useState(!isNew);
@@ -29,8 +60,14 @@ export function useNoteDocument(
   // --- Delete state (DELETE /api/notes/:id) ---
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [title, setTitle] = useState(isNew ? blankNote.title : "");
-  const [content, setContent] = useState(isNew ? blankNote.content : "");
+  const [noteType, setNoteType] = useState(isNew ? templateType : null);
+  const [title, setTitle] = useState(isNew ? templateTitleFor(templateType) : "");
+  const [content, setContent] = useState(() => {
+    if (!isNew) return "";
+    if (templateType === "List") return createBlankListContent();
+    if (templateType === "Table") return createBlankTableContent();
+    return blankNote.content;
+  });
   const [favorited, setFavorited] = useState(false);
   const [createdAtRaw, setCreatedAtRaw] = useState(null);
   const [updatedAtRaw, setUpdatedAtRaw] = useState(null);
@@ -62,8 +99,10 @@ export function useNoteDocument(
         if (cancelled) return;
 
         // Адаптация NoteResponse → поля редактора
+        const loadedNoteType = data.noteType ?? "Empty";
+        setNoteType(loadedNoteType);
         setTitle(data.title ?? "");
-        setContent(extractContentText(data.content));
+        setContent(resolveEditorContent(loadedNoteType, data.content));
         setFavorited(Boolean(data.isFavourite));
         setVersion(data.version ?? null);
         setCreatedAtRaw(data.createDate ?? null);
@@ -100,7 +139,13 @@ export function useNoteDocument(
 
   const handleExport = () => {
     const safeTitle = title || "Без названия";
-    const blob = new Blob([content], { type: "text/markdown; charset=utf-8" });
+    const exportText =
+      noteType === "List"
+        ? listToMarkdown(content?.items)
+        : noteType === "Table"
+          ? tableToMarkdown(content?.rows)
+          : content;
+    const blob = new Blob([exportText], { type: "text/markdown; charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -123,17 +168,18 @@ export function useNoteDocument(
     try {
       if (isNew) {
         // Backend contract POST /api/notes: { title, content, noteType, isFavourite }
-        // noteType в редакторе пока не выбирается UI — используем "Empty" по умолчанию.
         const created = await notesApi.create({
           title,
           content,
-          noteType: "Empty",
+          noteType,
           isFavourite: favorited,
         });
 
         // Обновляем данные из ответа backend — так же, как и после GET/PUT
+        const createdNoteType = created.noteType ?? noteType;
+        setNoteType(createdNoteType);
         setTitle(created.title ?? title);
-        setContent(extractContentText(created.content));
+        setContent(resolveEditorContent(createdNoteType, created.content));
         setFavorited(Boolean(created.isFavourite));
         setVersion(created.version ?? null);
         setCreatedAtRaw(created.createDate ?? null);
@@ -157,8 +203,10 @@ export function useNoteDocument(
       });
 
       // Обновляем данные из ответа backend — в том числе новый version
+      const updatedNoteType = updated.noteType ?? noteType;
+      setNoteType(updatedNoteType);
       setTitle(updated.title ?? title);
-      setContent(extractContentText(updated.content));
+      setContent(resolveEditorContent(updatedNoteType, updated.content));
       setFavorited(Boolean(updated.isFavourite));
       setVersion(updated.version ?? version);
       setUpdatedAtRaw(updated.updatedAt ?? updatedAtRaw);
@@ -195,8 +243,10 @@ export function useNoteDocument(
     setIsSaving(true);
     try {
       const data = await notesApi.get(id);
+      const reloadedNoteType = data.noteType ?? "Empty";
+      setNoteType(reloadedNoteType);
       setTitle(data.title ?? "");
-      setContent(extractContentText(data.content));
+      setContent(resolveEditorContent(reloadedNoteType, data.content));
       setFavorited(Boolean(data.isFavourite));
       setVersion(data.version ?? null);
       setCreatedAtRaw(data.createDate ?? null);
@@ -238,13 +288,40 @@ export function useNoteDocument(
     }
   };
 
+  const isTogglingFavouriteRef = useRef(false);
+
+  const handleToggleFavorite = async () => {
+    if (isNew) {
+      setFavorited((prev) => !prev);
+      return;
+    }
+    if (isTogglingFavouriteRef.current) return;
+    isTogglingFavouriteRef.current = true;
+
+    setFavorited((prev) => !prev);
+    try {
+      const updated = await notesApi.toggleFavourite(id);
+      setFavorited(Boolean(updated.isFavourite));
+      setVersion(updated.version ?? version);
+    } catch (err) {
+      setFavorited((prev) => !prev);
+      setSaveError({
+        type: "generic",
+        message: err.message || "Не удалось изменить избранное",
+      });
+    } finally {
+      isTogglingFavouriteRef.current = false;
+    }
+  };
+
   return {
     title,
     setTitle,
     content,
     setContent,
+    noteType,
     favorited,
-    toggleFavorite: () => setFavorited((prev) => !prev),
+    toggleFavorite: handleToggleFavorite,
     version,
     ownerId,
     isLoading,

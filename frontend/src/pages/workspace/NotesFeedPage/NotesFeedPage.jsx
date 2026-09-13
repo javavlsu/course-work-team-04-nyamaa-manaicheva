@@ -1,10 +1,11 @@
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from "@/components/modals/DirectoryModal";
 import NotesGrid from "@/components/notes/NotesGrid";
 import EmptyState from "@/components/notes/EmptyState";
 import FabGroup from "@/components/notes/FabGroup";
+import { updateNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import { useNotesFeed } from "./hooks/useNotesFeed";
 import { useFolders } from "./hooks/useFolders";
 import Topbar from "./Topbar";
@@ -19,34 +20,58 @@ function pluralRu(n) {
   return "заметок";
 }
 
-export function NotesFeedPage() {
+export function NotesFeedPage({ favouritesOnly = false } = {}) {
   const { setSidebarProps } = useOutletContext();
 
-  const feed = useNotesFeed();
+  const feed = useNotesFeed({ favouritesOnly });
   const dirs = useFolders({ activeFolder: feed.activeFolder, onSelectAll: feed.handleSelectAll });
+  const sidebarCounts = useNotesCounts();
 
   const notesEnriched = feed.notes.map((n) => ({
     ...n,
     folderId: dirs.noteFolderMap.get(n.id) || null,
   }));
 
+  useEffect(() => {
+    updateNotesCounts({
+      totalNotesCount: feed.totalNotesCount,
+      favouritesCount: feed.favouritesCount,
+      directoriesCount: dirs.foldersLoaded ? Math.max(0, dirs.folders.length - 1) : undefined,
+    });
+  }, [feed.totalNotesCount, feed.favouritesCount, dirs.folders, dirs.foldersLoaded]);
+
   useLayoutEffect(() => {
     setSidebarProps({
-      active: feed.isFavouriteFilter === true ? "favorites" : "notes",
+      active: favouritesOnly ? "favorites" : "notes",
       counts: {
-        all: feed.notes.length,
-        directories: Math.max(0, dirs.folders.length - 1),
-        favorites: feed.notes.filter((n) => n.isFavourite).length,
+        all: sidebarCounts.totalNotesCount ?? undefined,
+        directories: sidebarCounts.directoriesCount ?? undefined,
+        favorites: sidebarCounts.favouritesCount ?? undefined,
       },
       onSelectAll: feed.handleSelectAll,
-      onSelectFavorites: feed.handleSelectFavorites,
     });
-  }, [setSidebarProps, feed.isFavouriteFilter, feed.notes, dirs.folders]);
+  }, [setSidebarProps, favouritesOnly, sidebarCounts]);
+
+  const topCount = (favouritesOnly || feed.activeFolder === "all")
+    ? (feed.filteredCount == null ? (feed.isLoading ? null : feed.notes.length) : feed.filteredCount)
+    : feed.notes.length;
 
   return (
     <>
-      <Topbar count={feed.notes.length} pluralRu={pluralRu} />
-        <Toolbar searchQuery={feed.searchQuery} onSearchChange={feed.handleSearchChange} />
+      <Topbar
+        title={favouritesOnly ? "Избранное" : "Все заметки"}
+        count={topCount}
+        pluralRu={pluralRu}
+      />
+        {!favouritesOnly && (
+          <Toolbar
+            searchQuery={feed.searchQuery}
+            onSearchChange={feed.handleSearchChange}
+            sort={feed.sort}
+            onSortChange={feed.setSort}
+            sortDisabled={feed.activeFolder !== "all"}
+          />
+        )}
 
         {/* Notes loading state (первая загрузка / смена директории) */}
         {feed.isLoading && (

@@ -22,13 +22,14 @@ export function RegisterPage() {
     <div className="register-box">
       <Logo />
       <h1 className="auth-title">Регистрация</h1>
-      <p className="auth-subtitle">Создайте аккаунт и начните работать</p>
 
       <RegisterForm />
 
       <p className="auth-footer">
         Уже есть аккаунт?{" "}
-        <Link to="/login" className="link-accent">Войти</Link>
+        <Link to="/login" className="link-accent">
+          Войти
+        </Link>
       </p>
     </div>
   );

@@ -11,6 +11,10 @@
   color: var(--fg);
 }
 
+.input-label-required {
+  color: #FB6A18;
+}
+
 .input-wrapper {
   position: relative;
 }
@@ -77,5 +81,5 @@
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.4;
-  color: #dc2626;
+  color: #FB6A18;
 }

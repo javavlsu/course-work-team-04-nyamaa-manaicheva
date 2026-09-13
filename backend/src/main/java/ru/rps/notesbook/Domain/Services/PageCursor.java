@@ -16,16 +16,20 @@ public final class PageCursor {
 
     private static final String SEPARATOR = "|";
 
-    private final LocalDateTime updatedAt;
+    private final String sortValue;
     private final UUID id;
 
-    private PageCursor(LocalDateTime updatedAt, UUID id) {
-        this.updatedAt = updatedAt;
+    private PageCursor(String sortValue, UUID id) {
+        this.sortValue = sortValue;
         this.id = id;
     }
 
-    public static PageCursor of(LocalDateTime updatedAt, UUID id) {
-        return new PageCursor(updatedAt, id);
+    public static PageCursor of(LocalDateTime sortValue, UUID id) {
+        return new PageCursor(sortValue.toString(), id);
+    }
+
+    public static PageCursor of(String sortValue, UUID id) {
+        return new PageCursor(sortValue, id);
     }
 
     public static int normalizeLimit(Integer limit) {
@@ -48,25 +52,44 @@ public final class PageCursor {
             if (separatorIndex < 0) {
                 throw new IllegalArgumentException("Missing separator in cursor payload");
             }
-            LocalDateTime cursorUpdatedAt = LocalDateTime.parse(raw.substring(0, separatorIndex));
             UUID cursorId = UUID.fromString(raw.substring(separatorIndex + 1));
-            return new PageCursor(cursorUpdatedAt, cursorId);
-        } catch (IllegalArgumentException | DateTimeParseException e) {
+            return new PageCursor(raw.substring(0, separatorIndex), cursorId);
+        } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cursor", e);
         }
     }
 
     public String encode() {
-        String raw = updatedAt.toString() + SEPARATOR + id;
+        String raw = sortValue + SEPARATOR + id;
         return Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
     }
 
-    public boolean isAfter(LocalDateTime itemUpdatedAt, UUID itemId) {
-        int cmp = itemUpdatedAt.compareTo(updatedAt);
-        if (cmp != 0) {
-            return cmp < 0;
+    public boolean isAfter(LocalDateTime itemValue, UUID itemId) {
+        return isAfter(itemValue, itemId, true);
+    }
+
+    public boolean isAfter(LocalDateTime itemValue, UUID itemId, boolean desc) {
+        int cmp = itemValue.compareTo(sortValueAsDate());
+        if (cmp == 0) {
+            cmp = itemId.compareTo(id);
         }
-        return itemId.compareTo(id) < 0;
+        return desc ? cmp < 0 : cmp > 0;
+    }
+
+    public boolean isAfterText(String itemValue, UUID itemId, boolean desc) {
+        int cmp = itemValue.compareTo(sortValue);
+        if (cmp == 0) {
+            cmp = itemId.compareTo(id);
+        }
+        return desc ? cmp < 0 : cmp > 0;
+    }
+
+    private LocalDateTime sortValueAsDate() {
+        try {
+            return LocalDateTime.parse(sortValue);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid cursor", e);
+        }
     }
 
 }

@@ -65,23 +65,33 @@ function RegisterForm() {
     <FormProvider {...methods}>
       <form className="auth-form" onSubmit={methods.handleSubmit(onSubmit)} noValidate>
         <div className="form-grid">
-          <Input {...firstNameValidation} />
-          <Input {...lastNameValidation} />
+          <Input {...firstNameValidation} requiredIndicator />
+          <Input {...lastNameValidation} requiredIndicator />
         </div>
 
-        <Input {...emailValidation} placeholder="you@example.com" />
+        <Input {...emailValidation} requiredIndicator placeholder="you@example.com" />
         {/* phone — UI-only поле, не отправляется на backend */}
         <Input {...phoneValidation} />
-        <Input {...registerPasswordValidation} />
-        <Input {...confirmPasswordValidation} />
+        <Input {...registerPasswordValidation} requiredIndicator />
+        <Input {...confirmPasswordValidation} requiredIndicator />
 
         <label className="checkbox">
-          <input type="checkbox" {...methods.register("terms")} />
+          <input
+            type="checkbox"
+            {...methods.register("terms", {
+              required: "Необходимо согласиться с условиями использования",
+            })}
+          />
           <span>
             Я соглашаюсь с{" "}
             <a href="#" className="link-accent">условиями использования</a>
           </span>
         </label>
+        {methods.formState.errors.terms && (
+          <span className="form-error form-error-left">
+            {methods.formState.errors.terms.message}
+          </span>
+        )}
 
         <Button
           type="submit"

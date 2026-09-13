@@ -96,7 +96,7 @@ public class Note {
         }
     }
     public void ValidateContent(String content) {
-        if (content != null && content.length() > 1000) {
+        if (content != null && content.length() > 10000) {
             throw new IllegalArgumentException("content is too long");
         }
     }

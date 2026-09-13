@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
@@ -6,6 +6,7 @@ import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from
 import NotesGrid from "@/components/notes/NotesGrid";
 import EmptyState from "@/components/notes/EmptyState";
 import FabGroup from "@/components/notes/FabGroup";
+import { updateNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import { useDirectories } from "./hooks/useDirectories";
 import FolderCard from "./components/FolderCard";
 import "./DirectoriesPage.css";
@@ -16,19 +17,25 @@ export function DirectoriesPage() {
   const { setSidebarProps } = useOutletContext();
 
   const dirs = useDirectories({ folderId });
+  const sidebarCounts = useNotesCounts({ autoFetch: true });
+
+  useEffect(() => {
+    if (!dirs.isLoading) {
+      updateNotesCounts({ directoriesCount: dirs.folders.length });
+    }
+  }, [dirs.isLoading, dirs.folders]);
 
   useLayoutEffect(() => {
     setSidebarProps({
       active: "directories",
       counts: {
-        all: dirs.notes.length,
-        directories: dirs.folders.length,
-        favorites: dirs.favoritesCount,
+        all: sidebarCounts.totalNotesCount ?? undefined,
+        directories: dirs.isLoading ? undefined : dirs.folders.length,
+        favorites: sidebarCounts.favouritesCount ?? undefined,
       },
       onSelectAll: () => navigate("/"),
-      onSelectFavorites: () => navigate("/"),
     });
-  }, [setSidebarProps, dirs.notes, dirs.folders, dirs.favoritesCount]);
+  }, [setSidebarProps, navigate, sidebarCounts, dirs.isLoading, dirs.folders]);
 
   return (
     <>
@@ -41,12 +48,12 @@ export function DirectoriesPage() {
             )}
             <span className="topbar-title">{dirs.pageTitle}</span>
             {!folderId && (
-              <span style={{ fontSize: "14px", color: "var(--muted)", marginLeft: "8px" }}>
+              <span className="topbar-count">
                 {dirs.folders.length} папок
               </span>
             )}
             {folderId && (
-              <span style={{ fontSize: "14px", color: "var(--muted)", marginLeft: "8px" }}>
+              <span className="topbar-count">
                 {dirs.folderNotes.length} заметок
               </span>
             )}

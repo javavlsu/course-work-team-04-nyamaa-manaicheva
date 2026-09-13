@@ -1,11 +1,13 @@
-function Topbar({ count, pluralRu }) {
+function Topbar({ title = "Все заметки", count, pluralRu }) {
   return (
     <div className="topbar">
       <div className="topbar-left">
-        <span className="topbar-title">Все заметки</span>
-        <span style={{ fontSize: "14px", color: "var(--muted)", marginLeft: "8px" }}>
-          {count} {pluralRu(count)}
-        </span>
+        <span className="topbar-title">{title}</span>
+        {count != null && (
+          <span className="topbar-count">
+            {count} {pluralRu(count)}
+          </span>
+        )}
       </div>
       <div className="topbar-right"></div>
     </div>

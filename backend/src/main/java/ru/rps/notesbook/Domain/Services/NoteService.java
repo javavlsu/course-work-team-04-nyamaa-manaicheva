@@ -55,10 +55,17 @@ public class NoteService implements INoteService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final String SORT_UPDATED_AT = "updatedAt";
+    private static final String SORT_CREATE_DATE = "createDate";
+    private static final String SORT_TITLE = "title";
+    private static final String ORDER_ASC = "asc";
+    private static final String ORDER_DESC = "desc";
+
     @Override
     @Transactional(readOnly = true)
     public NoteContracts.NotePageResponse GetNotesByOwnerId(
-            UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor
+            UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor,
+            String sortBy, String order
     ) {
         Map<UUID, Note> notes = new LinkedHashMap<>();
 
@@ -96,14 +103,21 @@ public class NoteService implements INoteService {
 
         int pageSize = PageCursor.normalizeLimit(limit);
         PageCursor pageCursor = PageCursor.decodeOrNull(cursor);
+        String sortKey = normalizeSortKey(sortBy);
+        boolean desc = normalizeOrder(order);
+        Comparator<Note> comparator = noteComparator(sortKey, desc);
 
-        List<Note> page = notes.values().stream()
+        List<Note> filtered = notes.values().stream()
                 .filter(note -> normalizedSearch == null || note.GetTitle().toLowerCase().contains(normalizedSearch))
                 .filter(note -> noteType == null || note.GetNoteType() == noteType)
                 .filter(note -> isFavourite == null || note.GetIsFavourite() == isFavourite)
-                .sorted(Comparator.comparing(Note::GetUpdatedAt, Comparator.reverseOrder())
-                        .thenComparing(Note::GetId, Comparator.reverseOrder()))
-                .filter(note -> pageCursor == null || pageCursor.isAfter(note.GetUpdatedAt(), note.GetId()))
+                .sorted(comparator)
+                .toList();
+
+        long filteredCount = filtered.size();
+
+        List<Note> page = filtered.stream()
+                .filter(note -> pageCursor == null || isAfterCursor(note, pageCursor, sortKey, desc))
                 .limit(pageSize + 1)
                 .toList();
 
@@ -111,14 +125,73 @@ public class NoteService implements INoteService {
         List<Note> pageItems = hasMore ? page.subList(0, pageSize) : page;
 
         String nextCursor = hasMore
-                ? PageCursor.of(pageItems.get(pageItems.size() - 1).GetUpdatedAt(), pageItems.get(pageItems.size() - 1).GetId()).encode()
+                ? encodeCursor(pageItems.get(pageItems.size() - 1), sortKey)
                 : null;
 
         return new NoteContracts.NotePageResponse(
                 pageItems.stream().map(this::toResponse).toList(),
                 nextCursor,
-                hasMore
+                hasMore,
+                notes.size(),
+                filteredCount,
+                notes.values().stream().filter(Note::GetIsFavourite).count()
         );
+    }
+
+    private String normalizeSortKey(String sortBy) {
+        String key = (sortBy == null || sortBy.isBlank()) ? SORT_UPDATED_AT : sortBy.strip();
+        if (SORT_UPDATED_AT.equalsIgnoreCase(key)) {
+            return SORT_UPDATED_AT;
+        }
+        if (SORT_CREATE_DATE.equalsIgnoreCase(key)) {
+            return SORT_CREATE_DATE;
+        }
+        if (SORT_TITLE.equalsIgnoreCase(key)) {
+            return SORT_TITLE;
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid sortBy");
+    }
+
+    private boolean normalizeOrder(String order) {
+        if (order == null || order.isBlank()) {
+            return true;
+        }
+        String value = order.strip().toLowerCase();
+        if (ORDER_DESC.equals(value)) {
+            return true;
+        }
+        if (ORDER_ASC.equals(value)) {
+            return false;
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid order");
+    }
+
+    private Comparator<Note> noteComparator(String sortKey, boolean desc) {
+        Comparator<Note> primary = switch (sortKey) {
+            case SORT_UPDATED_AT -> Comparator.comparing(Note::GetUpdatedAt);
+            case SORT_CREATE_DATE -> Comparator.comparing(Note::GetCreateDate);
+            default -> Comparator.comparing(note -> note.GetTitle().toLowerCase());
+        };
+        if (desc) {
+            return primary.reversed().thenComparing(Comparator.comparing(Note::GetId).reversed());
+        }
+        return primary.thenComparing(Note::GetId);
+    }
+
+    private boolean isAfterCursor(Note note, PageCursor cursor, String sortKey, boolean desc) {
+        return switch (sortKey) {
+            case SORT_UPDATED_AT -> cursor.isAfter(note.GetUpdatedAt(), note.GetId(), desc);
+            case SORT_CREATE_DATE -> cursor.isAfter(note.GetCreateDate(), note.GetId(), desc);
+            default -> cursor.isAfterText(note.GetTitle().toLowerCase(), note.GetId(), desc);
+        };
+    }
+
+    private String encodeCursor(Note note, String sortKey) {
+        return switch (sortKey) {
+            case SORT_UPDATED_AT -> PageCursor.of(note.GetUpdatedAt(), note.GetId()).encode();
+            case SORT_CREATE_DATE -> PageCursor.of(note.GetCreateDate(), note.GetId()).encode();
+            default -> PageCursor.of(note.GetTitle().toLowerCase(), note.GetId()).encode();
+        };
     }
 
     @Override

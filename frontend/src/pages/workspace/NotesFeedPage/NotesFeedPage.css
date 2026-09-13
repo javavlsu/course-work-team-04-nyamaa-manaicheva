@@ -13,7 +13,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 28px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -133,6 +133,55 @@
 .filter-pill svg {
   width: 14px;
   height: 14px;
+}
+
+.sort-wrap {
+  position: relative;
+}
+
+.sort-pill {
+  cursor: pointer;
+}
+
+.sort-chevron {
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: 2px;
+}
+
+.sort-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 40;
+  padding: 4px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.12s;
+  width: 100%;
+}
+
+.sort-option:hover {
+  background: var(--fg-soft);
 }
 
 .folders-section {
@@ -390,6 +439,10 @@
   justify-content: center;
   min-height: 1px;
   padding: 4px 28px 18px;
+}
+
+.topbar + .notes-grid {
+  margin-top: 16px;
 }
 
 .notes-grid {
@@ -822,6 +875,16 @@
 .app .fab-primary:hover .fab-label {
   display: inline;
   opacity: 1;
+}
+
+.app .fab-main,
+.app .fab-main:hover,
+.app .fab-main:focus,
+.app .fab-main:active {
+  width: 52px;
+  border-radius: 50%;
+  padding: 0;
+  gap: 0;
 }
 
 .app .fab-secondary {
