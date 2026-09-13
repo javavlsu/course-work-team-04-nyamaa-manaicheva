@@ -102,7 +102,7 @@ export function TrashPage() {
         <div className="topbar-left">
           <span className="topbar-title">Корзина</span>
             {!isLoading && !error && (
-              <span style={{ fontSize: "14px", color: "var(--muted)", marginLeft: "8px" }}>
+              <span className="topbar-count">
                 {notes.length} {pluralRuNotes(notes.length)}
               </span>
             )}

@@ -5,8 +5,8 @@ import * as directoriesApi from "@/api/directories.js";
 
 const PAGE_LIMIT = 20;
 
-export function useNotesFeed() {
-  const [activeFolder, setActiveFolder] = useState("all");
+export function useNotesFeed({ favouritesOnly = false } = {}) {
+  const [activeFolder, setActiveFolder] = useState(favouritesOnly ? null : "all");
 
   // --- Notes state (реальный API) ---
   const [notes, setNotes]         = useState([]);
@@ -33,8 +33,11 @@ export function useNotesFeed() {
   // activeFolder читается внутри loadMore/fetchNotesPage через ref,
   // чтобы не пересоздавать loadMore (и, соответственно, IntersectionObserver)
   // при каждой смене выбранной директории.
-  const activeFolderRef = useRef("all");
+  const activeFolderRef = useRef(favouritesOnly ? null : "all");
   useEffect(() => { activeFolderRef.current = activeFolder; }, [activeFolder]);
+
+  const favouritesOnlyRef = useRef(favouritesOnly);
+  useEffect(() => { favouritesOnlyRef.current = favouritesOnly; }, [favouritesOnly]);
 
   const [sort, setSort] = useState({ sortBy: "createDate", order: "desc" });
   const sortRef = useRef({ sortBy: "createDate", order: "desc" });
@@ -63,7 +66,7 @@ export function useNotesFeed() {
   // search применяется только для источника "all" (GET /api/notes его поддерживает).
   // Когда выбрана конкретная директория, effectiveSearchKey остаётся пустым —
   // это предотвращает лишние перезагрузки directory-notes при наборе текста в поиске.
-  const effectiveSearchKey = activeFolder === "all" ? debouncedSearch : "";
+  const effectiveSearchKey = favouritesOnly ? "" : (activeFolder === "all" ? debouncedSearch : "");
 
   // --- Фильтр по isFavourite: undefined — все заметки, true — только избранные, false — только неизбранные ---
   const [isFavouriteFilter, setIsFavouriteFilter] = useState(undefined);
@@ -72,9 +75,9 @@ export function useNotesFeed() {
 
   // Тот же принцип, что и effectiveSearchKey: isFavourite применяется только для "all",
   // directory-notes endpoint этот параметр не поддерживает.
-  const effectiveFavouriteKey = activeFolder === "all" ? isFavouriteFilter : undefined;
+  const effectiveFavouriteKey = favouritesOnly ? undefined : (activeFolder === "all" ? isFavouriteFilter : undefined);
 
-  const effectiveSortKey = activeFolder === "all" ? `${sort.sortBy}:${sort.order}` : "";
+  const effectiveSortKey = favouritesOnly ? "" : (activeFolder === "all" ? `${sort.sortBy}:${sort.order}` : "");
 
   /**
    * Загружает одну страницу заметок для текущего источника (activeFolderRef):
@@ -95,6 +98,10 @@ export function useNotesFeed() {
    * без дублирования логики fetch/append.
    */
   const fetchNotesPage = useCallback(async (cursor) => {
+    if (favouritesOnlyRef.current) {
+      return notesApi.list({ limit: PAGE_LIMIT, cursor, isFavourite: true });
+    }
+
     const source = activeFolderRef.current;
 
     if (source === "all") {
@@ -135,7 +142,7 @@ export function useNotesFeed() {
           setNotes(page.items ?? []);
           setNextCursor(page.nextCursor ?? null);
           setHasMore(Boolean(page.hasMore));
-          if (activeFolder === "all") {
+          if (activeFolder === "all" || favouritesOnly) {
             setTotalNotesCount(page.totalNotesCount ?? null);
             setFilteredCount(page.filteredCount ?? null);
             setFavouritesCount(page.favouritesCount ?? null);
@@ -154,7 +161,7 @@ export function useNotesFeed() {
 
     loadFirstPage();
     return () => { cancelled = true; };
-  }, [activeFolder, effectiveSearchKey, effectiveFavouriteKey, effectiveSortKey, fetchNotesPage]);
+  }, [activeFolder, favouritesOnly, effectiveSearchKey, effectiveFavouriteKey, effectiveSortKey, fetchNotesPage]);
 
   /**
    * Подгружает следующую страницу заметок текущего источника по cursor,
@@ -187,7 +194,7 @@ export function useNotesFeed() {
       setNotes((prev) => [...prev, ...(page.items ?? [])]);
       setNextCursor(page.nextCursor ?? null);
       setHasMore(Boolean(page.hasMore));
-      if (sourceAtStart === "all") {
+      if (sourceAtStart === "all" || favouritesOnlyRef.current) {
         setTotalNotesCount(page.totalNotesCount ?? null);
         setFilteredCount(page.filteredCount ?? null);
         setFavouritesCount(page.favouritesCount ?? null);
@@ -230,6 +237,9 @@ export function useNotesFeed() {
 
   // Оптимистичное переключение избранного через API
   const toggleFavorite = async (id) => {
+    const note = notes.find((n) => n.id === id);
+    const wasFavourite = Boolean(note?.isFavourite);
+
     // Optimistic update — сразу меняем UI
     setNotes((prev) =>
       prev.map((n) =>
@@ -238,10 +248,20 @@ export function useNotesFeed() {
     );
     try {
       const updated = await notesApi.toggleFavourite(id);
+      const nowFavourite = Boolean(updated.isFavourite);
+      if (favouritesOnlyRef.current && !nowFavourite) {
+        setNotes((prev) => prev.filter((n) => n.id !== id));
+        setFilteredCount((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+        setFavouritesCount((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+        return;
+      }
       // Синхронизируем с ответом backend (актуальная version и isFavourite)
       setNotes((prev) =>
         prev.map((n) => (n.id === id ? { ...n, ...updated } : n))
       );
+      if (wasFavourite !== nowFavourite) {
+        setFavouritesCount((prev) => (prev == null ? prev : Math.max(0, prev + (nowFavourite ? 1 : -1))));
+      }
     } catch {
       // Откатываем optimistic update при ошибке
       setNotes((prev) =>

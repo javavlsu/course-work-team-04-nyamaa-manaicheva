@@ -41,6 +41,26 @@
   margin-left: var(--sidebar-collapsed-w);
 }
 
+.topbar-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 @media (max-width: 920px) {
   .main {
     margin-left: 0 !important;

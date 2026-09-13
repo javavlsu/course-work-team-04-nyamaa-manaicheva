@@ -13,7 +13,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 28px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -439,6 +439,10 @@
   justify-content: center;
   min-height: 1px;
   padding: 4px 28px 18px;
+}
+
+.topbar + .notes-grid {
+  margin-top: 16px;
 }
 
 .notes-grid {

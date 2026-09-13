@@ -19,6 +19,7 @@ const ALL_FOLDER = { key: "all", name: "Все заметки", tint: "tint-blue
 export function useFolders({ activeFolder, onSelectAll }) {
   // --- Directories (реальный API) ---
   const [folders, setFolders] = useState([ALL_FOLDER]);
+  const [foldersLoaded, setFoldersLoaded] = useState(false);
 
   // --- Directory CRUD state ---
   const [isCreatingFolder, setIsCreatingFolder]   = useState(false);
@@ -38,6 +39,7 @@ export function useFolders({ activeFolder, onSelectAll }) {
         const page = await directoriesApi.list({ limit: PAGE_LIMIT });
         if (!cancelled) {
           setFolders([ALL_FOLDER, ...adaptDirectories(page.items)]);
+          setFoldersLoaded(true);
         }
       } catch {
         // Ошибка загрузки папок не рендерится (список папок живёт на /directories),
@@ -194,6 +196,7 @@ export function useFolders({ activeFolder, onSelectAll }) {
 
   return {
     folders,
+    foldersLoaded,
     isCreatingFolder,
     renamingFolderId,
     deletingFolderId,

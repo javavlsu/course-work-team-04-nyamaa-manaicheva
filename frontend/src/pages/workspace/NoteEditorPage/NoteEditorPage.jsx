@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext.jsx";
+import { refreshNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
@@ -27,6 +28,7 @@ export function NoteEditorPage() {
   const isNew = id === "new";
 
   const { setSidebarProps } = useOutletContext();
+  const sidebarCounts = useNotesCounts({ autoFetch: true });
   const [mode, setMode] = useState("edit");
 
   const comments = useNoteComments(id, isNew);
@@ -56,8 +58,22 @@ export function NoteEditorPage() {
     currentUser?.id === doc.ownerId;
 
   useLayoutEffect(() => {
-    setSidebarProps({ active: "" });
-  }, [setSidebarProps]);
+    setSidebarProps({
+      active: "",
+      counts: {
+        all: sidebarCounts.totalNotesCount ?? undefined,
+        directories: sidebarCounts.directoriesCount ?? undefined,
+        favorites: sidebarCounts.favouritesCount ?? undefined,
+      },
+    });
+  }, [setSidebarProps, sidebarCounts]);
+
+  const handleToggleFavorite = async () => {
+    await doc.toggleFavorite();
+    if (!isNew) {
+      refreshNotesCounts();
+    }
+  };
 
   if (doc.isLoading) {
     return (
@@ -95,7 +111,7 @@ export function NoteEditorPage() {
           mode={mode}
           onModeChange={setMode}
           favorited={doc.favorited}
-          onToggleFavorite={doc.toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
           privacyOpen={permissions.privacyOpen}
           onTogglePrivacy={permissions.togglePrivacy}
           privacy={permissions.privacy}
