@@ -4,10 +4,15 @@ import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+// Временное отключение MinIO (образ minio/minio недоступен).
+// Бины создаются только при notesbook.storage.enabled=true (MINIO_ENABLED=true).
+// Чтобы вернуть MinIO: включите флаг, код менять не нужно.
 @Configuration
+@ConditionalOnProperty(name = "notesbook.storage.enabled", havingValue = "true")
 public class MinioConfig {
 
     @Value("${notesbook.storage.endpoint}")

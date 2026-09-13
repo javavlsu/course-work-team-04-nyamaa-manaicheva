@@ -29,6 +29,7 @@ export default function FormatToolbar({
   onFileSelect,
   isUploading = false,
   uploadDisabled = false,
+  attachmentsEnabled = true,
   onCopy,
   onCut,
   onPaste,
@@ -108,14 +109,16 @@ export default function FormatToolbar({
         <button className="fmt-btn" title="Вставить ссылку" onClick={onLink}>
           <Link strokeWidth={2} />
         </button>
-        <button
-          className="fmt-btn"
-          title={isUploading ? "Загрузка…" : "Прикрепить файл"}
-          onClick={handleAttachClick}
-          disabled={isUploading || uploadDisabled}
-        >
-          <Paperclip strokeWidth={2} />
-        </button>
+        {attachmentsEnabled && (
+          <button
+            className="fmt-btn"
+            title={isUploading ? "Загрузка…" : "Прикрепить файл"}
+            onClick={handleAttachClick}
+            disabled={isUploading || uploadDisabled}
+          >
+            <Paperclip strokeWidth={2} />
+          </button>
+        )}
       </div>
 
       <div className="fmt-sep" />

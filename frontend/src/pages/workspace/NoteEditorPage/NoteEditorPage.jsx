@@ -17,6 +17,10 @@ import { useNoteDirectories } from "./hooks/useNoteDirectories";
 import { useEditorActions } from "./hooks/useEditorActions";
 import "./NoteEditorPage.css";
 
+// Временное отключение вложений (MinIO-сервис на backend не запущен).
+// Чтобы вернуть: поставьте true и включите MinIO на бэкенде (MINIO_ENABLED=true).
+const ATTACHMENTS_ENABLED = false;
+
 export function NoteEditorPage() {
   const { id } = useParams();
   const { currentUser } = useAuth();
@@ -195,6 +199,7 @@ export function NoteEditorPage() {
               onFileSelect={attachments.upload}
               isUploading={attachments.isUploading}
               uploadDisabled={isNew}
+              attachmentsEnabled={ATTACHMENTS_ENABLED}
               onCopy={actions.copy}
               onCut={actions.cut}
               onPaste={actions.paste}
@@ -215,7 +220,11 @@ export function NoteEditorPage() {
               <span>Изменено: {doc.updatedAt}</span>
             </div>
 
-            {!isNew && attachments.list.length > 0 && (
+            {!ATTACHMENTS_ENABLED && !isNew && (
+              <p className="comments-status">Вложения временно отключены</p>
+            )}
+
+            {!isNew && ATTACHMENTS_ENABLED && attachments.list.length > 0 && (
               <AttachmentsSection
                 attachments={attachments.list}
                 onDownload={attachments.download}
