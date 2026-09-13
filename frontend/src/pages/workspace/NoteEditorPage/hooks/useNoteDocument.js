@@ -238,13 +238,39 @@ export function useNoteDocument(
     }
   };
 
+  const isTogglingFavouriteRef = useRef(false);
+
+  const handleToggleFavorite = async () => {
+    if (isNew) {
+      setFavorited((prev) => !prev);
+      return;
+    }
+    if (isTogglingFavouriteRef.current) return;
+    isTogglingFavouriteRef.current = true;
+
+    setFavorited((prev) => !prev);
+    try {
+      const updated = await notesApi.toggleFavourite(id);
+      setFavorited(Boolean(updated.isFavourite));
+      setVersion(updated.version ?? version);
+    } catch (err) {
+      setFavorited((prev) => !prev);
+      setSaveError({
+        type: "generic",
+        message: err.message || "Не удалось изменить избранное",
+      });
+    } finally {
+      isTogglingFavouriteRef.current = false;
+    }
+  };
+
   return {
     title,
     setTitle,
     content,
     setContent,
     favorited,
-    toggleFavorite: () => setFavorited((prev) => !prev),
+    toggleFavorite: handleToggleFavorite,
     version,
     ownerId,
     isLoading,
