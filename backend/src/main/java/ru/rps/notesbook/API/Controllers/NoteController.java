@@ -40,10 +40,12 @@ public class NoteController {
             @RequestParam(required = false) NoteTypeEnum noteType,
             @RequestParam(required = false) Boolean isFavourite,
             @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) String cursor
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String order
     ) {
         UUID ownerId = requireUserId(principal);
-        return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite, limit, cursor);
+        return noteService.GetNotesByOwnerId(ownerId, search, noteType, isFavourite, limit, cursor, sortBy, order);
     }
 
     @GetMapping("/trash")

@@ -36,6 +36,14 @@ export function useNotesFeed() {
   const activeFolderRef = useRef("all");
   useEffect(() => { activeFolderRef.current = activeFolder; }, [activeFolder]);
 
+  const [sort, setSort] = useState({ sortBy: "createDate", order: "desc" });
+  const sortRef = useRef({ sortBy: "createDate", order: "desc" });
+  useEffect(() => { sortRef.current = sort; }, [sort]);
+
+  const [totalNotesCount, setTotalNotesCount] = useState(null);
+  const [filteredCount, setFilteredCount] = useState(null);
+  const [favouritesCount, setFavouritesCount] = useState(null);
+
   // --- Search: input value + debounced value, отправляемая в backend ---
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -66,6 +74,8 @@ export function useNotesFeed() {
   // directory-notes endpoint этот параметр не поддерживает.
   const effectiveFavouriteKey = activeFolder === "all" ? isFavouriteFilter : undefined;
 
+  const effectiveSortKey = activeFolder === "all" ? `${sort.sortBy}:${sort.order}` : "";
+
   /**
    * Загружает одну страницу заметок для текущего источника (activeFolderRef):
    *
@@ -90,7 +100,14 @@ export function useNotesFeed() {
     if (source === "all") {
       const search = debouncedSearchRef.current || undefined;
       const isFavourite = isFavouriteFilterRef.current;
-      return notesApi.list({ limit: PAGE_LIMIT, cursor, search, isFavourite });
+      return notesApi.list({
+        limit: PAGE_LIMIT,
+        cursor,
+        search,
+        isFavourite,
+        sortBy: sortRef.current.sortBy,
+        order: sortRef.current.order,
+      });
     }
 
     // Directory-scoped: cursor игнорируется, т.к. backend его не поддерживает.
@@ -118,6 +135,11 @@ export function useNotesFeed() {
           setNotes(page.items ?? []);
           setNextCursor(page.nextCursor ?? null);
           setHasMore(Boolean(page.hasMore));
+          if (activeFolder === "all") {
+            setTotalNotesCount(page.totalNotesCount ?? null);
+            setFilteredCount(page.filteredCount ?? null);
+            setFavouritesCount(page.favouritesCount ?? null);
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -132,7 +154,7 @@ export function useNotesFeed() {
 
     loadFirstPage();
     return () => { cancelled = true; };
-  }, [activeFolder, effectiveSearchKey, effectiveFavouriteKey, fetchNotesPage]);
+  }, [activeFolder, effectiveSearchKey, effectiveFavouriteKey, effectiveSortKey, fetchNotesPage]);
 
   /**
    * Подгружает следующую страницу заметок текущего источника по cursor,
@@ -148,6 +170,7 @@ export function useNotesFeed() {
     if (isLoadingMoreRef.current || !hasMoreRef.current) return;
 
     const sourceAtStart = activeFolderRef.current;
+    const sortAtStart = sortRef.current;
 
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
@@ -156,16 +179,21 @@ export function useNotesFeed() {
     try {
       const page = await fetchNotesPage(cursorRef.current);
 
-      // Источник сменился, пока запрос летел — результат больше не актуален,
-      // initial-load эффект для нового источника уже всё сбросил сам.
-      if (activeFolderRef.current !== sourceAtStart) return;
+      // Источник или сортировка сменились, пока запрос летел — результат больше не актуален,
+      // initial-load эффект для нового состояния уже всё сбросил сам.
+      if (activeFolderRef.current !== sourceAtStart || sortRef.current !== sortAtStart) return;
 
       // Append — существующие notes не заменяются
       setNotes((prev) => [...prev, ...(page.items ?? [])]);
       setNextCursor(page.nextCursor ?? null);
       setHasMore(Boolean(page.hasMore));
+      if (sourceAtStart === "all") {
+        setTotalNotesCount(page.totalNotesCount ?? null);
+        setFilteredCount(page.filteredCount ?? null);
+        setFavouritesCount(page.favouritesCount ?? null);
+      }
     } catch (err) {
-      if (activeFolderRef.current === sourceAtStart) {
+      if (activeFolderRef.current === sourceAtStart && sortRef.current === sortAtStart) {
         // Уже загруженные notes остаются на экране — список не трогаем
         setLoadMoreError(err.message || "Не удалось загрузить ещё заметки");
       }
@@ -256,6 +284,11 @@ export function useNotesFeed() {
     sentinelRef,
     searchQuery,
     handleSearchChange,
+    sort,
+    setSort,
+    totalNotesCount,
+    filteredCount,
+    favouritesCount,
     isFavouriteFilter,
     toggleFavorite,
     handleSelectAll,

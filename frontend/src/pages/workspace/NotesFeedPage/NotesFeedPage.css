@@ -135,6 +135,55 @@
   height: 14px;
 }
 
+.sort-wrap {
+  position: relative;
+}
+
+.sort-pill {
+  cursor: pointer;
+}
+
+.sort-chevron {
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: 2px;
+}
+
+.sort-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 40;
+  padding: 4px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.12s;
+  width: 100%;
+}
+
+.sort-option:hover {
+  background: var(--fg-soft);
+}
+
 .folders-section {
   padding: 0 28px 22px;
 }

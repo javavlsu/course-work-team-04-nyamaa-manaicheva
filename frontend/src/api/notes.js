@@ -2,7 +2,7 @@
  * Notes API
  *
  * Backend: GET /api/notes
- * Response: NotePageResponse { items: NoteResponse[], nextCursor: string|null, hasMore: boolean }
+ * Response: NotePageResponse { items: NoteResponse[], nextCursor: string|null, hasMore: boolean, totalNotesCount: number, filteredCount: number, favouritesCount: number }
  *
  * NoteResponse fields:
  *   id (UUID), title, content (Object), createDate, updatedAt,
@@ -14,10 +14,10 @@ import { api } from "./client.js";
 /**
  * Загружает страницу заметок с поддержкой cursor-based pagination.
  *
- * @param {{ search?: string, noteType?: string, isFavourite?: boolean, limit?: number, cursor?: string|null }} params
- * @returns {Promise<{ items: object[], nextCursor: string|null, hasMore: boolean }>}
+ * @param {{ search?: string, noteType?: string, isFavourite?: boolean, limit?: number, cursor?: string|null, sortBy?: string, order?: string }} params
+ * @returns {Promise<{ items: object[], nextCursor: string|null, hasMore: boolean, totalNotesCount: number, filteredCount: number, favouritesCount: number }>}
  */
-export function list({ search, noteType, isFavourite, limit = 20, cursor } = {}) {
+export function list({ search, noteType, isFavourite, limit = 20, cursor, sortBy, order } = {}) {
   const params = new URLSearchParams();
 
   if (search)                      params.set("search", search);
@@ -25,6 +25,8 @@ export function list({ search, noteType, isFavourite, limit = 20, cursor } = {})
   if (isFavourite !== undefined)   params.set("isFavourite", String(isFavourite));
   if (limit)                       params.set("limit", String(limit));
   if (cursor)                      params.set("cursor", cursor);
+  if (sortBy)                      params.set("sortBy", sortBy);
+  if (order)                       params.set("order", order);
 
   const qs = params.toString();
   return api.get(`/api/notes${qs ? `?${qs}` : ""}`);

@@ -34,19 +34,28 @@ export function NotesFeedPage() {
     setSidebarProps({
       active: feed.isFavouriteFilter === true ? "favorites" : "notes",
       counts: {
-        all: feed.notes.length,
+        all: feed.totalNotesCount ?? feed.notes.length,
         directories: Math.max(0, dirs.folders.length - 1),
-        favorites: feed.notes.filter((n) => n.isFavourite).length,
+        favorites: feed.favouritesCount ?? feed.notes.filter((n) => n.isFavourite).length,
       },
       onSelectAll: feed.handleSelectAll,
       onSelectFavorites: feed.handleSelectFavorites,
     });
-  }, [setSidebarProps, feed.isFavouriteFilter, feed.notes, dirs.folders]);
+  }, [setSidebarProps, feed.isFavouriteFilter, feed.notes, feed.totalNotesCount, feed.filteredCount, feed.favouritesCount, dirs.folders]);
 
   return (
     <>
-      <Topbar count={feed.notes.length} pluralRu={pluralRu} />
-        <Toolbar searchQuery={feed.searchQuery} onSearchChange={feed.handleSearchChange} />
+      <Topbar
+        count={feed.activeFolder === "all" ? (feed.filteredCount ?? feed.notes.length) : feed.notes.length}
+        pluralRu={pluralRu}
+      />
+        <Toolbar
+          searchQuery={feed.searchQuery}
+          onSearchChange={feed.handleSearchChange}
+          sort={feed.sort}
+          onSortChange={feed.setSort}
+          sortDisabled={feed.activeFolder !== "all"}
+        />
 
         {/* Notes loading state (первая загрузка / смена директории) */}
         {feed.isLoading && (

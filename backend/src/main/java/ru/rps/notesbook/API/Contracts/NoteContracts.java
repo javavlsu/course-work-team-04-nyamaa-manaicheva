@@ -43,11 +43,16 @@ public final class NoteContracts {
     ) {}
 
     // Infinite Scroll: cursor-based pagination response. nextCursor == null и hasMore == false,
-    // когда данных больше нет.
+    // когда данных больше нет. totalNotesCount — все заметки (вне фильтров/пагинации),
+    // filteredCount — заметки под текущими фильтрами (search/noteType/isFavourite), без учёта
+    // сортировки и пагинации; favouritesCount — все избранные.
     public record NotePageResponse(
             List<NoteResponse> items,
             String nextCursor,
-            boolean hasMore
+            boolean hasMore,
+            long totalNotesCount,
+            long filteredCount,
+            long favouritesCount
     ) {}
 
 }

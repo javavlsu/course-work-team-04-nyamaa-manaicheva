@@ -9,7 +9,8 @@ import java.util.UUID;
 public interface INoteService {
 
     NoteContracts.NotePageResponse GetNotesByOwnerId(
-        UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor
+        UUID ownerId, String search, NoteTypeEnum noteType, Boolean isFavourite, Integer limit, String cursor,
+        String sortBy, String order
     );
 
     NoteContracts.NoteResponse GetNoteById(UUID id);
