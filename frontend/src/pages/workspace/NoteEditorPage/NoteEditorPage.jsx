@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Link, useOutletContext, useParams, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext.jsx";
-import { refreshNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
+import { refreshNotesCounts } from "@/hooks/useNotesCounts.js";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
@@ -36,7 +36,6 @@ export function NoteEditorPage() {
     templateParam === "List" || templateParam === "Table" ? templateParam : "Empty";
 
   const { setSidebarProps } = useOutletContext();
-  const sidebarCounts = useNotesCounts({ autoFetch: true });
   const [mode, setMode] = useState("edit");
 
   const comments = useNoteComments(id, isNew);
@@ -69,15 +68,8 @@ export function NoteEditorPage() {
     currentUser?.id === doc.ownerId;
 
   useLayoutEffect(() => {
-    setSidebarProps({
-      active: "",
-      counts: {
-        all: sidebarCounts.totalNotesCount ?? undefined,
-        directories: sidebarCounts.directoriesCount ?? undefined,
-        favorites: sidebarCounts.favouritesCount ?? undefined,
-      },
-    });
-  }, [setSidebarProps, sidebarCounts]);
+    setSidebarProps({ active: "" });
+  }, [setSidebarProps]);
 
   const handleToggleFavorite = async () => {
     await doc.toggleFavorite();

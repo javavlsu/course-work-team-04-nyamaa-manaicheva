@@ -92,6 +92,7 @@ function AppSidebar({
           <Link to="/trash" className={linkClass("trash")}>
             <Trash strokeWidth={1.6} />
             <span className="link-label">Корзина</span>
+            {counts.trash !== undefined && <span className="count">{counts.trash}</span>}
           </Link>
         </div>
 

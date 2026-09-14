@@ -5,7 +5,7 @@ import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from
 import NotesGrid from "@/components/notes/NotesGrid";
 import EmptyState from "@/components/notes/EmptyState";
 import FabGroup from "@/components/notes/FabGroup";
-import { updateNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
+import { updateNotesCounts } from "@/hooks/useNotesCounts.js";
 import { useNotesFeed } from "./hooks/useNotesFeed";
 import { useFolders } from "./hooks/useFolders";
 import Topbar from "./Topbar";
@@ -25,7 +25,6 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
 
   const feed = useNotesFeed({ favouritesOnly });
   const dirs = useFolders({ activeFolder: feed.activeFolder, onSelectAll: feed.handleSelectAll });
-  const sidebarCounts = useNotesCounts();
 
   const notesEnriched = feed.notes.map((n) => ({
     ...n,
@@ -43,14 +42,9 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
   useLayoutEffect(() => {
     setSidebarProps({
       active: favouritesOnly ? "favorites" : "notes",
-      counts: {
-        all: sidebarCounts.totalNotesCount ?? undefined,
-        directories: sidebarCounts.directoriesCount ?? undefined,
-        favorites: sidebarCounts.favouritesCount ?? undefined,
-      },
       onSelectAll: feed.handleSelectAll,
     });
-  }, [setSidebarProps, favouritesOnly, sidebarCounts]);
+  }, [setSidebarProps, favouritesOnly]);
 
   const topCount = (favouritesOnly || feed.activeFolder === "all")
     ? (feed.filteredCount == null ? (feed.isLoading ? null : feed.notes.length) : feed.filteredCount)

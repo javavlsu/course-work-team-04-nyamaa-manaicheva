@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 
 import * as notesApi from "@/api/notes.js";
 import { Trash2 } from "lucide-react";
+import { updateNotesCounts } from "@/hooks/useNotesCounts.js";
 import TrashItem from "./TrashItem";
 import PurgeConfirmModal from "./PurgeConfirmModal";
 import "./TrashPage.css";
@@ -54,6 +55,12 @@ export function TrashPage() {
   useEffect(() => {
     fetchTrash();
   }, [fetchTrash]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      updateNotesCounts({ trashCount: notes.length });
+    }
+  }, [notes.length, isLoading]);
 
   const handleRestore = async (note) => {
     if (restoringId || purgingId) return;

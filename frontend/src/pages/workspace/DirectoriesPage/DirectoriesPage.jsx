@@ -6,7 +6,7 @@ import { RenameDirectoryModal, DeleteDirectoryModal, CreateDirectoryModal } from
 import NotesGrid from "@/components/notes/NotesGrid";
 import EmptyState from "@/components/notes/EmptyState";
 import FabGroup from "@/components/notes/FabGroup";
-import { updateNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
+import { updateNotesCounts } from "@/hooks/useNotesCounts.js";
 import { useDirectories } from "./hooks/useDirectories";
 import FolderCard from "./components/FolderCard";
 import "./DirectoriesPage.css";
@@ -17,7 +17,6 @@ export function DirectoriesPage() {
   const { setSidebarProps } = useOutletContext();
 
   const dirs = useDirectories({ folderId });
-  const sidebarCounts = useNotesCounts({ autoFetch: true });
 
   useEffect(() => {
     if (!dirs.isLoading) {
@@ -28,14 +27,9 @@ export function DirectoriesPage() {
   useLayoutEffect(() => {
     setSidebarProps({
       active: "directories",
-      counts: {
-        all: sidebarCounts.totalNotesCount ?? undefined,
-        directories: dirs.isLoading ? undefined : dirs.folders.length,
-        favorites: sidebarCounts.favouritesCount ?? undefined,
-      },
       onSelectAll: () => navigate("/"),
     });
-  }, [setSidebarProps, navigate, sidebarCounts, dirs.isLoading, dirs.folders]);
+  }, [setSidebarProps, navigate]);
 
   return (
     <>
