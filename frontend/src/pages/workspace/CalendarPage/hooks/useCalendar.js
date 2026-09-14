@@ -17,6 +17,19 @@ function mapEvent(event) {
   };
 }
 
+export function compareEvents(a, b) {
+  const rank = (item) => (item.noteId ? 2 : item.allDay ? 1 : 0);
+  const rankA = rank(a);
+  const rankB = rank(b);
+  if (rankA !== rankB) return rankA - rankB;
+  if (rankA === 0) {
+    const aStart = typeof a.start === "number" ? a.start : Date.parse(a.start);
+    const bStart = typeof b.start === "number" ? b.start : Date.parse(b.start);
+    if (aStart !== bStart) return aStart - bStart;
+  }
+  return 0;
+}
+
 export function useCalendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [events, setEvents] = useState([]);
@@ -138,6 +151,37 @@ export function useCalendar() {
     [fetchRange],
   );
 
+  const refreshRange = useCallback(() => {
+    const range = loadedRangeRef.current ?? lastRequestedRef.current;
+    if (range) {
+      fetchRange(range.from, range.to, true);
+    }
+  }, [fetchRange]);
+
+  const updateEvent = useCallback(
+    async (eventId, payload) => {
+      await calendarApi.updateEvent(eventId, payload);
+      refreshRange();
+    },
+    [refreshRange],
+  );
+
+  const deleteEvent = useCallback(
+    async (eventId) => {
+      await calendarApi.deleteEvent(eventId);
+      refreshRange();
+    },
+    [refreshRange],
+  );
+
+  const unlinkNote = useCallback(
+    async (eventId) => {
+      await calendarApi.unlinkNote(eventId);
+      refreshRange();
+    },
+    [refreshRange],
+  );
+
   const eventsByDate = useMemo(() => {
     const byDate = new Map();
     for (const event of events) {
@@ -145,6 +189,9 @@ export function useCalendar() {
       const bucket = byDate.get(day) ?? [];
       bucket.push(event);
       byDate.set(day, bucket);
+    }
+    for (const bucket of byDate.values()) {
+      bucket.sort(compareEvents);
     }
     return byDate;
   }, [events]);
@@ -169,5 +216,8 @@ export function useCalendar() {
     loadRange,
     reload,
     addEvent,
+    updateEvent,
+    deleteEvent,
+    unlinkNote,
   };
 }

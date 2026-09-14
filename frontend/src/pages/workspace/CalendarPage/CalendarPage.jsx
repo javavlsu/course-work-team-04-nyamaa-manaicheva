@@ -8,7 +8,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import ruLocale from "@fullcalendar/core/locales/ru";
 
 import DayDetailModal from "./components/DayDetailModal";
-import { useCalendar } from "./hooks/useCalendar";
+import { compareEvents, useCalendar } from "./hooks/useCalendar";
 import "./CalendarPage.css";
 
 function formatMonthLabel(date) {
@@ -30,6 +30,9 @@ export function CalendarPage() {
     loadRange,
     reload,
     addEvent,
+    updateEvent,
+    deleteEvent,
+    unlinkNote,
   } = useCalendar();
 
   const calendarRef = useRef(null);
@@ -104,6 +107,9 @@ export function CalendarPage() {
               height="100%"
               fixedWeekCount
               events={calendarEvents}
+              eventOrder={compareEvents}
+              dayMaxEventRows={3}
+              moreLinkText="…"
               datesSet={handleDatesSet}
               dateClick={({ dateStr }) => openDay(dateStr)}
               eventClick={({ event }) => openDay(event.startStr)}
@@ -118,6 +124,9 @@ export function CalendarPage() {
           events={getDayEvents(selectedDate)}
           onClose={closeDay}
           onAddEvent={addEvent}
+          onUpdateEvent={updateEvent}
+          onDeleteEvent={deleteEvent}
+          onUnlinkNote={unlinkNote}
         />
       )}
     </>

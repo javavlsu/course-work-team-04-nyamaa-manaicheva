@@ -455,6 +455,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .day-detail-event {
@@ -486,6 +488,75 @@
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--muted);
+}
+
+.day-detail-event-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.day-detail-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.day-detail-icon-btn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.day-detail-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.day-detail-delete-btn.confirm {
+  width: auto;
+  padding: 0 10px;
+  background: color-mix(in oklch, var(--danger) 14%, transparent);
+  color: var(--danger);
+}
+
+.day-detail-delete-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.day-detail-form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.day-detail-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.day-detail-check input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
+.day-detail-time-input {
+  width: 130px;
+  flex-shrink: 0;
 }
 
 .day-detail-actions {
