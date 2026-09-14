@@ -108,7 +108,7 @@ export function CalendarPage() {
               fixedWeekCount
               events={calendarEvents}
               eventOrder={compareEvents}
-              dayMaxEventRows={3}
+              dayMaxEventRows={4}
               moreLinkText="…"
               datesSet={handleDatesSet}
               dateClick={({ dateStr }) => openDay(dateStr)}

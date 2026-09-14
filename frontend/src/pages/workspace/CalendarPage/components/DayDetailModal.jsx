@@ -40,7 +40,6 @@ function DayDetailModal({
   const [mode, setMode] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ title: "", time: DEFAULT_TIME, allDay: true });
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [notes, setNotes] = useState(null);
   const [notesError, setNotesError] = useState(null);
   const [selectedNoteId, setSelectedNoteId] = useState("");
@@ -54,7 +53,6 @@ function DayDetailModal({
     setEditingId(null);
     setForm({ title: "", time: DEFAULT_TIME, allDay: true });
     setActionError(null);
-    setConfirmDeleteId(null);
   };
 
   const openEdit = (event) => {
@@ -66,7 +64,6 @@ function DayDetailModal({
       allDay: event.allDay,
     });
     setActionError(null);
-    setConfirmDeleteId(null);
   };
 
   const closeForm = () => {
@@ -140,10 +137,6 @@ function DayDetailModal({
 
   const handleDelete = async (event) => {
     if (saving) return;
-    if (confirmDeleteId !== event.id) {
-      setConfirmDeleteId(event.id);
-      return;
-    }
     setSaving(true);
     setActionError(null);
     try {
@@ -161,6 +154,7 @@ function DayDetailModal({
     setActionError(null);
     try {
       await onUnlinkNote(event.id);
+      await onDeleteEvent(event.id);
     } catch (err) {
       setActionError(err.message || "Не удалось открепить заметку");
     } finally {
@@ -228,18 +222,12 @@ function DayDetailModal({
                     </button>
                     <button
                       type="button"
-                      className={`day-detail-icon-btn day-detail-delete-btn ${
-                        confirmDeleteId === event.id ? "confirm" : ""
-                      }`}
-                      title={confirmDeleteId === event.id ? "Нажмите ещё раз для удаления" : "Удалить"}
+                      className="day-detail-icon-btn day-detail-delete-btn"
+                      title="Удалить"
                       onClick={() => handleDelete(event)}
                       disabled={saving}
                     >
-                      {confirmDeleteId === event.id ? (
-                        <span className="day-detail-delete-label">Точно?</span>
-                      ) : (
-                        <Trash2 size={15} strokeWidth={1.8} />
-                      )}
+                      <Trash2 size={15} strokeWidth={1.8} />
                     </button>
                   </div>
                 )}
