@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 16px var(--content-gutter-x);
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -445,6 +445,11 @@
 }
 
 @media (max-width: 920px) {
+  .topbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .settings-content {
     padding: 24px 16px 60px;
   }

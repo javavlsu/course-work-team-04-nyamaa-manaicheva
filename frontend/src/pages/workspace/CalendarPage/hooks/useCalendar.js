@@ -1,54 +1,223 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export const CATEGORY_META = {
-  work: { label: "Рабочие задачи", color: "var(--accent)" },
-  personal: { label: "Личные заметки", color: "var(--success)" },
-  deadline: { label: "Дедлайн", color: "var(--danger)" },
-};
+import * as calendarApi from "@/api/calendar.js";
 
-const MOCK_EVENTS = [
-  { id: "ev-01", title: "Спринт Q3 — старт", start: "2026-08-03", end: "2026-08-03", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-02", title: "Встреча с заказчиком: тренд-анализ", start: "2026-08-05", end: "2026-08-05", allDay: true, category: "personal", noteIds: [] },
-  { id: "ev-03", title: "Техническое задание: API авторизации", start: "2026-08-08", end: "2026-08-08", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-04", title: "Дедлайн: REST API", start: "2026-08-10", end: "2026-08-10", allDay: true, category: "deadline", noteIds: [] },
-  { id: "ev-05", title: "Спринт Q3 — приоритеты", start: "2026-08-12", end: "2026-08-12", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-06", title: "Дизайн-ревью интерфейса v2", start: "2026-08-14", end: "2026-08-14", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-07", title: "Дедлайн: ТЗ API", start: "2026-08-14", end: "2026-08-14", allDay: true, category: "personal", noteIds: [] },
-  { id: "ev-08", title: "Согласовать типографику", start: "2026-08-18", end: "2026-08-18", allDay: true, category: "deadline", noteIds: [] },
-  { id: "ev-09", title: "Интеграция с Google Calendar", start: "2026-08-19", end: "2026-08-19", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-10", title: "Hover-состояния кнопок", start: "2026-08-20", end: "2026-08-20", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-11", title: "Оптимизация изображений", start: "2026-08-21", end: "2026-08-21", allDay: true, category: "work", noteIds: [] },
-  { id: "ev-12", title: "Mobile-adaptive проверка", start: "2026-08-22", end: "2026-08-22", allDay: true, category: "personal", noteIds: [] },
-  { id: "ev-13", title: "Документация API", start: "2026-08-25", end: "2026-08-25", allDay: true, category: "work", noteIds: [] },
-];
+function toDateTime(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value;
+}
+
+function mapEvent(event) {
+  return {
+    id: event.id,
+    title: event.title,
+    start: event.allDay ? event.startAt.slice(0, 10) : event.startAt,
+    end: event.allDay ? event.endAt.slice(0, 10) : event.endAt,
+    allDay: event.allDay,
+    noteId: event.noteId,
+  };
+}
+
+export function compareEvents(a, b) {
+  const rank = (item) => (item.noteId ? 2 : item.allDay ? 1 : 0);
+  const rankA = rank(a);
+  const rankB = rank(b);
+  if (rankA !== rankB) return rankA - rankB;
+  if (rankA === 0) {
+    const aStart = typeof a.start === "number" ? a.start : Date.parse(a.start);
+    const bStart = typeof b.start === "number" ? b.start : Date.parse(b.start);
+    if (aStart !== bStart) return aStart - bStart;
+  }
+  return 0;
+}
 
 export function useCalendar() {
   const [selectedDate, setSelectedDate] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasCalendar, setHasCalendar] = useState(false);
 
-  const events = useMemo(() => MOCK_EVENTS, []);
+  const requestSeqRef = useRef(0);
+  const abortRef = useRef(null);
+  const calendarIdRef = useRef(null);
+  const loadedRangeRef = useRef(null);
+  const pendingRangeRef = useRef(null);
+  const lastRequestedRef = useRef(null);
+
+  const fetchRange = useCallback((from, to, force = false) => {
+    const calendarId = calendarIdRef.current;
+    if (!calendarId) {
+      pendingRangeRef.current = { from, to };
+      return;
+    }
+
+    const key = `${calendarId}|${from}|${to}`;
+    if (!force && loadedRangeRef.current?.key === key) return;
+
+    lastRequestedRef.current = { from, to };
+
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+    const seq = ++requestSeqRef.current;
+
+    setIsLoading(true);
+    setError(null);
+
+    calendarApi
+      .getEventsByRange(calendarId, from, to, { signal: controller.signal })
+      .then((data) => {
+        if (seq !== requestSeqRef.current) return;
+        setEvents(data.map(mapEvent));
+        loadedRangeRef.current = { key, from, to };
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (seq !== requestSeqRef.current) return;
+        setError(err.message || "Не удалось загрузить события");
+        setIsLoading(false);
+      });
+  }, []);
+
+  const fetchCalendar = useCallback(() => {
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+    const seq = ++requestSeqRef.current;
+
+    setError(null);
+    setIsLoading(true);
+
+    calendarApi
+      .getMyCalendar({ signal: controller.signal })
+      .then((calendar) => {
+        if (seq !== requestSeqRef.current) return;
+        calendarIdRef.current = calendar.id;
+        setHasCalendar(true);
+        const pending = pendingRangeRef.current;
+        setIsLoading(false);
+        if (pending) {
+          pendingRangeRef.current = null;
+          fetchRange(pending.from, pending.to);
+        }
+      })
+      .catch((err) => {
+        if (seq !== requestSeqRef.current) return;
+        setError(err.message || "Не удалось загрузить календарь");
+        setIsLoading(false);
+      });
+  }, [fetchRange]);
+
+  useEffect(() => {
+    fetchCalendar();
+    return () => {
+      requestSeqRef.current += 1;
+      abortRef.current?.abort();
+    };
+  }, [fetchCalendar]);
+
+  const loadRange = useCallback(
+    (from, to) => {
+      fetchRange(toDateTime(from), toDateTime(to));
+    },
+    [fetchRange],
+  );
+
+  const reload = useCallback(() => {
+    if (!calendarIdRef.current) {
+      fetchCalendar();
+      return;
+    }
+    const range = loadedRangeRef.current ?? lastRequestedRef.current ?? pendingRangeRef.current;
+    if (range) {
+      fetchRange(range.from, range.to, true);
+      return;
+    }
+    fetchCalendar();
+  }, [fetchCalendar, fetchRange]);
+
+  const addEvent = useCallback(
+    async (payload) => {
+      const calendarId = calendarIdRef.current;
+      if (!calendarId) {
+        throw new Error("Календарь не загружен");
+      }
+      await calendarApi.createEvent(calendarId, payload);
+      const range = loadedRangeRef.current ?? lastRequestedRef.current;
+      if (range) {
+        fetchRange(range.from, range.to, true);
+      }
+    },
+    [fetchRange],
+  );
+
+  const refreshRange = useCallback(() => {
+    const range = loadedRangeRef.current ?? lastRequestedRef.current;
+    if (range) {
+      fetchRange(range.from, range.to, true);
+    }
+  }, [fetchRange]);
+
+  const updateEvent = useCallback(
+    async (eventId, payload) => {
+      await calendarApi.updateEvent(eventId, payload);
+      refreshRange();
+    },
+    [refreshRange],
+  );
+
+  const deleteEvent = useCallback(
+    async (eventId) => {
+      await calendarApi.deleteEvent(eventId);
+      refreshRange();
+    },
+    [refreshRange],
+  );
+
+  const unlinkNote = useCallback(
+    async (eventId) => {
+      await calendarApi.unlinkNote(eventId);
+      refreshRange();
+    },
+    [refreshRange],
+  );
 
   const eventsByDate = useMemo(() => {
     const byDate = new Map();
-    for (const event of MOCK_EVENTS) {
-      const day = byDate.get(event.start) ?? [];
-      day.push(event);
-      byDate.set(event.start, day);
+    for (const event of events) {
+      const day = event.start.slice(0, 10);
+      const bucket = byDate.get(day) ?? [];
+      bucket.push(event);
+      byDate.set(day, bucket);
+    }
+    for (const bucket of byDate.values()) {
+      bucket.sort(compareEvents);
     }
     return byDate;
-  }, []);
+  }, [events]);
 
-  const openDay = useCallback((dateStr) => setSelectedDate(dateStr), []);
+  const openDay = useCallback((dateStr) => setSelectedDate(String(dateStr).slice(0, 10)), []);
   const closeDay = useCallback(() => setSelectedDate(null), []);
 
   const getDayEvents = useCallback(
-    (dateStr) =>
-      (eventsByDate.get(dateStr) ?? []).map((event) => ({
-        title: event.title,
-        cat: CATEGORY_META[event.category]?.label ?? "",
-        color: CATEGORY_META[event.category]?.color ?? "var(--muted)",
-      })),
+    (dateStr) => eventsByDate.get(String(dateStr).slice(0, 10)) ?? [],
     [eventsByDate],
   );
 
-  return { events, selectedDate, openDay, closeDay, getDayEvents };
+  return {
+    events,
+    selectedDate,
+    isLoading,
+    error,
+    hasCalendar,
+    openDay,
+    closeDay,
+    getDayEvents,
+    loadRange,
+    reload,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    unlinkNote,
+  };
 }

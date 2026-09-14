@@ -1,19 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import AppSidebar from "@/components/layout/AppSidebar";
-import { resetNotesCounts } from "@/hooks/useNotesCounts.js";
+import { resetNotesCounts, useNotesCounts } from "@/hooks/useNotesCounts.js";
 import "./WorkspaceLayout.css";
 
 export function WorkspaceLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [sidebarProps, setSidebarProps] = useState({});
+  const counts = useNotesCounts({ autoFetch: true });
 
   useEffect(() => {
     resetNotesCounts();
   }, []);
 
-  const outletContext = useMemo(() => ({ setSidebarProps }), [setSidebarProps]);
+  const mergeSidebarProps = useCallback((props) => {
+    setSidebarProps((prev) => ({ ...prev, ...props }));
+  }, []);
+
+  const outletContext = useMemo(
+    () => ({ setSidebarProps: mergeSidebarProps }),
+    [mergeSidebarProps],
+  );
+
+  const sidebarCounts = useMemo(
+    () => ({
+      all: counts.totalNotesCount ?? undefined,
+      directories: counts.directoriesCount ?? undefined,
+      favorites: counts.favouritesCount ?? undefined,
+      trash: counts.trashCount ?? undefined,
+    }),
+    [counts],
+  );
 
   return (
     <div className="app">
@@ -21,6 +39,7 @@ export function WorkspaceLayout() {
         collapsed={collapsed}
         onToggle={() => setCollapsed((v) => !v)}
         {...sidebarProps}
+        counts={sidebarCounts}
       />
       <div className="main">
         <Outlet context={outletContext} />

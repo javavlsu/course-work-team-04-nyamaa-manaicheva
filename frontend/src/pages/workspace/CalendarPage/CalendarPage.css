@@ -1,15 +1,77 @@
 .app {
   --success: #3a8f6e;
   --danger: #c44;
+  --calendar-note: #FB6A18;
 }
 
 [data-theme="dark"] .app {
   --danger: #f87171;
 }
 
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px var(--content-gutter-x);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklch, var(--bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+[data-theme="dark"] .topbar {
+  background: color-mix(in oklch, var(--bg) 88%, transparent);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.back-button:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
 .calendar-container {
-  padding: 24px 32px;
+  padding: 24px var(--content-gutter-x);
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .calendar-container .fc {
@@ -35,6 +97,8 @@
   --fc-event-selected-overlay-color: color-mix(in oklch, var(--fg) 10%, transparent);
   --fc-more-link-bg-color: var(--fg-soft);
   --fc-more-link-text-color: var(--muted);
+  flex: 1 1 0%;
+  min-height: 0;
 }
 
 .calendar-container .fc .fc-toolbar.fc-header-toolbar {
@@ -150,11 +214,13 @@
 }
 
 .calendar-container .fc .fc-daygrid-day.fc-day-today {
-  background: var(--accent-soft);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .calendar-container .fc .fc-daygrid-day.fc-day-today:hover {
-  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--accent) 55%, var(--surface));
 }
 
 .calendar-container .fc .fc-daygrid-day-top {
@@ -189,9 +255,9 @@
 }
 
 .calendar-container .fc .fc-event {
-  border-radius: 4px;
+  border-radius: 0;
   border-width: 0;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -208,28 +274,24 @@
   padding: 2px 6px;
 }
 
-.calendar-container .fc .fc-event--work {
-  background: color-mix(in oklch, var(--accent) 15%, transparent);
+.calendar-container .fc .fc-event--event {
+  background: color-mix(in oklch, var(--accent) 30%, transparent);
 }
 
-.calendar-container .fc .fc-event--work .fc-event-title {
+.calendar-container .fc .fc-event--event .fc-event-time {
   color: var(--accent);
 }
 
-.calendar-container .fc .fc-event--personal {
-  background: color-mix(in oklch, var(--success) 12%, transparent);
+.calendar-container .fc .fc-event--event .fc-event-title {
+  color: var(--accent);
 }
 
-.calendar-container .fc .fc-event--personal .fc-event-title {
-  color: var(--success);
+.calendar-container .fc .fc-event--note {
+  background: color-mix(in oklch, var(--calendar-note) 30%, transparent);
 }
 
-.calendar-container .fc .fc-event--deadline {
-  background: color-mix(in oklch, var(--danger) 12%, transparent);
-}
-
-.calendar-container .fc .fc-event--deadline .fc-event-title {
-  color: var(--danger);
+.calendar-container .fc .fc-event--note .fc-event-title {
+  color: var(--calendar-note);
 }
 
 .calendar-container .fc .fc-more-link {
@@ -237,6 +299,96 @@
   font-weight: 500;
   color: var(--muted);
   padding: 2px 6px;
+}
+
+.calendar-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--fg);
+  background: color-mix(in oklch, var(--danger) 8%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--danger) 30%, var(--border));
+  border-radius: var(--radius);
+}
+
+.calendar-error button {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.calendar-error button:hover {
+  color: var(--fg);
+  background: var(--fg-soft);
+}
+
+.notes-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.notes-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: nb-spin 0.7s linear infinite;
+}
+
+@keyframes nb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.notes-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.notes-error p {
+  font-size: 14px;
+  max-width: 38ch;
+  color: var(--fg);
+}
+
+.notes-error .btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.notes-error .btn-secondary {
+  background: var(--fg-soft);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.notes-error .btn-secondary:hover {
+  background: var(--border);
 }
 
 .day-detail {
@@ -303,12 +455,15 @@
   color: var(--muted);
   font-size: 14px;
   padding: 12px 0;
+  text-align: center;
 }
 
 .day-detail-events {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .day-detail-event {
@@ -342,7 +497,127 @@
   color: var(--muted);
 }
 
+.day-detail-event-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.day-detail-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.day-detail-icon-btn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.day-detail-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.day-detail-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.day-detail-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.day-detail-check input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
+.day-detail-form-row .day-detail-input.day-detail-time-input {
+  width: 130px;
+  max-width: 100%;
+  flex: 0 1 130px;
+  min-width: 0;
+}
+
+.day-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.day-detail-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.day-detail-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.day-detail-input,
+.day-detail-select {
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 14px;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.day-detail-input:focus,
+.day-detail-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.day-detail-form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.day-detail-form-actions .btn {
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+.day-detail-form-error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
 @media (max-width: 920px) {
+  .topbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .calendar-container {
     padding: 16px;
   }
@@ -362,6 +637,6 @@
 
   .calendar-container .fc .fc-daygrid-event,
   .calendar-container .fc .fc-event {
-    font-size: 10px;
+    font-size: 12px;
   }
 }

@@ -2,6 +2,7 @@
   --on-accent: #ffffff;
   --sidebar-w: 260px;
   --sidebar-collapsed-w: 64px;
+  --content-gutter-x: 32px;
   display: flex;
   min-height: 100vh;
   font-size: 15px;
