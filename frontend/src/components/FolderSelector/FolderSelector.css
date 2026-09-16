@@ -1,0 +1,142 @@
+.folder-selector-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.folder-selector-modal {
+  width: 100%;
+  max-width: 380px;
+  max-height: 80vh;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.folder-selector-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-selector-list {
+  list-style: none;
+  overflow-y: auto;
+  max-height: 320px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.folder-selector-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.folder-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.folder-selector-item:hover {
+  background: var(--fg-soft);
+}
+
+.folder-selector-item.current {
+  opacity: 0.55;
+  cursor: default;
+  background: transparent;
+}
+
+.folder-selector-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.folder-selector-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-selector-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.folder-selector-badge {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.folder-selector-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.folder-selector-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  padding: 7px 12px;
+  border-radius: 999px;
+  transition: background 0.12s;
+}
+
+.folder-selector-create:hover {
+  background: var(--accent-soft);
+}
+
+.folder-selector-cancel {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  transition: background 0.12s, color 0.12s;
+}
+
+.folder-selector-cancel:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+@media (max-width: 768px) {
+  .folder-selector-modal {
+    max-width: 92vw;
+  }
+}

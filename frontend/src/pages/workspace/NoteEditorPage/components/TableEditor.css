@@ -1,0 +1,129 @@
+.table-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.table-editor-scroll {
+  overflow-x: auto;
+}
+
+.table-editor-grid {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 420px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.table-editor-grid th,
+.table-editor-grid td {
+  padding: 0;
+  vertical-align: top;
+}
+
+.table-editor-grid th + th,
+.table-editor-grid td + td {
+  border-left: 1px solid var(--border);
+}
+
+.table-editor-grid tbody td {
+  border-top: 1px solid var(--border);
+}
+
+.table-editor-corner,
+.table-editor-row-action {
+  width: 34px;
+  padding: 4px;
+  text-align: center;
+  background: var(--fg-soft);
+  border-right: 1px solid var(--border);
+}
+
+.table-editor-col-action {
+  padding: 4px;
+  text-align: right;
+  background: var(--fg-soft);
+}
+
+.table-editor-cell {
+  width: 100%;
+  min-width: 130px;
+  padding: 8px 12px;
+  border: none;
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg);
+  outline: none;
+  transition: background 0.15s;
+}
+
+.table-editor-cell:hover {
+  background: var(--fg-soft);
+}
+
+.table-editor-cell:focus {
+  background: var(--accent-soft);
+}
+
+.table-editor-cell::placeholder {
+  color: var(--muted);
+}
+
+.table-delete-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 auto;
+  border-radius: 6px;
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.table-delete-btn:hover:not(:disabled) {
+  background: color-mix(in oklch, #d14343 12%, transparent);
+  color: #d14343;
+}
+
+.table-delete-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.table-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.table-editor-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  transition: background 0.15s;
+}
+
+.table-editor-add:hover {
+  background: var(--accent-soft);
+}
+
+@media (max-width: 768px) {
+  .table-editor-grid {
+    min-width: 0;
+  }
+
+  .table-editor-cell {
+    min-width: 96px;
+    padding: 7px 10px;
+  }
+}

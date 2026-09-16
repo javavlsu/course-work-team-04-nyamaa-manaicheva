@@ -1,0 +1,49 @@
+.recover-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color .2s;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.recover-success {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.recover-success svg {
+  width: 56px;
+  height: 56px;
+  color: #16a34a;
+  margin-bottom: 16px;
+}
+
+.recover-success h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.recover-success p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.recover-success .back-link {
+  justify-content: center;
+  width: 100%;
+}

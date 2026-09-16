@@ -1,0 +1,406 @@
+.app {
+  --warning: #d4923a;
+  --success: #3a8f6e;
+  --info: #6e5fc4;
+  --danger: #c44;
+  --input-warning: #FB6A18;
+}
+
+[data-theme="dark"] .app {
+  --danger: #f87171;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--content-gutter-x);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklch, var(--bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="dark"] .topbar {
+  background: color-mix(in oklch, var(--bg) 88%, transparent);
+}
+
+.analytics-content {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--gap-md);
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow);
+}
+
+.stat-card-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stat-card-value {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--fg);
+}
+
+.stat-card-value.accent {
+  color: var(--accent);
+}
+
+.stat-card-value.warning {
+  color: var(--input-warning);
+}
+
+.stat-card-change {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card-change.up {
+  color: var(--success);
+}
+
+.stat-card-change.down {
+  color: var(--danger);
+}
+
+.stat-card-change svg {
+  width: 12px;
+  height: 12px;
+}
+
+.chart-grid {
+  display: grid;
+  gap: var(--gap-lg);
+}
+
+.charts-grow {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 3fr 2fr;
+}
+
+.stats-grid {
+  grid-template-columns: 2fr 3fr;
+}
+
+.charts-grow .chart-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.charts-grow .chart-canvas.grow {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.chart-panel h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 220px;
+  position: relative;
+}
+
+.calendar-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap-md);
+}
+
+.calendar-metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow);
+}
+
+.calendar-metric-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.calendar-metric-value {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.kanban-panel {
+  display: flex;
+  flex-direction: column;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.progress-container {
+  --kanban-ring: 116px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-width: 0;
+}
+
+.progress-ring-wrap {
+  position: relative;
+  width: var(--kanban-ring);
+  height: var(--kanban-ring);
+  flex-shrink: 0;
+}
+
+.progress-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-pct {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.progress-divider {
+  width: 1px;
+  height: calc(var(--kanban-ring) * 0.78);
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.progress-columns {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  padding: 0 16px;
+}
+
+.progress-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.progress-stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--fg);
+}
+
+.progress-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.progress-status-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── Loading / Error (тот же паттерн, что на других страницах) ── */
+.notes-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.notes-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: nb-spin 0.7s linear infinite;
+}
+
+@keyframes nb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.notes-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.notes-error p {
+  font-size: 14px;
+  max-width: 38ch;
+  color: var(--fg);
+}
+
+@media (max-width: 1100px) and (min-width: 921px) {
+  .progress-container {
+    flex-direction: column;
+    align-items: center;
+    --kanban-ring: 88px;
+    gap: 20px;
+  }
+
+  .progress-divider {
+    display: none;
+  }
+
+  .progress-columns {
+    flex: none;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .progress-stat {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .progress-stat-value {
+    font-size: 28px;
+  }
+
+  .progress-status-label {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 920px) {
+  .topbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .analytics-content {
+    padding: 16px;
+  }
+
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grow {
+    flex: none;
+  }
+
+  .charts-grow .chart-canvas.grow {
+    height: 220px;
+    flex: none;
+  }
+
+  .progress-container {
+    --kanban-ring: 88px;
+    gap: 16px;
+  }
+
+  .progress-columns {
+    gap: 20px;
+  }
+
+  .progress-status-label {
+    font-size: 12px;
+  }
+
+  .progress-pct {
+    font-size: 24px;
+  }
+}

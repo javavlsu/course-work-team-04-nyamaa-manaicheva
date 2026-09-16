@@ -1,0 +1,8 @@
+.register-box {
+  width: 100%;
+  max-width: 420px;
+}
+
+.register-box .logo {
+  margin-bottom: 32px;
+}

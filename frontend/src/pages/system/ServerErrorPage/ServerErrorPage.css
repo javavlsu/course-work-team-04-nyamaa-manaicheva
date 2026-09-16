@@ -1,0 +1,23 @@
+.notfound,
+.forbidden,
+.servererror {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.forbidden h1,
+.servererror h1 {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 10vw, 96px);
+  line-height: 1;
+  color: var(--fg);
+}
+
+.forbidden p,
+.servererror p {
+  margin-bottom: 16px;
+  color: var(--muted);
+}
