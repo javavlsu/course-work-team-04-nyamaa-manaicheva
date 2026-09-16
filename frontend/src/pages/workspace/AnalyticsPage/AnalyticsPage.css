@@ -3,6 +3,7 @@
   --success: #3a8f6e;
   --info: #6e5fc4;
   --danger: #c44;
+  --input-warning: #FB6A18;
 }
 
 [data-theme="dark"] .app {
@@ -40,29 +41,18 @@
 }
 
 .analytics-content {
-  padding: 32px;
+  padding: 24px;
   flex: 1;
-}
-
-.analytics-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-}
-
-.analytics-header h2 {
-  font-family: var(--font-display);
-  font-size: clamp(24px, 3vw, 32px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
 }
 
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--gap-md);
-  margin-bottom: 32px;
 }
 
 .stat-card {
@@ -90,6 +80,15 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
+  color: var(--fg);
+}
+
+.stat-card-value.accent {
+  color: var(--accent);
+}
+
+.stat-card-value.warning {
+  color: var(--input-warning);
 }
 
 .stat-card-change {
@@ -115,9 +114,30 @@
 
 .chart-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
   gap: var(--gap-lg);
-  margin-bottom: 32px;
+}
+
+.charts-grow {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 3fr 2fr;
+}
+
+.stats-grid {
+  grid-template-columns: 2fr 3fr;
+}
+
+.charts-grow .chart-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.charts-grow .chart-canvas.grow {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 .chart-panel {
@@ -140,16 +160,61 @@
   position: relative;
 }
 
+.calendar-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap-md);
+}
+
+.calendar-metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow);
+}
+
+.calendar-metric-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.calendar-metric-value {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.kanban-panel {
+  display: flex;
+  flex-direction: column;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
 .progress-container {
+  --kanban-ring: 116px;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
-  gap: 32px;
+  justify-content: center;
+  gap: 28px;
+  min-width: 0;
 }
 
 .progress-ring-wrap {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: var(--kanban-ring);
+  height: var(--kanban-ring);
   flex-shrink: 0;
 }
 
@@ -157,50 +222,68 @@
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
 .progress-pct {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 600;
   color: var(--accent);
   line-height: 1;
 }
 
-.progress-label {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
+.progress-divider {
+  width: 1px;
+  height: calc(var(--kanban-ring) * 0.78);
+  background: var(--border);
+  flex-shrink: 0;
 }
 
-.progress-legend {
+.progress-columns {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  padding: 0 16px;
+}
+
+.progress-stat {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
 }
 
-.legend-item {
+.progress-stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--fg);
+}
+
+.progress-status {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.legend-dot {
-  width: 10px;
-  height: 10px;
+.progress-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: var(--muted);
 }
 
-.legend-count {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  margin-left: auto;
+.progress-status-label {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* ── Loading / Error (тот же паттерн, что на других страницах) ── */
@@ -245,6 +328,38 @@
   color: var(--fg);
 }
 
+@media (max-width: 1100px) and (min-width: 921px) {
+  .progress-container {
+    flex-direction: column;
+    align-items: center;
+    --kanban-ring: 88px;
+    gap: 20px;
+  }
+
+  .progress-divider {
+    display: none;
+  }
+
+  .progress-columns {
+    flex: none;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .progress-stat {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .progress-stat-value {
+    font-size: 28px;
+  }
+
+  .progress-status-label {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 920px) {
   .topbar {
     padding-left: 16px;
@@ -263,8 +378,29 @@
     grid-template-columns: 1fr;
   }
 
+  .charts-grow {
+    flex: none;
+  }
+
+  .charts-grow .chart-canvas.grow {
+    height: 220px;
+    flex: none;
+  }
+
   .progress-container {
-    flex-direction: column;
-    align-items: flex-start;
+    --kanban-ring: 88px;
+    gap: 16px;
+  }
+
+  .progress-columns {
+    gap: 20px;
+  }
+
+  .progress-status-label {
+    font-size: 12px;
+  }
+
+  .progress-pct {
+    font-size: 24px;
   }
 }

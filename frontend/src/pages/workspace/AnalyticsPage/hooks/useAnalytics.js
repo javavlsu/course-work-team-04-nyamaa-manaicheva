@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 
 import * as analyticsApi from "@/api/analytics";
+import * as calendarApi from "@/api/calendar";
 import * as kanbanApi from "@/api/kanban";
+import * as notesApi from "@/api/notes";
 
 const DONE = "Done";
 const IN_PROGRESS = "InProgress";
@@ -28,13 +30,22 @@ function adaptDirectoryNotes(notesByDirectory) {
   }));
 }
 
-function buildStats(analytics) {
+function buildStats(analytics, deletedNotes) {
   return [
-    { label: "Всего заметок", value: analytics.totalNotes, accent: true },
-    { label: "Избранное", value: analytics.favouriteNotes },
-    { label: "Совместный доступ", value: analytics.sharedNotes },
-    { label: "Директории", value: analytics.totalDirectories },
+    { label: "Создано заметок", value: analytics.totalNotes, accent: true },
+    { label: "Создано директорий", value: analytics.totalDirectories },
+    { label: "Добавлено в Избранное", value: analytics.favouriteNotes },
+    { label: "Предоставлено в совместный доступ", value: analytics.sharedNotes },
+    { label: "Удалено", value: deletedNotes, warning: true },
   ];
+}
+
+function computeCalendarMetrics(events) {
+  const noteIds = new Set();
+  for (const event of events ?? []) {
+    if (event.noteId) noteIds.add(event.noteId);
+  }
+  return { eventsCount: (events ?? []).length, attachedNotes: noteIds.size };
 }
 
 function computeProgress(board) {
@@ -67,14 +78,29 @@ export function useAnalytics() {
     setIsLoading(true);
     setError(null);
     try {
-      const [analytics, board] = await Promise.all([
+      const [analytics, board, trash, calendar] = await Promise.all([
         analyticsApi.getAnalytics(),
         kanbanApi.getMyBoard(),
+        notesApi.listTrash(),
+        calendarApi.getMyCalendar(),
       ]);
+
+      let events = [];
+      if (calendar?.id) {
+        events = await calendarApi
+          .getEventsByRange(
+            calendar.id,
+            "1970-01-01T00:00:00",
+            "2100-12-31T23:59:59",
+          )
+          .catch(() => []);
+      }
+
       setData({
-        stats: buildStats(analytics),
+        stats: buildStats(analytics, trash.length),
         weeklyNotes: adaptWeeklyNotes(analytics.notesCreatedByWeek),
         directoryNotes: adaptDirectoryNotes(analytics.notesByDirectory),
+        calendarMetrics: computeCalendarMetrics(events),
       });
       setProgress(computeProgress(board));
     } catch (err) {

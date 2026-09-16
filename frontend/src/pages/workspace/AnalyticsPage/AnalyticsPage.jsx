@@ -7,6 +7,7 @@ import StatCards from "./components/StatCards";
 import ChartPanel from "./components/ChartPanel";
 import WeeklyBars from "./components/WeeklyBars";
 import DirectoryBars from "./components/DirectoryBars";
+import CalendarInsights from "./components/CalendarInsights";
 import ProgressDonut from "./components/ProgressDonut";
 import "./AnalyticsPage.css";
 
@@ -40,24 +41,28 @@ export function AnalyticsPage() {
       {!isLoading && data && (
         <div className="analytics-content">
           <StatCards stats={data.stats} />
-          <div className="chart-grid">
-            <ChartPanel title="Создано заметок по неделям">
-              <div className="chart-canvas">
+
+          <div className="chart-grid charts-grow">
+            <ChartPanel title="Хронология создания заметок">
+              <div className="chart-canvas grow">
                 <WeeklyBars data={data.weeklyNotes} />
               </div>
             </ChartPanel>
-            <ChartPanel title="Прогресс выполнения">
+            <ChartPanel title="Распределение заметок по директориям">
+              <div className="chart-canvas grow">
+                <DirectoryBars data={data.directoryNotes} />
+              </div>
+            </ChartPanel>
+          </div>
+
+          <div className="chart-grid stats-grid">
+            <ChartPanel title="Календарь">
+              <CalendarInsights metrics={data.calendarMetrics} />
+            </ChartPanel>
+            <ChartPanel title="Планирование (канбан)" className="kanban-panel">
               <ProgressDonut progress={progress} data={donut} />
             </ChartPanel>
           </div>
-          <ChartPanel
-            title="Заметки по директориям"
-            style={{ marginBottom: "32px" }}
-          >
-            <div className="chart-canvas">
-              <DirectoryBars data={data.directoryNotes} />
-            </div>
-          </ChartPanel>
         </div>
       )}
     </>

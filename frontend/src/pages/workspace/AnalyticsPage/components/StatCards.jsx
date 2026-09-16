@@ -7,8 +7,7 @@ function StatCards({ stats }) {
         <div className="stat-card" key={stat.label}>
           <span className="stat-card-label">{stat.label}</span>
           <span
-            className="stat-card-value"
-            style={stat.accent ? { color: "var(--accent)" } : undefined}
+            className={`stat-card-value${stat.accent ? " accent" : stat.warning ? " warning" : ""}`}
           >
             {stat.value}
           </span>
