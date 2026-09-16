@@ -7,19 +7,20 @@ function StatCards({ stats }) {
         <div className="stat-card" key={stat.label}>
           <span className="stat-card-label">{stat.label}</span>
           <span
-            className="stat-card-value"
-            style={stat.accent ? { color: "var(--accent)" } : undefined}
+            className={`stat-card-value${stat.accent ? " accent" : stat.warning ? " warning" : ""}`}
           >
             {stat.value}
           </span>
-          <span className={`stat-card-change ${stat.trend}`}>
-            {stat.trend === "up" ? (
-              <ChevronUp strokeWidth={2} />
-            ) : (
-              <ChevronDown strokeWidth={2} />
-            )}
-            {stat.change}
-          </span>
+          {stat.change && (
+            <span className={`stat-card-change ${stat.trend}`}>
+              {stat.trend === "up" ? (
+                <ChevronUp strokeWidth={2} />
+              ) : (
+                <ChevronDown strokeWidth={2} />
+              )}
+              {stat.change}
+            </span>
+          )}
         </div>
       ))}
     </div>

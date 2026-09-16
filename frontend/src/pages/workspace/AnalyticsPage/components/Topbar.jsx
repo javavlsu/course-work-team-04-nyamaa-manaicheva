@@ -1,23 +1,8 @@
-import { PERIODS } from "../hooks/useAnalytics";
-
-function Topbar({ period, onPeriodChange }) {
+function Topbar() {
   return (
     <div className="topbar">
       <div className="topbar-left">
         <span className="topbar-title">Аналитика</span>
-      </div>
-      <div className="topbar-right">
-        <div className="period-toggle">
-          {PERIODS.map((p) => (
-            <button
-              key={p}
-              className={period === p ? "active" : undefined}
-              onClick={() => onPeriodChange(p)}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );

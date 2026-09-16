@@ -2,6 +2,12 @@ import { ResponsivePie } from "@nivo/pie";
 
 import { nivoTheme } from "../nivoTheme";
 
+const STATUSES = [
+  { label: "Завершено", countKey: "done", color: "var(--accent)" },
+  { label: "В работе", countKey: "inProgress", color: "var(--muted)" },
+  { label: "К выполнению", countKey: "todo", color: "var(--warning)" },
+];
+
 function ProgressDonut({ progress, data }) {
   return (
     <div className="progress-container">
@@ -20,25 +26,19 @@ function ProgressDonut({ progress, data }) {
         />
         <div className="progress-center">
           <span className="progress-pct">{progress.percent}%</span>
-          <span className="progress-label">выполнено</span>
         </div>
       </div>
-      <div className="progress-legend">
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--accent)" }}></span>
-          <span>Завершено</span>
-          <span className="legend-count">{progress.done}</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--warning)" }}></span>
-          <span>В работе</span>
-          <span className="legend-count">{progress.inProgress}</span>
-        </div>
-        <div className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--border)" }}></span>
-          <span>К выполнению</span>
-          <span className="legend-count">{progress.todo}</span>
-        </div>
+      <div className="progress-divider" />
+      <div className="progress-columns">
+        {STATUSES.map((status) => (
+          <div className="progress-stat" key={status.label}>
+            <span className="progress-stat-value">{progress[status.countKey]}</span>
+            <div className="progress-status">
+              <span className="progress-dot" style={{ background: status.color }} />
+              <span className="progress-status-label">{status.label}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

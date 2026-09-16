@@ -1,41 +1,142 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import {
-  analyticsStats,
-  directoryNotes,
-  notesPerWeek,
-  progressData,
-  recentActivity,
-} from "@/lib/utils/mockData";
+import * as analyticsApi from "@/api/analytics";
+import * as calendarApi from "@/api/calendar";
+import * as kanbanApi from "@/api/kanban";
+import * as notesApi from "@/api/notes";
 
-export const PERIODS = ["Неделя", "Месяц", "Квартал"];
+const DONE = "Done";
+const IN_PROGRESS = "InProgress";
+const TODO = "Todo";
 
-const donutData = [
-  {
-    id: "done",
-    label: "Завершено",
-    value: progressData.percent,
-    color: "var(--accent)",
-  },
-  {
-    id: "left",
-    label: "Осталось",
-    value: 100 - progressData.percent,
-    color: "var(--border)",
-  },
-];
+function formatWeekLabel(weekStart) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(weekStart ?? "");
+  if (!match) return weekStart ?? "";
+  return `${match[3]}.${match[2]}`;
+}
+
+function adaptWeeklyNotes(notesCreatedByWeek) {
+  return (notesCreatedByWeek ?? []).map((entry) => ({
+    week: formatWeekLabel(entry.weekStart),
+    value: entry.count,
+  }));
+}
+
+function adaptDirectoryNotes(notesByDirectory) {
+  return (notesByDirectory ?? []).map((entry, index) => ({
+    dir: entry.title,
+    value: entry.notesCount,
+    colorKey: index === 0 ? "primary" : "secondary",
+  }));
+}
+
+function buildStats(analytics, deletedNotes) {
+  return [
+    { label: "Создано заметок", value: analytics.totalNotes, accent: true },
+    { label: "Создано директорий", value: analytics.totalDirectories },
+    { label: "Добавлено в Избранное", value: analytics.favouriteNotes },
+    { label: "Предоставлено в совместный доступ", value: analytics.sharedNotes },
+    { label: "Удалено", value: deletedNotes, warning: true },
+  ];
+}
+
+function computeCalendarMetrics(events) {
+  const noteIds = new Set();
+  for (const event of events ?? []) {
+    if (event.noteId) noteIds.add(event.noteId);
+  }
+  return { eventsCount: (events ?? []).length, attachedNotes: noteIds.size };
+}
+
+function computeProgress(board) {
+  const tasks = board?.columns?.flatMap((column) => column.tasks ?? []) ?? [];
+
+  let done = 0;
+  let inProgress = 0;
+  let todo = 0;
+
+  for (const task of tasks) {
+    if (task.archived) continue;
+    if (task.status === DONE) done += 1;
+    else if (task.status === IN_PROGRESS) inProgress += 1;
+    else todo += 1;
+  }
+
+  const total = todo + inProgress + done;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  return { done, inProgress, todo, percent };
+}
 
 export function useAnalytics() {
-  const [period, setPeriod] = useState(PERIODS[1]);
+  const [data, setData] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [analytics, board, trash, calendar] = await Promise.all([
+        analyticsApi.getAnalytics(),
+        kanbanApi.getMyBoard(),
+        notesApi.listTrash(),
+        calendarApi.getMyCalendar(),
+      ]);
+
+      let events = [];
+      if (calendar?.id) {
+        events = await calendarApi
+          .getEventsByRange(
+            calendar.id,
+            "1970-01-01T00:00:00",
+            "2100-12-31T23:59:59",
+          )
+          .catch(() => []);
+      }
+
+      setData({
+        stats: buildStats(analytics, trash.length),
+        weeklyNotes: adaptWeeklyNotes(analytics.notesCreatedByWeek),
+        directoryNotes: adaptDirectoryNotes(analytics.notesByDirectory),
+        calendarMetrics: computeCalendarMetrics(events),
+      });
+      setProgress(computeProgress(board));
+    } catch (err) {
+      setError(err.message || "Не удалось загрузить аналитику");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const donut = progress
+    ? [
+        {
+          id: "done",
+          label: "Завершено",
+          value: progress.percent,
+          color: "var(--accent)",
+        },
+        {
+          id: "left",
+          label: "Осталось",
+          value: 100 - progress.percent,
+          color: "var(--border)",
+        },
+      ]
+    : [];
 
   return {
-    period,
-    onPeriodChange: setPeriod,
-    stats: analyticsStats,
-    weeklyNotes: notesPerWeek,
-    directoryNotes,
-    progress: progressData,
-    donut: donutData,
-    activity: recentActivity,
+    data,
+    progress,
+    donut,
+    isLoading,
+    error,
+    reload: load,
   };
 }
