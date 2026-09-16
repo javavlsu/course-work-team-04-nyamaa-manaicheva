@@ -8,21 +8,11 @@ import ChartPanel from "./components/ChartPanel";
 import WeeklyBars from "./components/WeeklyBars";
 import DirectoryBars from "./components/DirectoryBars";
 import ProgressDonut from "./components/ProgressDonut";
-import ActivityList from "./components/ActivityList";
 import "./AnalyticsPage.css";
 
 export function AnalyticsPage() {
   const { setSidebarProps } = useOutletContext();
-  const {
-    period,
-    onPeriodChange,
-    stats,
-    weeklyNotes,
-    directoryNotes,
-    progress,
-    donut,
-    activity,
-  } = useAnalytics();
+  const { data, progress, donut, isLoading, error, reload } = useAnalytics();
 
   useLayoutEffect(() => {
     setSidebarProps({ active: "analytics" });
@@ -30,13 +20,30 @@ export function AnalyticsPage() {
 
   return (
     <>
-      <Topbar period={period} onPeriodChange={onPeriodChange} />
+      <Topbar />
+      {isLoading && (
+        <div className="notes-loading">
+          <div className="notes-loading-spinner" />
+          <span>Загрузка аналитики…</span>
+        </div>
+      )}
+
+      {!isLoading && error && !data && (
+        <div className="notes-error">
+          <p>{error}</p>
+          <button className="btn btn-secondary" onClick={reload}>
+            Попробовать снова
+          </button>
+        </div>
+      )}
+
+      {!isLoading && data && (
         <div className="analytics-content">
-          <StatCards stats={stats} />
+          <StatCards stats={data.stats} />
           <div className="chart-grid">
             <ChartPanel title="Создано заметок по неделям">
               <div className="chart-canvas">
-                <WeeklyBars data={weeklyNotes} />
+                <WeeklyBars data={data.weeklyNotes} />
               </div>
             </ChartPanel>
             <ChartPanel title="Прогресс выполнения">
@@ -48,13 +55,11 @@ export function AnalyticsPage() {
             style={{ marginBottom: "32px" }}
           >
             <div className="chart-canvas">
-              <DirectoryBars data={directoryNotes} />
+              <DirectoryBars data={data.directoryNotes} />
             </div>
           </ChartPanel>
-          <ChartPanel title="Последняя активность">
-            <ActivityList activity={activity} />
-          </ChartPanel>
         </div>
+      )}
     </>
   );
 }

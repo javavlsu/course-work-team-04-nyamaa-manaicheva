@@ -35,12 +35,6 @@
   letter-spacing: -0.01em;
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 [data-theme="dark"] .topbar {
   background: color-mix(in oklch, var(--bg) 88%, transparent);
 }
@@ -62,34 +56,6 @@
   font-size: clamp(24px, 3vw, 32px);
   font-weight: 600;
   letter-spacing: -0.01em;
-}
-
-.period-toggle {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.period-toggle button {
-  padding: 7px 14px;
-  font-size: 13px;
-  color: var(--muted);
-  border-right: 1px solid var(--border);
-  transition: background 0.12s, color 0.12s;
-}
-
-.period-toggle button:last-child {
-  border-right: none;
-}
-
-.period-toggle button.active {
-  background: var(--fg);
-  color: var(--surface);
-}
-
-.period-toggle button:hover:not(.active) {
-  background: var(--fg-soft);
 }
 
 .stat-row {
@@ -237,61 +203,46 @@
   margin-left: auto;
 }
 
-.activity-list {
+/* ── Loading / Error (тот же паттерн, что на других страницах) ── */
+.notes-loading {
   display: flex;
   flex-direction: column;
-}
-
-.activity-item {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.activity-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.activity-icon.create {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.activity-icon.complete {
-  background: color-mix(in oklch, var(--success) 12%, transparent);
-  color: var(--success);
-}
-
-.activity-icon.share {
-  background: color-mix(in oklch, var(--info) 12%, transparent);
-  color: var(--info);
-}
-
-.activity-text {
-  flex: 1;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  color: var(--muted);
   font-size: 14px;
 }
 
-.activity-time {
-  font-family: var(--font-mono);
-  font-size: 11px;
+.notes-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: nb-spin 0.7s linear infinite;
+}
+
+@keyframes nb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.notes-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 32px;
+  text-align: center;
   color: var(--muted);
+}
+
+.notes-error p {
+  font-size: 14px;
+  max-width: 38ch;
+  color: var(--fg);
 }
 
 @media (max-width: 920px) {

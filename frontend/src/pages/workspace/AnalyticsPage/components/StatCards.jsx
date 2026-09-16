@@ -12,14 +12,16 @@ function StatCards({ stats }) {
           >
             {stat.value}
           </span>
-          <span className={`stat-card-change ${stat.trend}`}>
-            {stat.trend === "up" ? (
-              <ChevronUp strokeWidth={2} />
-            ) : (
-              <ChevronDown strokeWidth={2} />
-            )}
-            {stat.change}
-          </span>
+          {stat.change && (
+            <span className={`stat-card-change ${stat.trend}`}>
+              {stat.trend === "up" ? (
+                <ChevronUp strokeWidth={2} />
+              ) : (
+                <ChevronDown strokeWidth={2} />
+              )}
+              {stat.change}
+            </span>
+          )}
         </div>
       ))}
     </div>
