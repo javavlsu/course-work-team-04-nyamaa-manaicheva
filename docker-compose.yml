@@ -18,29 +18,6 @@ services:
     networks:
       - notesbook-network
 
-  # Временное отключение MinIO (образ minio/minio недоступен).
-  # Чтобы вернуть: раскомментируйте минио-сервис, depends_on, volume и поставьте MINIO_ENABLED=true.
-  # minio:
-  #   image: minio/minio:latest
-  #   container_name: notesbook-minio
-  #   command: server /data --console-address ":9001"
-  #   environment:
-  #     MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-  #     MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
-  #   healthcheck:
-  #     test: ["CMD", "mc", "ready", "local"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 20s
-  #   ports:
-  #     - "${MINIO_API_PORT:-9000}:9000"
-  #     - "${MINIO_CONSOLE_PORT:-9001}:9001"
-  #   volumes:
-  #     - minio_data:/data
-  #   networks:
-  #     - notesbook-network
-
   mailhog:
     image: mailhog/mailhog:latest
     container_name: notesbook-mailhog
@@ -58,20 +35,18 @@ services:
     depends_on:
       postgres-db:
         condition: service_healthy
-      # minio:
-      #   condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-notesbook}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-cursework}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-cursework}
       SERVER_PORT: ${PORT:-8080}
-      # MinIO — временно отключено. Переменные оставлены; флаг MINIO_ENABLED отвечает за активацию.
-      # MINIO_ENABLED: ${MINIO_ENABLED:-false}
-      MINIO_ENDPOINT: http://minio:9000
-      MINIO_PUBLIC_ENDPOINT: http://localhost:${MINIO_API_PORT:-9000}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
-      MINIO_BUCKET: ${MINIO_BUCKET:-notesbook-attachments}
+      S3_ENABLED: ${S3_ENABLED:-true}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-notesbook-attachments}
+      S3_PATH_STYLE: ${S3_PATH_STYLE:-true}
       CORS_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
@@ -94,7 +69,6 @@ services:
 
 volumes:
   postgres_data:
-  # minio_data:
 
 networks:
   notesbook-network:
