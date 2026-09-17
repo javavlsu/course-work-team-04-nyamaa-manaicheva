@@ -128,9 +128,8 @@ export function useKanbanBoard() {
   };
 
   // Общий перенос: targetColumnId — целевая колонка, position (null = в конец).
-  // position считается индексом среди задач целевой колонки БЕЗ самой переносимой —
-  // ровно так же его трактует backend (MoveTask), поэтому опережающий локальный
-  // расчёт совпадает с тем, что вернётся после запроса.
+  // position — индекс среди задач целевой колонки БЕЗ самой переносимой задачи
+  // (backend MoveTask удаляет задачу из source и вставляет на position в target).
   const moveTask = async (taskId, targetColumnId, position) => {
     if (!board) return;
 
@@ -138,17 +137,27 @@ export function useKanbanBoard() {
     if (!sourceColumn) return;
     const task = sourceColumn.tasks.find((t) => t.id === taskId);
 
-    const targetColumnTasks = sourceColumn.id === targetColumnId
-      ? sourceColumn.tasks
-      : board.columns.find((c) => c.id === targetColumnId)?.tasks ?? [];
-    const remainingInTarget = targetColumnTasks.filter((t) => t.id !== taskId);
-    const targetIndex = position != null ? Math.min(position, remainingInTarget.length) : remainingInTarget.length;
-    const currentIndex = sourceColumn.id === targetColumnId
-      ? sourceColumn.tasks.findIndex((t) => t.id === taskId)
-      : -1;
+    const isSameColumn = sourceColumn.id === targetColumnId;
+
+    const targetColumn = isSameColumn
+      ? sourceColumn
+      : board.columns.find((c) => c.id === targetColumnId);
+    if (!targetColumn) return;
+
+    const remainingInTarget = targetColumn.tasks.filter((t) => t.id !== taskId);
+    let targetIndex = position != null ? Math.min(position, remainingInTarget.length) : remainingInTarget.length;
+
+    // При перемещении внутри одной колонки удаление задачи из массива
+    // сдвигает индексы всех элементов после неё на −1.
+    if (isSameColumn && position != null) {
+      const currentIndex = sourceColumn.tasks.findIndex((t) => t.id === taskId);
+      if (currentIndex !== -1 && position > currentIndex) {
+        targetIndex = Math.max(0, position - 1);
+      }
+    }
 
     // Отпустили карточку туда же, откуда взяли — запрос не нужен.
-    if (sourceColumn.id === targetColumnId && targetIndex === currentIndex) return;
+    if (isSameColumn && targetIndex === sourceColumn.tasks.findIndex((t) => t.id === taskId)) return;
 
     // Оптимистичное обновление порядка в UI, не дожидаясь ответа backend.
     setBoard((prev) => {
@@ -156,13 +165,12 @@ export function useKanbanBoard() {
       const srcCol = columns.find((c) => c.id === sourceColumn.id);
       srcCol.tasks = srcCol.tasks.filter((t) => t.id !== taskId);
       const dstCol = columns.find((c) => c.id === targetColumnId);
-      const insertAt = position != null ? Math.min(position, dstCol.tasks.length) : dstCol.tasks.length;
-      dstCol.tasks.splice(insertAt, 0, task);
+      dstCol.tasks.splice(targetIndex, 0, task);
       return { ...prev, columns };
     });
 
     try {
-      const updatedTask = await kanbanApi.moveTask(taskId, { targetColumnId, position });
+      const updatedTask = await kanbanApi.moveTask(taskId, { targetColumnId, position: targetIndex });
       applyTaskUpdate(updatedTask);
     } catch (err) {
       setError(err.message || "Не удалось перенести задачу");
