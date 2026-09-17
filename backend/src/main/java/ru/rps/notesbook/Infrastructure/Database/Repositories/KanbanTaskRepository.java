@@ -39,6 +39,15 @@ public class KanbanTaskRepository implements IKanbanTaskRepository {
     }
 
     @Override
+    public List<KanbanTask> GetArchivedTasksByOwnerId(UUID ownerId)
+    {
+        return kanbanTaskAdapterJPA.findByColumn_Board_Owner_IdAndArchivedTrue(ownerId)
+                .stream()
+                .map(kanbanTaskMapper::ToDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<KanbanTask> GetTaskById(UUID id)
     {
         return kanbanTaskAdapterJPA.findById(id).map(kanbanTaskMapper::ToDomain);

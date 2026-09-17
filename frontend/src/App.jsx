@@ -12,6 +12,7 @@ import { TrashPage } from "./pages/workspace/TrashPage";
 import { DirectoriesPage } from "./pages/workspace/DirectoriesPage";
 import { NoteEditorPage } from "./pages/workspace/NoteEditorPage";
 import { KanbanBoardPage } from "./pages/workspace/KanbanBoardPage";
+import { KanbanArchivePage } from "./pages/workspace/KanbanArchivePage";
 import { CalendarPage } from "./pages/workspace/CalendarPage";
 import { AnalyticsPage } from "./pages/workspace/AnalyticsPage";
 import { SettingsPage } from "./pages/workspace/SettingsPage";
@@ -56,6 +57,7 @@ function App() {
             <Route path="directories" element={<DirectoriesPage />} />
             <Route path="directories/:folderId" element={<DirectoriesPage />} />
             <Route path="kanban" element={<KanbanBoardPage />} />
+            <Route path="kanban/archive" element={<KanbanArchivePage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="settings" element={<SettingsPage />} />

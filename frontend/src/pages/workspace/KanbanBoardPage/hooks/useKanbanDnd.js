@@ -43,7 +43,7 @@ export function useKanbanDnd(board, moveTask) {
     moveTask(taskId, columnId, null);
   };
 
-  // Отпустили карточку на другую карточку — вставляем перед ней.
+  // Отпустили карточку на другую карточку — вычисляем позицию и передаём в moveTask.
   const handleCardDrop = (e, columnId, targetTaskId) => {
     e.preventDefault();
     e.stopPropagation();
@@ -55,8 +55,7 @@ export function useKanbanDnd(board, moveTask) {
 
     const targetColumn = board.columns.find((c) => c.id === columnId);
     if (!targetColumn) return;
-    const remaining = targetColumn.tasks.filter((t) => t.id !== taskId);
-    const position = remaining.findIndex((t) => t.id === targetTaskId);
+    const position = targetColumn.tasks.findIndex((t) => t.id === targetTaskId);
     if (position === -1) return;
 
     moveTask(taskId, columnId, position);

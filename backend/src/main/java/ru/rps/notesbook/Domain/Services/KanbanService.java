@@ -240,6 +240,14 @@ public class KanbanService implements IKanbanService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<KanbanContracts.KanbanTaskResponse> GetArchivedTasks(UUID currentUserId) {
+        return kanbanTaskRepository.GetArchivedTasksByOwnerId(currentUserId).stream()
+                .map(KanbanService::toTaskResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public KanbanContracts.KanbanTaskResponse LinkNoteToTask(UUID currentUserId, UUID taskId, UUID noteId) {
         KanbanTask task = getOwnedTaskOrThrow(currentUserId, taskId);

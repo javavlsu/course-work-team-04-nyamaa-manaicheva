@@ -2,6 +2,7 @@ package ru.rps.notesbook.Domain.Interfaces.Services;
 
 import ru.rps.notesbook.API.Contracts.KanbanContracts;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface IKanbanService {
@@ -27,6 +28,8 @@ public interface IKanbanService {
     KanbanContracts.KanbanTaskResponse ArchiveTask(UUID currentUserId, UUID taskId);
 
     KanbanContracts.KanbanTaskResponse UnarchiveTask(UUID currentUserId, UUID taskId);
+
+    List<KanbanContracts.KanbanTaskResponse> GetArchivedTasks(UUID currentUserId);
 
     KanbanContracts.KanbanTaskResponse LinkNoteToTask(UUID currentUserId, UUID taskId, UUID noteId);
 

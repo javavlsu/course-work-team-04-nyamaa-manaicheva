@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Folder, Kanban, ListTodo, StickyNote, Table, X } from "lucide-react";
+import { Folder, ListTodo, StickyNote, Table, X } from "lucide-react";
 import "./NoteTemplateModal.css";
 
 const NOTE_TEMPLATES = [
@@ -8,7 +8,6 @@ const NOTE_TEMPLATES = [
   { key: "List", label: "Список задач", description: "Чек-лист с выполненными задачами", to: "/notes/new?type=List", Icon: ListTodo },
   { key: "Table", label: "Таблица", description: "Редактируемая таблица", to: "/notes/new?type=Table", Icon: Table },
   { key: "Directory", label: "Директория", description: "Папка для группировки заметок", action: "directory", Icon: Folder },
-  { key: "Kanban", label: "Канбан доска", description: "Пока недоступна", action: "kanban", Icon: Kanban },
 ];
 
 function NoteTemplateModal({ open, onClose, onCreateDirectory }) {
@@ -33,11 +32,6 @@ function NoteTemplateModal({ open, onClose, onCreateDirectory }) {
     if (template.action === "directory") {
       onClose();
       onCreateDirectory?.();
-      return;
-    }
-    if (template.action === "kanban") {
-      onClose();
-      window.alert("Функция «Канбан доска» пока недоступна");
       return;
     }
     navigate(template.to);

@@ -16,7 +16,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px var(--content-gutter-x);
-  width: 100%;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -46,6 +45,62 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.kanban-topbar-menu-wrap {
+  position: relative;
+}
+
+.kanban-topbar-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.kanban-topbar-icon-btn:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.kanban-topbar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 210px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 40;
+}
+
+.kanban-topbar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: 6px;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.kanban-topbar-menu-item:hover {
+  background: var(--fg-soft);
+}
+
+.kanban-topbar-menu-item svg {
+  flex-shrink: 0;
 }
 
 .app .btn {
@@ -213,6 +268,10 @@
   box-shadow: none;
 }
 
+.kanban-column-new .column-header {
+  border-bottom: none;
+}
+
 .column-header {
   display: flex;
   align-items: center;
@@ -280,6 +339,10 @@
   z-index: 20;
 }
 
+.column-menu button:not(.column-menu-danger) {
+  color: var(--fg);
+}
+
 .column-menu button {
   display: flex;
   align-items: center;
@@ -290,10 +353,20 @@
   color: #d14343;
   border-radius: 6px;
   text-align: left;
+  transition: background 0.12s, color 0.12s;
 }
 
 .column-menu button:hover {
+  background: var(--fg-soft);
+}
+
+.column-menu .column-menu-danger {
+  color: #d14343;
+}
+
+.column-menu .column-menu-danger:hover {
   background: color-mix(in oklch, #d14343 10%, transparent);
+  color: #d14343;
 }
 
 .column-body {
@@ -623,8 +696,8 @@
 .kanban-modal-danger {
   font-size: 13px;
   font-weight: 500;
-  color: #fff;
-  background: #d14343;
+  color: #d14343;
+  background: #fff;
   padding: 8px 18px;
   border-radius: 999px;
   box-shadow: 0 2px 10px color-mix(in oklch, #d14343 25%, transparent);
@@ -633,6 +706,7 @@
 
 .kanban-modal-danger:hover {
   background: color-mix(in oklch, #d14343 88%, black);
+  color: #fff;
 }
 
 .kanban-modal-danger:disabled {
