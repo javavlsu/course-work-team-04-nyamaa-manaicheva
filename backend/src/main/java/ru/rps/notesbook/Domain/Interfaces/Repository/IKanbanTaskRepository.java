@@ -12,6 +12,7 @@ public interface IKanbanTaskRepository {
 
     List<KanbanTask> GetTasksByColumnId(UUID columnId);
     List<KanbanTask> GetTasksByNoteId(UUID noteId);
+    List<KanbanTask> GetArchivedTasksByOwnerId(UUID ownerId);
     Optional<KanbanTask> GetTaskById(UUID id);
     KanbanTask SaveTask(KanbanTask task);
     void DeleteTaskById(UUID id);

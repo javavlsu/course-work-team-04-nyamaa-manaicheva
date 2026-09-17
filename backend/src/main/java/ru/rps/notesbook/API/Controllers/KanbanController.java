@@ -9,6 +9,7 @@ import ru.rps.notesbook.API.Contracts.KanbanContracts;
 import ru.rps.notesbook.Domain.Interfaces.Services.IKanbanService;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -125,6 +126,14 @@ public class KanbanController {
     ) {
         UUID userId = requireUserId(principal);
         return kanbanService.UnarchiveTask(userId, taskId);
+    }
+
+    @GetMapping("/tasks/archived")
+    public List<KanbanContracts.KanbanTaskResponse> getArchivedTasks(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal
+    ) {
+        UUID userId = requireUserId(principal);
+        return kanbanService.GetArchivedTasks(userId);
     }
 
     @PostMapping("/tasks/{taskId}/note/{noteId}")

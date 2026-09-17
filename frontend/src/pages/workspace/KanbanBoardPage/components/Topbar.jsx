@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Archive, ArchiveRestore, Ellipsis, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Archive, Ellipsis, Plus } from "lucide-react";
 
-function Topbar({ showArchived, onToggleShowArchived, onAddColumn }) {
+function Topbar({ onAddColumn }) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -50,13 +52,11 @@ function Topbar({ showArchived, onToggleShowArchived, onAddColumn }) {
                 className="kanban-topbar-menu-item"
                 onClick={() => {
                   setMenuOpen(false);
-                  onToggleShowArchived();
+                  navigate("/kanban/archive");
                 }}
               >
-                {showArchived
-                  ? <ArchiveRestore size={14} strokeWidth={1.8} />
-                  : <Archive size={14} strokeWidth={1.8} />}
-                {showArchived ? "Скрыть архив" : "Показать архив"}
+                <Archive size={14} strokeWidth={1.8} />
+                Показать архив
               </button>
             </div>
           )}

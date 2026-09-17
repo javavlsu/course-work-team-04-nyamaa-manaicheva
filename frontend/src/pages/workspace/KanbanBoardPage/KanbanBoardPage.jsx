@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { useKanbanBoard } from "./hooks/useKanbanBoard";
@@ -10,8 +10,6 @@ import "./KanbanBoardPage.css";
 
 export function KanbanBoardPage() {
   const { setSidebarProps } = useOutletContext();
-
-  const [showArchived, setShowArchived] = useState(false);
 
   useLayoutEffect(() => {
     setSidebarProps({ active: "kanban" });
@@ -54,11 +52,7 @@ export function KanbanBoardPage() {
 
   return (
     <>
-      <Topbar
-        showArchived={showArchived}
-          onToggleShowArchived={() => setShowArchived((v) => !v)}
-          onAddColumn={() => setIsAddingColumn(true)}
-        />
+      <Topbar onAddColumn={() => setIsAddingColumn(true)} />
 
         {isLoading && (
           <div className="notes-loading">
@@ -93,7 +87,7 @@ export function KanbanBoardPage() {
 
             <KanbanBoard
               columns={board.columns}
-              showArchived={showArchived}
+              showArchived={false}
               isAddingColumn={isAddingColumn}
               onCancelAddColumn={() => setIsAddingColumn(false)}
               onCreateColumn={handleCreateColumn}

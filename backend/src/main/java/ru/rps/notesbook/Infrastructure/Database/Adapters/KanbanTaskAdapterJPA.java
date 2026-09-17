@@ -14,6 +14,8 @@ public interface KanbanTaskAdapterJPA extends JpaRepository<KanbanTaskEntity, UU
 
     List<KanbanTaskEntity> findByNote_Id(UUID noteId);
 
+    List<KanbanTaskEntity> findByColumn_Board_Owner_IdAndArchivedTrue(UUID ownerId);
+
     void deleteByColumn_Id(UUID columnId);
 
 }

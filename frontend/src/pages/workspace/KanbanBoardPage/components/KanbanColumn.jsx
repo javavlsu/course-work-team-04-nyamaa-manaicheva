@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 
 import KanbanCard from "./KanbanCard";
 
@@ -70,7 +70,7 @@ function KanbanColumn({
               }}
             />
           ) : (
-            <span className="column-title" onClick={() => setIsEditingTitle(true)}>
+            <span className="column-title">
               {column.title}
             </span>
           )}
@@ -88,6 +88,17 @@ function KanbanColumn({
             <div className="column-menu" onMouseLeave={() => setMenuOpen(false)}>
               <button
                 type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setIsEditingTitle(true);
+                }}
+              >
+                <Pencil size={14} strokeWidth={1.8} />
+                Переименовать
+              </button>
+              <button
+                type="button"
+                className="column-menu-danger"
                 onClick={() => {
                   setMenuOpen(false);
                   onDeleteColumn(column);

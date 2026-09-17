@@ -107,3 +107,13 @@ export function archiveTask(taskId) {
 export function unarchiveTask(taskId) {
   return api.patch(`/api/kanban/tasks/${taskId}/unarchive`);
 }
+
+/**
+ * Все архивированные задачи текущего пользователя (в одной плоской выборке,
+ * без привязки к конкретной колонке).
+ *
+ * @returns {Promise<object[]>} KanbanTaskResponse[]
+ */
+export function getArchivedTasks() {
+  return api.get("/api/kanban/tasks/archived");
+}
