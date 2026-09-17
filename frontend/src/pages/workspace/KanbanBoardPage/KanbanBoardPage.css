@@ -16,7 +16,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px var(--content-gutter-x);
-  width: 100%;
   border-bottom: 1px solid var(--border);
   background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -46,6 +45,62 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.kanban-topbar-menu-wrap {
+  position: relative;
+}
+
+.kanban-topbar-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.kanban-topbar-icon-btn:hover {
+  background: var(--fg-soft);
+  color: var(--fg);
+}
+
+.kanban-topbar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 210px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 40;
+}
+
+.kanban-topbar-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: 6px;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.kanban-topbar-menu-item:hover {
+  background: var(--fg-soft);
+}
+
+.kanban-topbar-menu-item svg {
+  flex-shrink: 0;
 }
 
 .app .btn {
