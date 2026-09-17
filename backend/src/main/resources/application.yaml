@@ -36,14 +36,13 @@ notesbook:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   storage:
-    # Временное отключение MinIO (образ minio/minio недоступен).
-    # Чтобы вернуть хранилище: поставьте enabled: true (или MINIO_ENABLED=true).
-    enabled: ${MINIO_ENABLED:false}
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-    public-endpoint: ${MINIO_PUBLIC_ENDPOINT:http://localhost:9000}
-    access-key: ${MINIO_ACCESS_KEY:minioadmin}
-    secret-key: ${MINIO_SECRET_KEY:minioadmin}
-    bucket: ${MINIO_BUCKET:notesbook-attachments}
+    enabled: ${S3_ENABLED:true}
+    endpoint: ${S3_ENDPOINT:}
+    region: ${S3_REGION:us-east-1}
+    access-key: ${S3_ACCESS_KEY:}
+    secret-key: ${S3_SECRET_KEY:}
+    bucket: ${S3_BUCKET:notesbook-attachments}
+    path-style: ${S3_PATH_STYLE:true}
   mail:
     from: ${MAIL_FROM:no-reply@notesbook.local}
   frontend:
