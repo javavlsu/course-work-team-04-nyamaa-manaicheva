@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 
-// Статус задачи (KanbanTaskStatus) — самостоятельное поле, отдельное от колонки.
-// dotClass переиспользует уже существующие цветовые классы .todo/.progress/.done.
-const STATUS_META = {
-  Todo: { label: "К выполнению", dotClass: "todo" },
-  InProgress: { label: "В работе", dotClass: "progress" },
-  Done: { label: "Готово", dotClass: "done" },
-};
-
 function KanbanCard({
   task,
   dragging,
@@ -25,12 +17,10 @@ function KanbanCard({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
-  const [status, setStatus] = useState(task.status);
 
   const startEdit = () => {
     setTitle(task.title);
     setDescription(task.description ?? "");
-    setStatus(task.status);
     setIsEditing(true);
   };
 
@@ -45,12 +35,9 @@ function KanbanCard({
     onSave({
       title: trimmedTitle !== task.title ? trimmedTitle : undefined,
       description: description !== (task.description ?? "") ? description : undefined,
-      status: status !== task.status ? status : undefined,
     });
     setIsEditing(false);
   };
-
-  const meta = STATUS_META[task.status] ?? STATUS_META.Todo;
 
   if (isEditing) {
     return (
@@ -70,15 +57,6 @@ function KanbanCard({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <select
-          className="kanban-card-status-select"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          {Object.entries(STATUS_META).map(([value, { label }]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
         <div className="kanban-card-edit-actions">
           <button type="button" className="kanban-card-btn-cancel" onClick={cancelEdit}>
             Отмена
@@ -135,7 +113,6 @@ function KanbanCard({
       {task.description && <p className="kanban-card-description">{task.description}</p>}
 
       <div className="kanban-card-meta">
-        <span className={`kanban-card-tag ${meta.dotClass}`}>{meta.label}</span>
         {task.archived && <span className="kanban-card-archived-badge">В архиве</span>}
       </div>
     </div>

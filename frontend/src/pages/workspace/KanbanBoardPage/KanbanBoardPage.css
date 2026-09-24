@@ -492,30 +492,6 @@
   gap: 8px;
 }
 
-.kanban-card-tag {
-  display: inline-flex;
-  padding: 2px 8px;
-  background: var(--fg-soft);
-  border-radius: 999px;
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.kanban-card-tag.todo {
-  background: var(--fg-soft);
-  color: var(--muted);
-}
-
-.kanban-card-tag.progress {
-  background: color-mix(in oklch, var(--warning) 12%, transparent);
-  color: var(--warning);
-}
-
-.kanban-card-tag.done {
-  background: color-mix(in oklch, var(--success) 12%, transparent);
-  color: var(--success);
-}
-
 .kanban-card-archived-badge {
   font-size: 11px;
   color: var(--muted);
@@ -553,17 +529,6 @@
 
 .kanban-card-description-input:focus {
   border-color: var(--accent);
-}
-
-.kanban-card-status-select {
-  font: inherit;
-  font-size: 12.5px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--fg);
-  outline: none;
 }
 
 .kanban-card-edit-actions {

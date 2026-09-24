@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-import ru.rps.notesbook.Domain.Enum.KanbanTaskStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,11 +33,6 @@ public class KanbanTaskEntity {
 
     @Column(name = "position", nullable = false)
     private Integer position;
-
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "status", nullable = false, columnDefinition = "kanban_task_status")
-    private KanbanTaskStatus status;
 
     @Column(name = "archived", nullable = false)
     private Boolean archived;

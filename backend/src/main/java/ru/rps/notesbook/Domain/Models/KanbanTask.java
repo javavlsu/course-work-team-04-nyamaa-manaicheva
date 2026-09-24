@@ -1,7 +1,5 @@
 package ru.rps.notesbook.Domain.Models;
 
-import ru.rps.notesbook.Domain.Enum.KanbanTaskStatus;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,32 +10,29 @@ public class KanbanTask {
     private String title;
     private String description;
     private int position;
-    private KanbanTaskStatus status;
     private boolean archived;
     private Note note;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public KanbanTask(UUID id, KanbanColumn column, String title, String description,
-                       int position, KanbanTaskStatus status, boolean archived,
+                       int position, boolean archived,
                        Note note, LocalDateTime createdAt) {
-        this(id, column, title, description, position, status, archived, note, createdAt, createdAt);
+        this(id, column, title, description, position, archived, note, createdAt, createdAt);
     }
 
     public KanbanTask(UUID id, KanbanColumn column, String title, String description,
-                       int position, KanbanTaskStatus status, boolean archived,
+                       int position, boolean archived,
                        Note note, LocalDateTime createdAt, LocalDateTime updatedAt) {
         ValidateColumn(column);
         ValidateTitle(title);
         ValidatePosition(position);
-        ValidateStatus(status);
 
         this.id = id;
         this.column = column;
         this.title = title;
         this.description = description;
         this.position = position;
-        this.status = status;
         this.archived = archived;
         this.note = note;
         this.createdAt = createdAt;
@@ -49,7 +44,6 @@ public class KanbanTask {
     public String GetTitle() { return this.title; }
     public String GetDescription() { return this.description; }
     public int GetPosition() { return this.position; }
-    public KanbanTaskStatus GetStatus() { return this.status; }
     public boolean IsArchived() { return this.archived; }
     public Note GetNote() { return this.note; }
     public LocalDateTime GetCreatedAt() { return this.createdAt; }
@@ -69,12 +63,6 @@ public class KanbanTask {
     public void ChangePosition(int position) {
         ValidatePosition(position);
         this.position = position;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public void ChangeStatus(KanbanTaskStatus status) {
-        ValidateStatus(status);
-        this.status = status;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -120,11 +108,6 @@ public class KanbanTask {
     public void ValidatePosition(int position) {
         if (position < 0) {
             throw new IllegalArgumentException("position can't be negative");
-        }
-    }
-    public void ValidateStatus(KanbanTaskStatus status) {
-        if (status == null) {
-            throw new IllegalArgumentException("status can't be null");
         }
     }
 

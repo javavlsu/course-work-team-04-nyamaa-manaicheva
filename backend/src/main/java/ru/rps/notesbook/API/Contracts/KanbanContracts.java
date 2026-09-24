@@ -1,7 +1,5 @@
 package ru.rps.notesbook.API.Contracts;
 
-import ru.rps.notesbook.Domain.Enum.KanbanTaskStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +30,6 @@ public final class KanbanContracts {
             String title,
             String description,
             int position,
-            KanbanTaskStatus status,
             boolean archived,
             UUID noteId,
             LocalDateTime createdAt,
@@ -53,14 +50,12 @@ public final class KanbanContracts {
             String title,
             String description,
             Integer position,
-            KanbanTaskStatus status,
             UUID noteId
     ) {}
 
     public record UpdateTaskRequest(
             String title,
-            String description,
-            KanbanTaskStatus status
+            String description
     ) {}
 
     public record MoveTaskRequest(

@@ -3,7 +3,6 @@
 CREATE TYPE role_type AS ENUM ('Admin', 'Client');
 CREATE TYPE note_type AS ENUM ('Empty', 'List', 'Table', 'Kanban', 'Calendar');
 CREATE TYPE permission_type AS ENUM ('View', 'Edit');
-CREATE TYPE kanban_task_status AS ENUM ('Todo', 'InProgress', 'Done');
 
 -- USER
 CREATE TABLE "User" (
@@ -183,7 +182,6 @@ CREATE TABLE kanban_task (
     title        VARCHAR(150) NOT NULL,
     description  TEXT,
     position     INTEGER NOT NULL,
-    status       kanban_task_status NOT NULL,
     archived     BOOLEAN NOT NULL DEFAULT FALSE,
     note_id      UUID NULL,
     created_at   TIMESTAMP NOT NULL,
