@@ -5,9 +5,7 @@
  *
  * KanbanBoardResponse:  { id, ownerId, createdAt, updatedAt, columns: KanbanColumnResponse[] }
  * KanbanColumnResponse: { id, boardId, title, position, createdAt, updatedAt, tasks: KanbanTaskResponse[] }
- * KanbanTaskResponse:   { id, columnId, title, description, position, status, archived, noteId, createdAt, updatedAt }
- *
- * status: "Todo" | "InProgress" | "Done"
+ * KanbanTaskResponse:   { id, columnId, title, description, position, archived, noteId, createdAt, updatedAt }
  */
 
 import { api } from "./client.js";
@@ -52,7 +50,7 @@ export function deleteColumn(columnId) {
 
 /**
  * @param {string} columnId
- * @param {{ title: string, description?: string, position?: number, status?: string, noteId?: string }} data
+ * @param {{ title: string, description?: string, position?: number, noteId?: string }} data
  * @returns {Promise<object>} KanbanTaskResponse
  */
 export function createTask(columnId, data) {
@@ -64,7 +62,7 @@ export function createTask(columnId, data) {
  * для архивирования — archiveTask/unarchiveTask.
  *
  * @param {string} taskId
- * @param {{ title?: string, description?: string, status?: string }} data
+ * @param {{ title?: string, description?: string }} data
  * @returns {Promise<object>} KanbanTaskResponse
  */
 export function updateTask(taskId, data) {

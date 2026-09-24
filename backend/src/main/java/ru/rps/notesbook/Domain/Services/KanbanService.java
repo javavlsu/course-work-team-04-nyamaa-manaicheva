@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.rps.notesbook.API.Contracts.KanbanContracts;
-import ru.rps.notesbook.Domain.Enum.KanbanTaskStatus;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IKanbanBoardRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IKanbanColumnRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IKanbanTaskRepository;
@@ -129,15 +128,12 @@ public class KanbanService implements IKanbanService {
                 ? request.position()
                 : nextPosition(kanbanTaskRepository.GetTasksByColumnId(columnId), KanbanTask::GetPosition);
 
-        KanbanTaskStatus status = request.status() != null ? request.status() : KanbanTaskStatus.Todo;
-
         KanbanTask task = new KanbanTask(
                 UUID.randomUUID(),
                 column,
                 request.title(),
                 request.description(),
                 position,
-                status,
                 false,
                 note,
                 LocalDateTime.now()
@@ -156,9 +152,6 @@ public class KanbanService implements IKanbanService {
         }
         if (request.description() != null) {
             task.ChangeDescription(request.description());
-        }
-        if (request.status() != null) {
-            task.ChangeStatus(request.status());
         }
 
         return toTaskResponse(kanbanTaskRepository.SaveTask(task));
@@ -355,7 +348,6 @@ public class KanbanService implements IKanbanService {
                 task.GetTitle(),
                 task.GetDescription(),
                 task.GetPosition(),
-                task.GetStatus(),
                 task.IsArchived(),
                 task.GetNote() != null ? task.GetNote().GetId() : null,
                 task.GetCreatedAt(),
