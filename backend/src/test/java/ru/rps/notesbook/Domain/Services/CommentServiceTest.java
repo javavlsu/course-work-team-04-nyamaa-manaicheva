@@ -18,12 +18,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link CommentService}.
- * Соответствует пунктам 31-32 чек-листа, раздел "Сервис CommentService" (клиентский модуль).
- * Пункты 28-30 (право редактирования при создании, авторство при редактировании) проверяются
- * в CommentControllerTest — эти проверки реализованы в CommentController, а не в CommentService.
- */
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
 
@@ -41,7 +35,6 @@ class CommentServiceTest {
         commentService = new CommentService(commentRepository, noteRepository, userRepository);
     }
 
-    // 31. Удаление несуществующего комментария
     @Test
     void deleteCommentById_withUnknownId_shouldThrowException() {
         UUID commentId = UUID.randomUUID();
@@ -51,7 +44,6 @@ class CommentServiceTest {
         verify(commentRepository, never()).SaveComment(org.mockito.ArgumentMatchers.any());
     }
 
-    // 32. Создание комментария к несуществующей заметке
     @Test
     void createComment_withUnknownNote_shouldThrowException() {
         UUID noteId = UUID.randomUUID();

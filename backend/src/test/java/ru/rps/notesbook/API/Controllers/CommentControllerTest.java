@@ -23,11 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link CommentController}.
- * Соответствует пунктам 28-30 чек-листа: право редактирования заметки при создании комментария
- * и авторство при его редактировании — эти проверки реализованы здесь, а не в CommentService.
- */
 @ExtendWith(MockitoExtension.class)
 class CommentControllerTest {
 
@@ -51,7 +46,6 @@ class CommentControllerTest {
         principal = new NotesbookUserPrincipal(userId, "user@example.com", "hash", List.of());
     }
 
-    // 28. Добавление комментария к заметке с правом редактирования
     @Test
     void createComment_withEditPermission_shouldCreateComment() {
         when(permissionAccessService.canEditNote(userId, noteId)).thenReturn(true);
@@ -67,7 +61,6 @@ class CommentControllerTest {
         verify(commentService).CreateComment(noteId, userId, request);
     }
 
-    // 29. Добавление комментария без права редактирования заметки
     @Test
     void createComment_withoutEditPermission_shouldThrowForbidden() {
         when(permissionAccessService.canEditNote(userId, noteId)).thenReturn(false);
@@ -81,7 +74,6 @@ class CommentControllerTest {
         verify(commentService, never()).CreateComment(any(), any(), any());
     }
 
-    // 30. Редактирование комментария не его автором
     @Test
     void updateComment_byNonAuthor_shouldThrowForbidden() {
         UUID commentId = UUID.randomUUID();

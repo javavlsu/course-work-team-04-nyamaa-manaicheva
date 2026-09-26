@@ -32,22 +32,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link UserService}: часть регистрации/восстановления пароля.
- * Соответствует пунктам чек-листа (административный модуль, раздел "Сервис AuthService"/"Сервис UserService"):
- * 1 (успешная регистрация), 7-10 (валидация регистрации), 48 (длина пароля),
- * 16-17 (forgot-password), 19-21 (reset-password).
- * Пункты 2-6, 11-15, 18, 22-23 (проверки пустых/несовпадающих полей и сам вход в систему)
- * реализованы в AuthController и тестируются в AuthControllerTest.
- *
- * Плюс раздел управления пользователями: 26-27 (поиск), 31 (404), 32/35-37 (обновление),
- * 40-41 (смена роли, валидация), 45-46 (удаление), 50 (поиск без учёта регистра).
- * Пункты 24-25, 28-30, 33-34, 38-39, 42-44, 49 (кто имеет право вызывать эти операции)
- * реализованы в UserController (requireAdmin/requireSelfOrAdmin) и тестируются в UserControllerTest.
- * Пункт 47 ("создание с ролью, отличной от Admin/Client") не реализуем: RoleTypeEnum —
- * enum только с двумя значениями, третье значение нельзя даже скомпилировать, так что
- * соответствующая ветка в User.ValidateRole — недостижимый защитный код.
- */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -65,7 +49,6 @@ class UserServiceTest {
         userService = new UserService(userRepository, passwordEncoder, emailService);
     }
 
-    // 1. Успешная регистрация нового пользователя с корректными данными
     @Test
     void register_withValidData_shouldCreateUserWithClientRole() {
         when(userRepository.GetUserByEmail("ivan@example.com")).thenReturn(Optional.empty());
@@ -83,7 +66,6 @@ class UserServiceTest {
         assertEquals("hashed-password123", saved.GetPassword());
     }
 
-    // 7. Регистрация с уже зарегистрированным email
     @Test
     void register_withDuplicateEmail_shouldThrowIllegalArgumentException() {
         when(userRepository.GetUserByEmail("ivan@example.com"))
@@ -96,7 +78,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 8. Регистрация с email в некорректном формате
     @Test
     void register_withInvalidEmailFormat_shouldThrowValidationException() {
         when(userRepository.GetUserByEmail("not-an-email")).thenReturn(Optional.empty());
@@ -108,7 +89,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 9. Регистрация с датой рождения в будущем
     @Test
     void register_withFutureBirthday_shouldThrowValidationException() {
         when(userRepository.GetUserByEmail("ivan@example.com")).thenReturn(Optional.empty());
@@ -120,7 +100,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 10. Регистрация с именем длиннее 75 символов
     @Test
     void register_withTooLongName_shouldThrowValidationException() {
         when(userRepository.GetUserByEmail("ivan@example.com")).thenReturn(Optional.empty());
@@ -133,7 +112,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 48. Регистрация с паролем длиннее 100 символов
     @Test
     void register_withTooLongPassword_shouldThrowValidationException() {
         when(userRepository.GetUserByEmail("ivan@example.com")).thenReturn(Optional.empty());
@@ -146,7 +124,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 16. Запрос восстановления пароля для существующего email
     @Test
     void requestPasswordReset_forExistingEmail_shouldGenerateTokenAndSendEmail() {
         User user = existingUser();
@@ -160,7 +137,6 @@ class UserServiceTest {
         verify(userRepository, times(1)).SaveUser(user);
     }
 
-    // 17. Запрос восстановления пароля для несуществующего email
     @Test
     void requestPasswordReset_forNonExistingEmail_shouldDoNothingSilently() {
         when(userRepository.GetUserByEmail("unknown@example.com")).thenReturn(Optional.empty());
@@ -171,7 +147,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 19. Сброс пароля по действительному токену
     @Test
     void resetPassword_withValidToken_shouldUpdatePasswordAndClearToken() {
         String rawToken = "valid-raw-token";
@@ -191,7 +166,6 @@ class UserServiceTest {
         verify(userRepository, times(1)).SaveUser(user);
     }
 
-    // 20. Сброс пароля по несуществующему/использованному токену
     @Test
     void resetPassword_withUnknownToken_shouldThrowIllegalArgumentException() {
         when(userRepository.GetUserByPasswordResetTokenHash(anyString())).thenReturn(Optional.empty());
@@ -202,7 +176,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 21. Сброс пароля по истёкшему токену
     @Test
     void resetPassword_withExpiredToken_shouldClearTokenAndThrow() {
         String rawToken = "expired-raw-token";
@@ -221,7 +194,6 @@ class UserServiceTest {
         verify(userRepository, times(1)).SaveUser(user);
     }
 
-    // 26. Поиск пользователей по части email/имени/фамилии
     @Test
     void searchUsers_byPartialMatch_shouldReturnMatchingUsers() {
         User ivan = existingUser();
@@ -235,7 +207,6 @@ class UserServiceTest {
         assertEquals(petr.GetId(), result.get(0).id());
     }
 
-    // 27. Поиск пользователей с пустым запросом
     @Test
     void searchUsers_withBlankQuery_shouldReturnEmptyList() {
         List<UserContracts.UserSearchResponse> result = userService.SearchUsers("   ");
@@ -244,7 +215,6 @@ class UserServiceTest {
         verify(userRepository, never()).GetUsers();
     }
 
-    // 31. Получение пользователя по несуществующему ID
     @Test
     void getUserById_withUnknownId_shouldThrowException() {
         UUID id = UUID.randomUUID();
@@ -253,7 +223,6 @@ class UserServiceTest {
         assertThrows(RuntimeException.class, () -> userService.GetUserById(id));
     }
 
-    // 32. Обновление собственных данных (имя, фамилия, email, дата рождения)
     @Test
     void updateUser_withPartialData_shouldUpdateOnlyProvidedFields() {
         User user = existingUser();
@@ -270,7 +239,6 @@ class UserServiceTest {
         assertEquals("ivan@example.com", response.email());
     }
 
-    // 35. Обновление email на некорректный формат
     @Test
     void updateUser_withInvalidEmail_shouldThrowValidationException() {
         User user = existingUser();
@@ -283,7 +251,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 36. Обновление имени пустой строкой
     @Test
     void updateUser_withBlankName_shouldThrowValidationException() {
         User user = existingUser();
@@ -296,7 +263,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 37. Обновление данных несуществующего пользователя
     @Test
     void updateUser_withUnknownId_shouldThrowException() {
         UUID id = UUID.randomUUID();
@@ -308,7 +274,6 @@ class UserServiceTest {
         assertThrows(RuntimeException.class, () -> userService.UpdateUser(id, request));
     }
 
-    // 40. Изменение роли на null
     @Test
     void changeUserRole_withNullRole_shouldThrowValidationException() {
         User user = existingUser();
@@ -320,7 +285,6 @@ class UserServiceTest {
         verify(userRepository, never()).SaveUser(any());
     }
 
-    // 41. Изменение роли несуществующего пользователя
     @Test
     void changeUserRole_withUnknownId_shouldThrowException() {
         UUID id = UUID.randomUUID();
@@ -329,7 +293,6 @@ class UserServiceTest {
         assertThrows(RuntimeException.class, () -> userService.ChangeUserRole(id, RoleTypeEnum.Admin));
     }
 
-    // 45. Удаление пользователя, связанного с заметками/директориями (FK)
     @Test
     void deleteUserById_withRelatedData_shouldThrowConflict() {
         UUID id = UUID.randomUUID();
@@ -342,7 +305,6 @@ class UserServiceTest {
         assertEquals(org.springframework.http.HttpStatus.CONFLICT, ex.getStatusCode());
     }
 
-    // 46. Удаление несуществующего пользователя
     @Test
     void deleteUserById_withUnknownId_shouldPropagateRepositoryBehavior() {
         UUID id = UUID.randomUUID();
@@ -352,7 +314,6 @@ class UserServiceTest {
         assertThrows(RuntimeException.class, () -> userService.DeleteUserById(id));
     }
 
-    // 50. Поиск пользователей — регистр символов не влияет на результат поиска
     @Test
     void searchUsers_shouldBeCaseInsensitive() {
         User user = existingUser();
@@ -363,8 +324,6 @@ class UserServiceTest {
         assertEquals(1, result.size());
         assertEquals(user.GetId(), result.get(0).id());
     }
-
-    // --- helpers ---
 
     private User existingUser() {
         return new User(
@@ -378,8 +337,6 @@ class UserServiceTest {
         return org.mockito.ArgumentMatchers.argThat(actual -> expected.equalsIgnoreCase(actual));
     }
 
-    // Реализация идентична приватному UserService.hashToken(...) — используется, т.к. сам
-    // сырой токен генерируется внутри сервиса случайно и недоступен тесту напрямую.
     private static String sha256Hex(String rawToken) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

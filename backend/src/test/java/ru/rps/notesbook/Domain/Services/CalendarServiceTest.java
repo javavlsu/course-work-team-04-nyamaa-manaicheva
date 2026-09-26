@@ -34,12 +34,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link CalendarService}.
- * Соответствует пунктам 33-39 чек-листа, раздел "Сервис CalendarService" (клиентский модуль).
- * В отличие от Directory/Comment, все проверки владения здесь реализованы в самом сервисе,
- * поэтому отдельный ControllerTest не требуется.
- */
 @ExtendWith(MockitoExtension.class)
 class CalendarServiceTest {
 
@@ -72,7 +66,6 @@ class CalendarServiceTest {
                 LocalDate.of(1996, 2, 2), LocalDateTime.now(), "hash", RoleTypeEnum.Client);
     }
 
-    // 33. Получение/создание календаря при первом обращении
     @Test
     void getOrCreateCalendarForUser_whenNoneExists_shouldCreateNewCalendar() {
         when(calendarRepository.GetCalendarByOwnerId(ownerId)).thenReturn(Optional.empty());
@@ -86,7 +79,6 @@ class CalendarServiceTest {
         verify(calendarRepository, times(1)).SaveCalendar(any(Calendar.class));
     }
 
-    // 34. Создание события в своём календаре
     @Test
     void createEvent_inOwnCalendar_shouldCreateEvent() {
         UUID calendarId = UUID.randomUUID();
@@ -107,7 +99,6 @@ class CalendarServiceTest {
         verify(calendarRepository, times(1)).SaveCalendar(calendar);
     }
 
-    // 35. Создание события в чужом календаре
     @Test
     void createEvent_inForeignCalendar_shouldThrowForbidden() {
         UUID calendarId = UUID.randomUUID();
@@ -124,7 +115,6 @@ class CalendarServiceTest {
         verify(calendarEventRepository, never()).SaveEvent(any());
     }
 
-    // 36. Запрос событий с диапазоном, где конец раньше начала
     @Test
     void getEventsByRange_withEndBeforeStart_shouldThrowBadRequest() {
         UUID calendarId = UUID.randomUUID();
@@ -137,7 +127,6 @@ class CalendarServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
     }
 
-    // 37. Привязка чужой заметки к событию
     @Test
     void linkNoteToEvent_withForeignNote_shouldThrowForbidden() {
         UUID calendarId = UUID.randomUUID();
@@ -159,7 +148,6 @@ class CalendarServiceTest {
         verify(calendarEventRepository, never()).SaveEvent(any());
     }
 
-    // 38. Перенос события на новое время
     @Test
     void updateEvent_reschedule_shouldChangeStartAndEndTime() {
         UUID calendarId = UUID.randomUUID();
@@ -183,7 +171,6 @@ class CalendarServiceTest {
         assertEquals(newEnd, response.endAt());
     }
 
-    // 39. Получение событий за диапазон дат
     @Test
     void getEventsByRange_shouldReturnEventsSortedByStartTime() {
         UUID calendarId = UUID.randomUUID();

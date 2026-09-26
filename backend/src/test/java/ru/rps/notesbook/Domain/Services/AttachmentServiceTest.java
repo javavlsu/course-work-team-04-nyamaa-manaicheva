@@ -31,12 +31,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link AttachmentService}.
- * Соответствует пунктам 51, 54, 55 чек-листа (административный модуль, "Сервис AttachmentService").
- * Пункты 52-53 (пустой файл / файл больше 20 МБ) проверяются в AttachmentControllerTest,
- * т.к. эти лимиты реализованы в AttachmentController, а не в самом сервисе.
- */
 @ExtendWith(MockitoExtension.class)
 class AttachmentServiceTest {
 
@@ -63,7 +57,6 @@ class AttachmentServiceTest {
         note = new Note(UUID.randomUUID(), "Заметка", null, LocalDateTime.now(), NoteTypeEnum.Empty, false, user);
     }
 
-    // 51. Загрузка вложения к заметке с корректным файлом
     @Test
     void uploadAttachment_withValidFile_shouldSaveMetadataAndUploadContent() {
         when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
@@ -80,7 +73,6 @@ class AttachmentServiceTest {
         verify(attachmentRepository, times(1)).SaveAttachment(any(Attachment.class));
     }
 
-    // 54. Получение presigned-ссылки на скачивание существующего вложения
     @Test
     void getDownloadUrl_shouldReturnPresignedUrlWithExpiry() {
         Attachment attachment = new Attachment(UUID.randomUUID(), note, "file.pdf", "application/pdf",
@@ -96,7 +88,6 @@ class AttachmentServiceTest {
         assertNotNull(response.expiresAt());
     }
 
-    // 55. Удаление вложения (метаданные и объект в хранилище)
     @Test
     void deleteAttachmentById_shouldRemoveMetadataAndStorageObject() {
         Attachment attachment = new Attachment(UUID.randomUUID(), note, "file.pdf", "application/pdf",

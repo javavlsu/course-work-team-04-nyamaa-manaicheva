@@ -31,12 +31,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link DirectoryService}.
- * Соответствует пунктам 15-18, 20-22 чек-листа, раздел "Сервис DirectoryService" (клиентский модуль).
- * Пункт 19 ("Удаление директории не владельцем") проверяется отдельно в DirectoryControllerTest,
- * т.к. эта проверка владения реализована в контроллере, а не в самом DirectoryService.
- */
 @ExtendWith(MockitoExtension.class)
 class DirectoryServiceTest {
 
@@ -68,7 +62,6 @@ class DirectoryServiceTest {
         return new Directory(id, title, updatedAt.minusDays(1), updatedAt, null, owner, version);
     }
 
-    // 15. Создание новой директории
     @Test
     void createDirectory_withValidData_shouldCreateDirectory() {
         when(userRepository.GetUserById(ownerId)).thenReturn(Optional.of(owner));
@@ -84,7 +77,6 @@ class DirectoryServiceTest {
         verify(directoryRepository).SaveDirectory(any(Directory.class));
     }
 
-    // 16. Получение списка директорий с поиском и пагинацией
     @Test
     void getDirectoriesByOwnerId_withSearch_shouldReturnFilteredList() {
         LocalDateTime now = LocalDateTime.now();
@@ -102,7 +94,6 @@ class DirectoryServiceTest {
         assertFalse(page.hasMore());
     }
 
-    // 17. Обновление названия директории с устаревшим expectedVersion
     @Test
     void updateDirectory_withStaleVersion_shouldThrowConflict() {
         UUID directoryId = UUID.randomUUID();
@@ -118,7 +109,6 @@ class DirectoryServiceTest {
         verify(directoryRepository, never()).SaveDirectory(any());
     }
 
-    // 18. Обновление несуществующей директории
     @Test
     void updateDirectory_withUnknownId_shouldThrowException() {
         UUID directoryId = UUID.randomUUID();
@@ -130,7 +120,6 @@ class DirectoryServiceTest {
         assertThrows(RuntimeException.class, () -> directoryService.UpdateDirectory(directoryId, request));
     }
 
-    // 20. Получение несуществующей директории
     @Test
     void getDirectoryById_withUnknownId_shouldThrowException() {
         UUID directoryId = UUID.randomUUID();
@@ -139,7 +128,6 @@ class DirectoryServiceTest {
         assertThrows(RuntimeException.class, () -> directoryService.GetDirectoryById(directoryId));
     }
 
-    // 21. Удаление директории с устаревшим expectedVersion
     @Test
     void deleteDirectoryById_withStaleVersion_shouldThrowConflict() {
         UUID directoryId = UUID.randomUUID();
@@ -152,7 +140,6 @@ class DirectoryServiceTest {
         verify(directoryRepository, never()).SaveDirectory(any());
     }
 
-    // 22. Получение следующей страницы списка директорий по курсору
     @Test
     void getDirectoriesByOwnerId_secondPage_shouldReturnNextItemAndCursor() {
         LocalDateTime now = LocalDateTime.now();

@@ -24,11 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тест для {@link NoteController}.
- * Пункт 73 чек-листа ("ревизия не принадлежит указанной заметке") — эта сверка
- * (revision.noteId() vs {id} из URL) реализована здесь, а не в NoteRevisionService.
- */
 @ExtendWith(MockitoExtension.class)
 class NoteControllerTest {
 
@@ -52,7 +47,6 @@ class NoteControllerTest {
         principal = new NotesbookUserPrincipal(UUID.randomUUID(), "user@example.com", "hash", List.of());
     }
 
-    // 73. Запрос ревизии, не принадлежащей указанной заметке
     @Test
     void getRevision_notBelongingToNote_shouldThrowNotFound() {
         UUID noteId = UUID.randomUUID();

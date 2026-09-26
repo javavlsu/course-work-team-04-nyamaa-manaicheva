@@ -38,15 +38,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link KanbanService}.
- * Соответствует пунктам 40-50 чек-листа, раздел "Сервис KanbanService" (клиентский модуль).
- * Все проверки владения (доска/колонка/задача/привязанная заметка) реализованы в самом сервисе.
- *
- * Примечание: Mockito по умолчанию возвращает пустой List для незастабленных методов,
- * возвращающих коллекции, поэтому GetColumnsByBoardId/GetTasksByColumnId стабятся только
- * там, где тесту важно конкретное содержимое.
- */
 @ExtendWith(MockitoExtension.class)
 class KanbanServiceTest {
 
@@ -80,7 +71,6 @@ class KanbanServiceTest {
                 LocalDate.of(1996, 2, 2), LocalDateTime.now(), "hash", RoleTypeEnum.Client);
     }
 
-    // 40. Получение/создание Kanban-доски при первом обращении
     @Test
     void getOrCreateBoardForUser_whenNoneExists_shouldCreateNewBoard() {
         when(kanbanBoardRepository.GetBoardByOwnerId(ownerId)).thenReturn(Optional.empty());
@@ -95,7 +85,6 @@ class KanbanServiceTest {
         verify(kanbanBoardRepository, times(1)).SaveBoard(any(KanbanBoard.class));
     }
 
-    // 41. Создание колонки на своей доске
     @Test
     void createColumn_onOwnBoard_shouldCreateColumnWithGivenPosition() {
         UUID boardId = UUID.randomUUID();
@@ -114,7 +103,6 @@ class KanbanServiceTest {
         verify(kanbanBoardRepository, times(1)).SaveBoard(board);
     }
 
-    // 42. Создание задачи в колонке чужой доски
     @Test
     void createTask_inColumnOfForeignBoard_shouldThrowForbidden() {
         UUID boardId = UUID.randomUUID();
@@ -131,7 +119,6 @@ class KanbanServiceTest {
         verify(kanbanTaskRepository, never()).SaveTask(any());
     }
 
-    // 43. Перемещение задачи между колонками
     @Test
     void moveTask_betweenColumns_shouldRecalculatePositionsInBothColumns() {
         UUID boardId = UUID.randomUUID();
@@ -161,7 +148,6 @@ class KanbanServiceTest {
         assertEquals(1, existingInTarget.GetPosition());
     }
 
-    // 44. Перемещение задачи в колонку, принадлежащую чужой доске
     @Test
     void moveTask_toColumnOfForeignBoard_shouldThrowForbidden() {
         UUID boardId = UUID.randomUUID();
@@ -187,7 +173,6 @@ class KanbanServiceTest {
         verify(kanbanTaskRepository, never()).SaveTask(any());
     }
 
-    // 45. Указание позиции для перемещения задачи за пределами списка (граничный случай)
     @Test
     void moveTask_withPositionBeyondListBounds_shouldClampToEndOfColumn() {
         UUID boardId = UUID.randomUUID();
@@ -201,11 +186,9 @@ class KanbanServiceTest {
         KanbanTask sibling2 = new KanbanTask(UUID.randomUUID(), column, "Вторая", null, 1, false, null, LocalDateTime.now());
 
         when(kanbanTaskRepository.GetTaskById(taskId)).thenReturn(Optional.of(task));
-        // targetColumnId не передан -> целевая колонка совпадает с исходной
         when(kanbanTaskRepository.GetTasksByColumnId(columnId)).thenReturn(List.of(sibling1, sibling2, task));
         when(kanbanTaskRepository.SaveTask(any(KanbanTask.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // 999 значительно превышает количество элементов в колонке (2 после исключения самой задачи)
         KanbanContracts.MoveTaskRequest request = new KanbanContracts.MoveTaskRequest(null, 999);
 
         KanbanContracts.KanbanTaskResponse response = kanbanService.MoveTask(ownerId, taskId, request);
@@ -215,7 +198,6 @@ class KanbanServiceTest {
         assertEquals(1, sibling2.GetPosition());
     }
 
-    // 46. Архивирование и разархивирование задачи
     @Test
     void archiveAndUnarchiveTask_shouldToggleArchivedFlag() {
         UUID boardId = UUID.randomUUID();
@@ -235,7 +217,6 @@ class KanbanServiceTest {
         assertFalse(unarchived.archived());
     }
 
-    // 47. Удаление уже архивированной задачи
     @Test
     void deleteTask_whenAlreadyArchived_shouldDeleteRegardlessOfArchivedStatus() {
         UUID boardId = UUID.randomUUID();
@@ -252,7 +233,6 @@ class KanbanServiceTest {
         verify(kanbanTaskRepository, times(1)).DeleteTaskById(taskId);
     }
 
-    // 48. Привязка чужой заметки к задаче
     @Test
     void linkNoteToTask_withForeignNote_shouldThrowForbidden() {
         UUID boardId = UUID.randomUUID();
@@ -273,7 +253,6 @@ class KanbanServiceTest {
         verify(kanbanTaskRepository, never()).SaveTask(any());
     }
 
-    // 49. Удаление колонки доски
     @Test
     void deleteColumn_shouldDeleteTasksBeforeDeletingColumn() {
         UUID boardId = UUID.randomUUID();
@@ -289,7 +268,6 @@ class KanbanServiceTest {
         inOrder.verify(kanbanColumnRepository).DeleteColumnById(columnId);
     }
 
-    // 50. Получение списка архивированных задач пользователя
     @Test
     void getArchivedTasks_shouldReturnOnlyOwnersArchivedTasks() {
         UUID boardId = UUID.randomUUID();

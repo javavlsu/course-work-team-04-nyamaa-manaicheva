@@ -25,11 +25,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тест для {@link DirectoryController}.
- * Пункт 19 чек-листа: "Удаление директории не владельцем" — эта проверка живёт
- * в контроллере (requireOwnership), а не в DirectoryService, поэтому тестируется здесь.
- */
 @ExtendWith(MockitoExtension.class)
 class DirectoryControllerTest {
 
@@ -49,7 +44,6 @@ class DirectoryControllerTest {
         controller = new DirectoryController(directoryService, noteService, directoryNoteService, permissionAccessService);
     }
 
-    // 19. Удаление директории не владельцем
     @Test
     void deleteDirectoryById_byNonOwner_shouldThrowForbidden() {
         UUID directoryId = UUID.randomUUID();

@@ -29,12 +29,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link AuthController}.
- * Соответствует пунктам 2-6, 11-15, 18, 22-23 чек-листа (административный модуль,
- * раздел "Сервис AuthService") — проверки пустых/несовпадающих полей и сам вход в систему
- * реализованы здесь, а не в UserService (см. UserServiceTest для остальных пунктов Auth-блока).
- */
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
@@ -61,7 +55,6 @@ class AuthControllerTest {
                 LocalDate.of(1995, 1, 1), "password123", "password123");
     }
 
-    // 2. Регистрация с пустым именем
     @Test
     void register_withBlankName_shouldThrowBadRequest() {
         AuthContracts.RegisterRequest request = new AuthContracts.RegisterRequest(
@@ -72,7 +65,6 @@ class AuthControllerTest {
         verify(userService, never()).register(any(), any(), any(), any(), any());
     }
 
-    // 3. Регистрация с пустой фамилией
     @Test
     void register_withBlankSurname_shouldThrowBadRequest() {
         AuthContracts.RegisterRequest request = new AuthContracts.RegisterRequest(
@@ -83,7 +75,6 @@ class AuthControllerTest {
         verify(userService, never()).register(any(), any(), any(), any(), any());
     }
 
-    // 4. Регистрация с пустым email
     @Test
     void register_withBlankEmail_shouldThrowBadRequest() {
         AuthContracts.RegisterRequest request = new AuthContracts.RegisterRequest(
@@ -94,7 +85,6 @@ class AuthControllerTest {
         verify(userService, never()).register(any(), any(), any(), any(), any());
     }
 
-    // 5. Регистрация с пустым паролем
     @Test
     void register_withBlankPassword_shouldThrowBadRequest() {
         AuthContracts.RegisterRequest request = new AuthContracts.RegisterRequest(
@@ -105,7 +95,6 @@ class AuthControllerTest {
         verify(userService, never()).register(any(), any(), any(), any(), any());
     }
 
-    // 6. Регистрация с несовпадающими паролем и подтверждением
     @Test
     void register_withMismatchedPasswordConfirm_shouldThrowBadRequest() {
         AuthContracts.RegisterRequest request = new AuthContracts.RegisterRequest(
@@ -116,7 +105,6 @@ class AuthControllerTest {
         verify(userService, never()).register(any(), any(), any(), any(), any());
     }
 
-    // 11. Успешный вход с верными email и паролем
     @Test
     void login_withValidCredentials_shouldReturnUserIdAndEmail() {
         UUID userId = UUID.randomUUID();
@@ -135,7 +123,6 @@ class AuthControllerTest {
         assertEquals("ivan@example.com", response.getBody().email());
     }
 
-    // 12. Вход с несуществующим email
     @Test
     void login_withUnknownEmail_shouldThrowUnauthorized() {
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("bad credentials"));
@@ -147,7 +134,6 @@ class AuthControllerTest {
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
     }
 
-    // 13. Вход с неверным паролем
     @Test
     void login_withWrongPassword_shouldThrowUnauthorized() {
         when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("bad credentials"));
@@ -159,7 +145,6 @@ class AuthControllerTest {
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
     }
 
-    // 14. Вход с пустым email
     @Test
     void login_withBlankEmail_shouldThrowBadRequest() {
         AuthContracts.LoginRequest request = new AuthContracts.LoginRequest("", "password123");
@@ -170,7 +155,6 @@ class AuthControllerTest {
         verify(authenticationManager, never()).authenticate(any());
     }
 
-    // 15. Вход с пустым паролем
     @Test
     void login_withBlankPassword_shouldThrowBadRequest() {
         AuthContracts.LoginRequest request = new AuthContracts.LoginRequest("ivan@example.com", "");
@@ -181,7 +165,6 @@ class AuthControllerTest {
         verify(authenticationManager, never()).authenticate(any());
     }
 
-    // 18. Запрос восстановления пароля с пустым email
     @Test
     void forgotPassword_withBlankEmail_shouldThrowBadRequest() {
         AuthContracts.ForgotPasswordRequest request = new AuthContracts.ForgotPasswordRequest("");
@@ -192,7 +175,6 @@ class AuthControllerTest {
         verify(userService, never()).RequestPasswordReset(any());
     }
 
-    // 22. Сброс пароля с несовпадающими новым паролем и подтверждением
     @Test
     void resetPassword_withMismatchedConfirmation_shouldThrowBadRequest() {
         AuthContracts.ResetPasswordRequest request =
@@ -204,7 +186,6 @@ class AuthControllerTest {
         verify(userService, never()).ResetPassword(any(), any());
     }
 
-    // 23. Сброс пароля с пустым токеном
     @Test
     void resetPassword_withBlankToken_shouldThrowBadRequest() {
         AuthContracts.ResetPasswordRequest request =

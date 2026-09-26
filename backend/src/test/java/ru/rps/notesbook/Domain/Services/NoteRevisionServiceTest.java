@@ -24,12 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link NoteRevisionService}.
- * Соответствует пунктам 70-72, 74 чек-листа (административный модуль, "Сервис NoteRevisionService").
- * Пункт 73 (ревизия не принадлежит указанной заметке) проверяется в NoteControllerTest —
- * эта сверка реализована в NoteController.getRevision, а не в самом сервисе.
- */
 @ExtendWith(MockitoExtension.class)
 class NoteRevisionServiceTest {
 
@@ -50,7 +44,6 @@ class NoteRevisionServiceTest {
         note = new Note(UUID.randomUUID(), "Заметка", null, LocalDateTime.now(), NoteTypeEnum.Empty, false, owner);
     }
 
-    // 70. Получение списка ревизий заметки в хронологическом порядке
     @Test
     void getRevisionsByNoteId_shouldReturnRevisionsInRepositoryOrder() {
         NoteRevision first = new NoteRevision(UUID.randomUUID(), note, "Версия 1", "{}", 1L, LocalDateTime.now().minusHours(2), owner);
@@ -64,7 +57,6 @@ class NoteRevisionServiceTest {
         assertEquals("Версия 2", result.get(1).title());
     }
 
-    // 71. Получение конкретной ревизии по корректному ID
     @Test
     void getRevisionById_shouldReturnRevisionData() {
         NoteRevision revision = new NoteRevision(UUID.randomUUID(), note, "Заголовок", "{\"a\":1}", 1L, LocalDateTime.now(), owner);
@@ -77,7 +69,6 @@ class NoteRevisionServiceTest {
         assertEquals(1L, response.version());
     }
 
-    // 72. Получение несуществующей ревизии
     @Test
     void getRevisionById_withUnknownId_shouldThrowException() {
         UUID id = UUID.randomUUID();
@@ -86,7 +77,6 @@ class NoteRevisionServiceTest {
         assertThrows(RuntimeException.class, () -> noteRevisionService.GetRevisionById(id));
     }
 
-    // 74. Получение списка ревизий для заметки без истории изменений
     @Test
     void getRevisionsByNoteId_withNoHistory_shouldReturnEmptyList() {
         when(noteRevisionRepository.GetRevisionsByNoteId(note.GetId())).thenReturn(List.of());

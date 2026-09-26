@@ -25,13 +25,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link UserController}.
- * Соответствует пунктам 24-25, 28-30, 33-34, 38-39, 42-44, 49 чек-листа (административный
- * модуль, раздел "Сервис UserService") — то есть тем проверкам, которые реализованы через
- * requireAdmin/requireSelfOrAdmin в самом контроллере, а не в UserService (см. UserServiceTest
- * для остальных пунктов этого раздела).
- */
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
@@ -63,7 +56,6 @@ class UserControllerTest {
                 LocalDate.of(1995, 1, 1), LocalDateTime.now(), RoleTypeEnum.Client);
     }
 
-    // 24. Получение списка всех пользователей администратором
     @Test
     void listUsers_byAdmin_shouldReturnFullList() {
         List<UserContracts.UserResponse> expected = List.of(sampleResponse(selfId), sampleResponse(otherId));
@@ -74,7 +66,6 @@ class UserControllerTest {
         assertEquals(expected, result);
     }
 
-    // 25. Получение списка всех пользователей обычным пользователем
     @Test
     void listUsers_byNonAdmin_shouldThrowForbidden() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -83,7 +74,6 @@ class UserControllerTest {
         verify(userService, never()).GetUsers();
     }
 
-    // 28. Получение собственного профиля
     @Test
     void getUser_ownProfile_shouldReturnData() {
         UserContracts.UserResponse expected = sampleResponse(selfId);
@@ -94,7 +84,6 @@ class UserControllerTest {
         assertEquals(expected, result);
     }
 
-    // 29. Получение профиля другого пользователя администратором
     @Test
     void getUser_otherProfileByAdmin_shouldReturnData() {
         UserContracts.UserResponse expected = sampleResponse(otherId);
@@ -105,7 +94,6 @@ class UserControllerTest {
         assertEquals(expected, result);
     }
 
-    // 30. Получение профиля другого пользователя обычным пользователем
     @Test
     void getUser_otherProfileByNonAdmin_shouldThrowForbidden() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -114,7 +102,6 @@ class UserControllerTest {
         verify(userService, never()).GetUserById(any());
     }
 
-    // 33. Обновление данных другого пользователя администратором
     @Test
     void updateUser_otherByAdmin_shouldDelegateToService() {
         UserContracts.UpdateUserRequest request =
@@ -127,7 +114,6 @@ class UserControllerTest {
         assertEquals(expected, result);
     }
 
-    // 34. Обновление данных другого пользователя обычным пользователем
     @Test
     void updateUser_otherByNonAdmin_shouldThrowForbidden() {
         UserContracts.UpdateUserRequest request =
@@ -139,7 +125,6 @@ class UserControllerTest {
         verify(userService, never()).UpdateUser(any(), any());
     }
 
-    // 38. Изменение роли пользователя администратором
     @Test
     void changeUserRole_byAdmin_shouldDelegateToService() {
         UserContracts.ChangeRoleRequest request = new UserContracts.ChangeRoleRequest(RoleTypeEnum.Admin);
@@ -151,7 +136,6 @@ class UserControllerTest {
         assertEquals(expected, result);
     }
 
-    // 39. Изменение роли пользователя обычным пользователем
     @Test
     void changeUserRole_byNonAdmin_shouldThrowForbidden() {
         UserContracts.ChangeRoleRequest request = new UserContracts.ChangeRoleRequest(RoleTypeEnum.Admin);
@@ -162,7 +146,6 @@ class UserControllerTest {
         verify(userService, never()).ChangeUserRole(any(), any());
     }
 
-    // 42. Удаление другого пользователя администратором
     @Test
     void deleteUser_otherByAdmin_shouldDelegateToService() {
         controller.deleteUser(adminPrincipal, otherId);
@@ -170,7 +153,6 @@ class UserControllerTest {
         verify(userService).DeleteUserById(otherId);
     }
 
-    // 43. Удаление собственного аккаунта пользователем
     @Test
     void deleteUser_ownAccountByNonAdmin_shouldDelegateToService() {
         controller.deleteUser(selfPrincipal, selfId);
@@ -178,7 +160,6 @@ class UserControllerTest {
         verify(userService).DeleteUserById(selfId);
     }
 
-    // 44. Удаление чужого аккаунта обычным пользователем
     @Test
     void deleteUser_otherAccountByNonAdmin_shouldThrowForbidden() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
@@ -187,7 +168,6 @@ class UserControllerTest {
         verify(userService, never()).DeleteUserById(any());
     }
 
-    // 49. Обращение к списку пользователей без аутентификации
     @Test
     void listUsers_withoutAuthentication_shouldThrowUnauthorized() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,

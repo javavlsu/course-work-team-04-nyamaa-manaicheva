@@ -24,11 +24,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link AttachmentController}.
- * Соответствует пунктам 52-53 чек-листа — лимиты на размер файла реализованы здесь,
- * а не в AttachmentService (см. AttachmentServiceTest для остальных пунктов раздела).
- */
 @ExtendWith(MockitoExtension.class)
 class AttachmentControllerTest {
 
@@ -49,7 +44,6 @@ class AttachmentControllerTest {
         principal = new NotesbookUserPrincipal(UUID.randomUUID(), "user@example.com", "hash", List.of());
     }
 
-    // 52. Загрузка вложения без файла (пустой файл)
     @Test
     void uploadAttachment_withEmptyFile_shouldThrowBadRequest() {
         when(permissionAccessService.canEditNote(any(), any())).thenReturn(true);
@@ -62,7 +56,6 @@ class AttachmentControllerTest {
         verify(attachmentService, never()).UploadAttachment(any(), any(), any(), any(), anyLong(), any());
     }
 
-    // 53. Загрузка вложения размером больше 20 МБ
     @Test
     void uploadAttachment_exceedingSizeLimit_shouldThrowPayloadTooLarge() {
         when(permissionAccessService.canEditNote(any(), any())).thenReturn(true);

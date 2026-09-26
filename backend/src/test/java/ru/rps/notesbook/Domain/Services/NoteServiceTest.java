@@ -42,10 +42,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link NoteService}.
- * Соответствует пунктам 1-14 чек-листа, раздел "Сервис NoteService" (клиентский модуль).
- */
 @ExtendWith(MockitoExtension.class)
 class NoteServiceTest {
 
@@ -106,7 +102,6 @@ class NoteServiceTest {
         );
     }
 
-    // 1. Создание новой заметки с корректными данными
     @Test
     void createNote_withValidData_shouldCreateNote() {
         when(userRepository.GetUserById(ownerId)).thenReturn(Optional.of(owner));
@@ -126,7 +121,6 @@ class NoteServiceTest {
         verify(noteRepository, times(1)).SaveNote(any(Note.class));
     }
 
-    // 2. Создание заметки с некорректным JSON в поле content
     @Test
     void createNote_withUnserializableContent_shouldThrowBadRequest() {
         when(userRepository.GetUserById(ownerId)).thenReturn(Optional.of(owner));
@@ -141,13 +135,11 @@ class NoteServiceTest {
         verify(noteRepository, never()).SaveNote(any());
     }
 
-    // Вспомогательный класс с самоссылкой — Jackson не может сериализовать такой объект
     private static final class CyclicContent {
         @SuppressWarnings("unused")
         public CyclicContent self = this;
     }
 
-    // 3. Получение списка заметок с фильтрацией (тип/избранное/поиск) и пагинацией
     @Test
     void getNotesByOwnerId_withFilters_shouldReturnFilteredList() {
         LocalDateTime now = LocalDateTime.now();
@@ -170,7 +162,6 @@ class NoteServiceTest {
         assertEquals(matching.GetId(), page.items().get(0).id());
     }
 
-    // 4. Получение списка заметок с недопустимым значением order
     @Test
     void getNotesByOwnerId_withInvalidOrder_shouldThrowBadRequest() {
         when(noteRepository.GetNotesByUserId(ownerId)).thenReturn(List.of());
@@ -182,7 +173,6 @@ class NoteServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
     }
 
-    // 5. Запрос списка заметок с limit больше максимально допустимого значения
     @Test
     void getNotesByOwnerId_withLimitAboveMax_shouldNormalizeLimit() {
         LocalDateTime now = LocalDateTime.now();
@@ -195,7 +185,6 @@ class NoteServiceTest {
         when(noteRepository.GetNotesByUserId(ownerId)).thenReturn(notes);
         when(permissionAccessRepository.GetPermissionAccessesByUserId(ownerId)).thenReturn(List.of());
 
-        // 500 явно превышает PageCursor.MAX_LIMIT (100) — сервис должен молча ограничить размер страницы
         NoteContracts.NotePageResponse page = noteService.GetNotesByOwnerId(
                 ownerId, null, null, null, 500, null, null, null);
 
@@ -203,7 +192,6 @@ class NoteServiceTest {
         assertTrue(page.hasMore());
     }
 
-    // 6. Получение заметки по несуществующему ID
     @Test
     void getNoteById_withUnknownId_shouldThrowException() {
         UUID noteId = UUID.randomUUID();
@@ -212,7 +200,6 @@ class NoteServiceTest {
         assertThrows(RuntimeException.class, () -> noteService.GetNoteById(noteId));
     }
 
-    // 7. Обновление заголовка/содержимого заметки
     @Test
     void updateNote_shouldCreateRevisionAndUpdateNote() {
         UUID noteId = UUID.randomUUID();
@@ -236,7 +223,6 @@ class NoteServiceTest {
         assertEquals(1L, captor.getValue().GetVersion());
     }
 
-    // 8. Обновление заметки с устаревшим expectedVersion
     @Test
     void updateNote_withStaleVersion_shouldThrowConflict() {
         UUID noteId = UUID.randomUUID();
@@ -252,7 +238,6 @@ class NoteServiceTest {
         verify(noteRepository, never()).SaveNote(any());
     }
 
-    // 9. Перемещение заметки в корзину и её отображение в списке корзины
     @Test
     void deleteAndListTrash_shouldMarkNoteDeletedAndAppearInTrash() {
         UUID noteId = UUID.randomUUID();
@@ -271,7 +256,6 @@ class NoteServiceTest {
         assertEquals(noteId, trash.get(0).id());
     }
 
-    // 10. Удаление заметки (перемещение в корзину) с устаревшим expectedVersion
     @Test
     void deleteNoteById_withStaleVersion_shouldThrowConflict() {
         UUID noteId = UUID.randomUUID();
@@ -284,7 +268,6 @@ class NoteServiceTest {
         verify(noteRepository, never()).SaveNote(any());
     }
 
-    // 11. Получение пустой корзины (нет удалённых заметок)
     @Test
     void getTrashByOwnerId_withNoDeletedNotes_shouldReturnEmptyList() {
         when(noteRepository.GetDeletedNotesByOwnerId(ownerId)).thenReturn(List.of());
@@ -294,7 +277,6 @@ class NoteServiceTest {
         assertTrue(trash.isEmpty());
     }
 
-    // 12. Восстановление заметки из корзины не владельцем
     @Test
     void restoreNoteById_byNonOwner_shouldThrowForbidden() {
         UUID noteId = UUID.randomUUID();
@@ -309,7 +291,6 @@ class NoteServiceTest {
         assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
     }
 
-    // 13. Полное удаление (purge) заметки владельцем
     @Test
     void purgeNoteById_byOwner_shouldDeleteAllRelatedData() {
         UUID noteId = UUID.randomUUID();
@@ -335,7 +316,6 @@ class NoteServiceTest {
         verify(fileStorageService, times(1)).Delete(attachment.GetStorageKey());
     }
 
-    // 14. Полное удаление (purge) заметки пользователем, не являющимся владельцем
     @Test
     void purgeNoteById_byNonOwner_shouldThrowForbidden() {
         UUID noteId = UUID.randomUUID();

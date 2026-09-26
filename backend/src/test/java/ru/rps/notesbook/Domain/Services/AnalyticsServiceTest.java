@@ -29,10 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link AnalyticsService}.
- * Соответствует пунктам 75-79 чек-листа (административный модуль, "Сервис AnalyticsService").
- */
 @ExtendWith(MockitoExtension.class)
 class AnalyticsServiceTest {
 
@@ -67,7 +63,6 @@ class AnalyticsServiceTest {
         return new Note(UUID.randomUUID(), "Заметка", null, createdAt, type, favourite, owner);
     }
 
-    // 75. Получение аналитики для пользователя с заметками, избранным, комментариями и вложениями
     @Test
     void getAnalytics_withNotesCommentsAndAttachments_shouldReturnAggregatedCounts() {
         Note note = noteOf(NoteTypeEnum.Empty, true, LocalDateTime.now());
@@ -86,7 +81,6 @@ class AnalyticsServiceTest {
         assertEquals(1, response.totalAttachments());
     }
 
-    // 76. Получение аналитики для пользователя без единой заметки
     @Test
     void getAnalytics_withNoNotes_shouldReturnZeroedResponse() {
         when(noteRepository.GetNotesByUserId(owner.GetId())).thenReturn(List.of());
@@ -100,7 +94,6 @@ class AnalyticsServiceTest {
         assertEquals(0L, (long) response.notesByType().values().stream().mapToLong(Long::longValue).sum());
     }
 
-    // 77. Распределение заметок по типам (notesByType)
     @Test
     void getAnalytics_shouldGroupNotesByType() {
         Note emptyNote = noteOf(NoteTypeEnum.Empty, false, LocalDateTime.now());
@@ -113,7 +106,6 @@ class AnalyticsServiceTest {
         assertEquals(1L, response.notesByType().get(NoteTypeEnum.List));
     }
 
-    // 78. Разбивка количества созданных заметок по неделям (8-недельное окно)
     @Test
     void getAnalytics_shouldBuildEightWeekBuckets() {
         Note note = noteOf(NoteTypeEnum.Empty, false, LocalDateTime.now());
@@ -128,7 +120,6 @@ class AnalyticsServiceTest {
         assertEquals(1L, totalInBuckets);
     }
 
-    // 79. Подсчёт "расшаренных" заметок (sharedNotes)
     @Test
     void getAnalytics_shouldCountOnlyNotesWithActivePermissions() {
         Note sharedNote = noteOf(NoteTypeEnum.Empty, false, LocalDateTime.now());

@@ -32,10 +32,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link DirectoryNoteService}.
- * Соответствует пунктам 23-27 чек-листа, раздел "Сервис DirectoryNoteService" (клиентский модуль).
- */
 @ExtendWith(MockitoExtension.class)
 class DirectoryNoteServiceTest {
 
@@ -72,7 +68,6 @@ class DirectoryNoteServiceTest {
         directory = new Directory(directoryId, "Папка", LocalDateTime.now(), owner);
     }
 
-    // 23. Добавление заметки в директорию
     @Test
     void addNoteToDirectory_shouldCreateLink() {
         when(noteRepository.GetNoteById(noteId)).thenReturn(Optional.of(note));
@@ -88,7 +83,6 @@ class DirectoryNoteServiceTest {
         verify(directoryNoteRepository, times(1)).SaveDirectoryNote(any(DirectoryNote.class));
     }
 
-    // 24. Повторное добавление уже привязанной заметки в ту же директорию
     @Test
     void addNoteToDirectory_whenAlreadyLinked_shouldNotCreateDuplicate() {
         when(noteRepository.GetNoteById(noteId)).thenReturn(Optional.of(note));
@@ -103,7 +97,6 @@ class DirectoryNoteServiceTest {
         verify(directoryNoteRepository, never()).SaveDirectoryNote(any());
     }
 
-    // 25. Добавление в директорию несуществующей заметки
     @Test
     void addNoteToDirectory_withUnknownNote_shouldThrowException() {
         when(noteRepository.GetNoteById(noteId)).thenReturn(Optional.empty());
@@ -113,7 +106,6 @@ class DirectoryNoteServiceTest {
         verify(directoryNoteRepository, never()).SaveDirectoryNote(any());
     }
 
-    // 26. Получение списка заметок для директории без заметок
     @Test
     void getNotesByDirectoryId_withNoNotes_shouldReturnEmptyList() {
         when(directoryNoteRepository.GetDirectoriesNotesByDirectoryId(directoryId)).thenReturn(List.of());
@@ -124,7 +116,6 @@ class DirectoryNoteServiceTest {
         assertTrue(result.isEmpty());
     }
 
-    // 27. Удаление несуществующей связи заметка-директория
     @Test
     void removeNoteFromDirectory_withNoExistingLink_shouldNotThrow() {
         assertDoesNotThrow(() -> directoryNoteService.RemoveNoteFromDirectory(directoryId, noteId));

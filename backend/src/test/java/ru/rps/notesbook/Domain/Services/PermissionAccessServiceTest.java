@@ -29,13 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Юнит-тесты для {@link PermissionAccessService}.
- * Соответствует пунктам 56-59 чек-листа (административный модуль, "Сервис PermissionAccessService").
- * Все проверки владения ресурсом реализованы в самом сервисе — отдельный ControllerTest не нужен.
- */
 @ExtendWith(MockitoExtension.class)
 class PermissionAccessServiceTest {
 
@@ -68,7 +64,6 @@ class PermissionAccessServiceTest {
         note = new Note(UUID.randomUUID(), "Заметка", null, LocalDateTime.now(), NoteTypeEnum.Empty, false, owner);
     }
 
-    // 56. Выдача доступа (View/Edit) к своей заметке другому пользователю
     @Test
     void grantPermission_toOwnNote_shouldCreatePermission() {
         when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
@@ -90,7 +85,6 @@ class PermissionAccessServiceTest {
         assertEquals(otherUser.GetId(), response.userId());
     }
 
-    // 57. Выдача доступа не владельцем ресурса
     @Test
     void grantPermission_byNonOwner_shouldThrowForbidden() {
         when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
@@ -105,7 +99,6 @@ class PermissionAccessServiceTest {
         verify(permissionAccessRepository, never()).SavePermissionAccess(any());
     }
 
-    // 58. Попытка выдать доступ самому себе или владельцу ресурса
     @Test
     void grantPermission_toSelf_shouldThrowBadRequest() {
         when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
@@ -120,7 +113,6 @@ class PermissionAccessServiceTest {
         verify(permissionAccessRepository, never()).SavePermissionAccess(any());
     }
 
-    // 59. Отзыв доступа не владельцем ресурса
     @Test
     void revokePermission_byNonOwner_shouldThrowForbidden() {
         UUID permissionId = UUID.randomUUID();
