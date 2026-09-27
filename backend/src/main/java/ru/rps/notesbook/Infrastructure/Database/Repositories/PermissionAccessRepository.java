@@ -10,6 +10,7 @@ import ru.rps.notesbook.Infrastructure.Database.Mappers.PermissionAccessMapper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -94,6 +95,18 @@ public class PermissionAccessRepository implements IPermissionAccessRepository {
     public void DeletePermissionAccessByDirectoryId(UUID directoryId)
     {
         permissionAccessAdapterJPA.deleteByDirectory_Id(directoryId);
+    }
+
+    @Override
+    public Set<UUID> GetDirectlyGrantedNoteIdsByUserId(UUID userId)
+    {
+        return Set.copyOf(permissionAccessAdapterJPA.findGrantedNoteIdsByUserId(userId));
+    }
+
+    @Override
+    public Set<UUID> GetGrantedDirectoryIdsByUserId(UUID userId)
+    {
+        return Set.copyOf(permissionAccessAdapterJPA.findGrantedDirectoryIdsByUserId(userId));
     }
 
 }

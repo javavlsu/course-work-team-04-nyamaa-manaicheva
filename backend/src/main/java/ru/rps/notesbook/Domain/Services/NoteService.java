@@ -31,9 +31,11 @@ import ru.rps.notesbook.Domain.Models.User;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -69,34 +71,23 @@ public class NoteService implements INoteService {
     ) {
         Map<UUID, Note> notes = new LinkedHashMap<>();
 
-        // Notes
         for (Note note : noteRepository.GetNotesByUserId(ownerId)) {
             notes.putIfAbsent(note.GetId(), note);
         }
 
-        List<PermissionAccess> userPermissions = permissionAccessRepository.GetPermissionAccessesByUserId(ownerId);
+        Set<UUID> directNoteIds = permissionAccessRepository.GetDirectlyGrantedNoteIdsByUserId(ownerId);
+        Set<UUID> grantedDirectoryIds = permissionAccessRepository.GetGrantedDirectoryIdsByUserId(ownerId);
+        Set<UUID> notesInGrantedDirectories = directoryNoteRepository.GetNoteIdsByDirectoryIds(grantedDirectoryIds);
 
-        // Notes с прямым PermissionAccess
-        for (PermissionAccess permission : userPermissions) {
-            if (permission.GetNote() == null) {
-                continue;
-            }
-            noteRepository.GetNoteById(permission.GetNote().GetId())
-                    .ifPresent(note -> notes.putIfAbsent(note.GetId(), note));
-        }
+        Set<UUID> missingNoteIds = new HashSet<>();
+        missingNoteIds.addAll(directNoteIds);
+        missingNoteIds.addAll(notesInGrantedDirectories);
+        missingNoteIds.removeAll(notes.keySet());
 
-        // Notes с доступом через Directory permission
-        for (PermissionAccess permission : userPermissions) {
-            if (permission.GetDirectory() == null) {
-                continue;
+        if (!missingNoteIds.isEmpty()) {
+            for (Note note : noteRepository.GetNotesByIds(missingNoteIds)) {
+                notes.putIfAbsent(note.GetId(), note);
             }
-            directoryRepository.GetDirectoryById(permission.GetDirectory().GetId())
-                    .ifPresent(directory -> {
-                        for (DirectoryNote directoryNote : directoryNoteRepository.GetDirectoriesNotesByDirectoryId(directory.GetId())) {
-                            noteRepository.GetNoteById(directoryNote.GetNote().GetId())
-                                    .ifPresent(note -> notes.putIfAbsent(note.GetId(), note));
-                        }
-                    });
         }
 
         String normalizedSearch = (search != null && !search.isBlank()) ? search.trim().toLowerCase() : null;
@@ -207,7 +198,6 @@ public class NoteService implements INoteService {
         return CreateNote(UUID.randomUUID(), ownerId, request);
     }
 
-    // for push sync only with client-generated UUID
     @Override
     @Transactional
     public NoteContracts.NoteResponse CreateNote(UUID id, UUID ownerId, NoteContracts.CreateNoteRequest request) {

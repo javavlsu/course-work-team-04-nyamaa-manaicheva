@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import ru.rps.notesbook.Domain.Models.Note;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,5 +21,7 @@ public interface INoteRepository {
     List<Note> GetDeletedNotesByOwnerId(UUID ownerId);
 
     List<Note> GetNotesUpdatedAfter(LocalDateTime timestamp);
+
+    List<Note> GetNotesByIds(Collection<UUID> ids);
 
 }

@@ -4,7 +4,9 @@ import org.springframework.stereotype.Repository;
 import ru.rps.notesbook.Domain.Models.DirectoryNote;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -19,5 +21,9 @@ public interface IDirectoryNoteRepository {
     void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId);
 
     List<DirectoryNote> GetDirectoryNotesAddedAfter(LocalDateTime timestamp);
+
+    Set<UUID> GetNoteIdsByDirectoryIds(Collection<UUID> directoryIds);
+
+    void UpsertDirectoryNote(UUID noteId, UUID directoryId, LocalDateTime addedAt);
 
 }

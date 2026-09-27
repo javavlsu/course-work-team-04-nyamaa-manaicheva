@@ -12,6 +12,7 @@ import ru.rps.notesbook.Domain.Models.Directory;
 import ru.rps.notesbook.Domain.Models.DirectoryNote;
 import ru.rps.notesbook.Domain.Models.Note;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,13 +40,9 @@ public class DirectoryNoteService implements IDirectoryNoteService {
         Directory directory = directoryRepository.GetDirectoryById(request.directoryId())
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
 
-        if (directoryNoteRepository.ExistsByNoteIdAndDirectoryId(note.GetId(), directory.GetId())) {
-            return new DirectoryNoteContracts.DirectoryNoteResponse(note.GetId(), directory.GetId());
-        }
+        directoryNoteRepository.UpsertDirectoryNote(note.GetId(), directory.GetId(), LocalDateTime.now());
 
-        DirectoryNote directoryNote = new DirectoryNote(note, directory);
-
-        return toResponse(directoryNoteRepository.SaveDirectoryNote(directoryNote));
+        return new DirectoryNoteContracts.DirectoryNoteResponse(note.GetId(), directory.GetId());
     }
 
     @Override

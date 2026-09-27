@@ -5,6 +5,7 @@ import ru.rps.notesbook.Domain.Models.PermissionAccess;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -23,5 +24,8 @@ public interface IPermissionAccessRepository {
     void DeletePermissionAccessById(UUID id);
     void DeletePermissionAccessByNoteId(UUID noteId);
     void DeletePermissionAccessByDirectoryId(UUID directoryId);
+
+    Set<UUID> GetDirectlyGrantedNoteIdsByUserId(UUID userId);
+    Set<UUID> GetGrantedDirectoryIdsByUserId(UUID userId);
 
 }
