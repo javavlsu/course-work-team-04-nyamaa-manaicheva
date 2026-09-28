@@ -1,15 +1,6 @@
-import { Download, RefreshCw } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 
-function formatDateTime(value) {
-  const date = new Date(value);
-  if (!value || Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function DataSection({ sync, exportData }) {
+function DataSection({ exportData }) {
   return (
     <section className="settings-section">
       <h2 className="settings-section-title">Данные</h2>
@@ -41,26 +32,18 @@ function DataSection({ sync, exportData }) {
         </div>
         <div className="settings-row">
           <div className="settings-row-info">
-            <div className="settings-row-label">Облачная синхронизация</div>
+            <div className="settings-row-label">Локальная копия: Импорт</div>
             <div className="settings-row-desc">
-              {sync.lastSyncAt
-                ? `Последняя синхронизация: ${formatDateTime(sync.lastSyncAt)}`
-                : "Синхронизация ваших данных с облаком"}
+              Загрузка заметок из файла JSON (скоро)
             </div>
-            {sync.error && (
-              <div className="settings-feedback settings-feedback-error">
-                {sync.error}
-              </div>
-            )}
           </div>
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={sync.sync}
-            disabled={sync.isSyncing}
+            disabled
           >
-            <RefreshCw strokeWidth={1.6} aria-hidden="true" />
-            {sync.isSyncing ? "Синхронизация…" : "Синхронизировать"}
+            <Upload strokeWidth={1.6} aria-hidden="true" />
+            Загрузить
           </button>
         </div>
       </div>

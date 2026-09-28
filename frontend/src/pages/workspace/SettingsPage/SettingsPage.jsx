@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext.jsx";
 import useTheme from "./hooks/useTheme";
 import useModules from "./hooks/useModules";
 import useExport from "./hooks/useExport";
-import useSync from "./hooks/useSync";
 import ModulesSection from "./components/ModulesSection";
 import ThemeSection from "./components/ThemeSection";
 import DataSection from "./components/DataSection";
@@ -20,7 +19,6 @@ export function SettingsPage() {
   const theme = useTheme();
   const modules = useModules();
   const exportData = useExport();
-  const sync = useSync();
   const [editing, setEditing] = useState(false);
 
   useLayoutEffect(() => {
@@ -55,7 +53,7 @@ export function SettingsPage() {
               <ModulesSection modules={modules.modules} onToggle={modules.toggle} />
               <ThemeSection dark={theme.dark} onToggle={theme.toggle} />
               <PasswordSection />
-              <DataSection sync={sync} exportData={exportData} />
+              <DataSection exportData={exportData} />
             </>
           )}
       </div>
