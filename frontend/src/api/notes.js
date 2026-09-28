@@ -32,6 +32,28 @@ export function list({ search, noteType, isFavourite, limit = 20, cursor, sortBy
   return api.get(`/api/notes${qs ? `?${qs}` : ""}`);
 }
 
+const LIST_ALL_MAX_PAGES = 100;
+
+/**
+ * Загружает все заметки (с теми же фильтрами/сортировкой), проходя по cursor-страницам до hasMore === false.
+ *
+ * @param {{ search?: string, noteType?: string, isFavourite?: boolean, sortBy?: string, order?: string }} [params]
+ * @returns {Promise<object[]>} плоский массив NoteResponse
+ */
+export async function listAll(params = {}) {
+  const items = [];
+  let cursor = null;
+
+  for (let page = 0; page < LIST_ALL_MAX_PAGES; page += 1) {
+    const res = await list({ ...params, limit: 100, cursor });
+    items.push(...(res.items ?? []));
+    if (!res.hasMore || !res.nextCursor) break;
+    cursor = res.nextCursor;
+  }
+
+  return items;
+}
+
 /**
  * Получает одну заметку по UUID.
  *

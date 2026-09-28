@@ -12,7 +12,6 @@ import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryNoteRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IDirectoryRepository;
 import ru.rps.notesbook.Domain.Interfaces.Repository.INoteRepository;
 import ru.rps.notesbook.Domain.Models.Directory;
-import ru.rps.notesbook.Domain.Models.DirectoryNote;
 import ru.rps.notesbook.Domain.Models.Note;
 import ru.rps.notesbook.Domain.Models.User;
 
@@ -27,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,28 +72,32 @@ class DirectoryNoteServiceTest {
     void addNoteToDirectory_shouldCreateLink() {
         when(noteRepository.GetNoteById(noteId)).thenReturn(Optional.of(note));
         when(directoryRepository.GetDirectoryById(directoryId)).thenReturn(Optional.of(directory));
-        when(directoryNoteRepository.ExistsByNoteIdAndDirectoryId(noteId, directoryId)).thenReturn(false);
-        when(directoryNoteRepository.SaveDirectoryNote(any(DirectoryNote.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DirectoryNoteContracts.DirectoryNoteResponse response = directoryNoteService.AddNoteToDirectory(
                 new DirectoryNoteContracts.CreateDirectoryNoteRequest(noteId, directoryId));
 
         assertEquals(noteId, response.noteId());
         assertEquals(directoryId, response.directoryId());
-        verify(directoryNoteRepository, times(1)).SaveDirectoryNote(any(DirectoryNote.class));
+        verify(directoryNoteRepository, times(1))
+                .UpsertDirectoryNote(eq(noteId), eq(directoryId), any(LocalDateTime.class));
+        verify(directoryNoteRepository, never()).SaveDirectoryNote(any());
     }
 
     @Test
-    void addNoteToDirectory_whenAlreadyLinked_shouldNotCreateDuplicate() {
+    void addNoteToDirectory_whenAlreadyLinked_shouldNotFailOrCreateDuplicate() {
         when(noteRepository.GetNoteById(noteId)).thenReturn(Optional.of(note));
         when(directoryRepository.GetDirectoryById(directoryId)).thenReturn(Optional.of(directory));
-        when(directoryNoteRepository.ExistsByNoteIdAndDirectoryId(noteId, directoryId)).thenReturn(true);
 
-        DirectoryNoteContracts.DirectoryNoteResponse response = directoryNoteService.AddNoteToDirectory(
-                new DirectoryNoteContracts.CreateDirectoryNoteRequest(noteId, directoryId));
+        DirectoryNoteContracts.CreateDirectoryNoteRequest request =
+                new DirectoryNoteContracts.CreateDirectoryNoteRequest(noteId, directoryId);
+
+        directoryNoteService.AddNoteToDirectory(request);
+        DirectoryNoteContracts.DirectoryNoteResponse response = directoryNoteService.AddNoteToDirectory(request);
 
         assertEquals(noteId, response.noteId());
         assertEquals(directoryId, response.directoryId());
+        verify(directoryNoteRepository, times(2))
+                .UpsertDirectoryNote(eq(noteId), eq(directoryId), any(LocalDateTime.class));
         verify(directoryNoteRepository, never()).SaveDirectoryNote(any());
     }
 
@@ -103,7 +107,7 @@ class DirectoryNoteServiceTest {
 
         assertThrows(RuntimeException.class, () -> directoryNoteService.AddNoteToDirectory(
                 new DirectoryNoteContracts.CreateDirectoryNoteRequest(noteId, directoryId)));
-        verify(directoryNoteRepository, never()).SaveDirectoryNote(any());
+        verify(directoryNoteRepository, never()).UpsertDirectoryNote(any(), any(), any());
     }
 
     @Test
