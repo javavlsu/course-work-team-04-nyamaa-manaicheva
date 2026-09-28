@@ -71,8 +71,11 @@ public class UserController {
             @PathVariable UUID id,
             @RequestBody UserContracts.ChangeRoleRequest request
     ) {
-        requireUserId(principal);
+        UUID actorId = requireUserId(principal);
         requireAdmin(principal);
+        if (id.equals(actorId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Нельзя изменить роль собственной учётной записи");
+        }
         return userService.ChangeUserRole(id, request.role());
     }
 

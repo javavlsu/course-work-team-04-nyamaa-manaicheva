@@ -13,7 +13,11 @@ import ProfileSection, { roleLabel } from "./components/ProfileSection";
 import ProfileCard from "./ProfileCard";
 import "./SettingsPage.css";
 
-export function SettingsPage() {
+/**
+ * @param {{ admin?: boolean }} props
+ *   admin — режим администратора: без блока модулей и без импорта/экспорта заметок.
+ */
+export function SettingsPage({ admin = false }) {
   const { setSidebarProps } = useOutletContext();
   const { currentUser } = useAuth();
   const theme = useTheme();
@@ -50,10 +54,10 @@ export function SettingsPage() {
                 role={currentUser ? roleLabel(currentUser.role) : ""}
                 onEdit={() => setEditing(true)}
               />
-              <ModulesSection modules={modules.modules} onToggle={modules.toggle} />
+              {!admin && <ModulesSection modules={modules.modules} onToggle={modules.toggle} />}
               <ThemeSection dark={theme.dark} onToggle={theme.toggle} />
               <PasswordSection />
-              <DataSection exportData={exportData} />
+              {!admin && <DataSection exportData={exportData} />}
             </>
           )}
       </div>

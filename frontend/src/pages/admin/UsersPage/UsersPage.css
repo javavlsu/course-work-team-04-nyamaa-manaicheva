@@ -1,0 +1,132 @@
+/* Админ-панель: страница «Пользователи».
+   Базовые стили (topbar, trash-item, trash-modal, loading/error) берутся из TrashPage.css. */
+
+.user-role {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.user-role-admin {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ── Синяя круглая кнопка «+» (как FAB на ленте заметок) ───────────── */
+.app .admin-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  transition: box-shadow 0.2s ease, background 0.15s ease;
+  z-index: 30;
+}
+
+.app .admin-fab:hover {
+  background: color-mix(in oklch, var(--accent) 88%, black);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.app .admin-fab svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ── Модалка создания / редактирования ─────────────────────────────── */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.admin-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 32px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px 0;
+  overflow-y: auto;
+}
+
+.admin-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-select {
+  width: 100%;
+  cursor: pointer;
+}
+
+.admin-select:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.admin-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-modal-error {
+  margin: 0;
+}
+
+.admin-modal .trash-modal-actions {
+  padding: 8px 0 16px;
+}
+
+.admin-primary-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  padding: 8px 18px;
+  border-radius: 999px;
+  box-shadow: 0 2px 10px color-mix(in oklch, var(--accent) 25%, transparent);
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.admin-primary-btn:hover {
+  background: color-mix(in oklch, var(--accent) 82%, black);
+}
+
+.admin-primary-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.trash-modal-body .admin-modal-error {
+  margin-top: 12px;
+}
+
+@media (max-width: 560px) {
+  .admin-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}

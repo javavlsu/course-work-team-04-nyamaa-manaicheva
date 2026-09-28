@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { emailValidation, passwordValidation } from "@/lib/utils/inputValidations";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { canVisitPath, homePathFor } from "@/lib/utils/roles.js";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -16,16 +17,18 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // После логина возвращаем пользователя туда, откуда его редиректнул ProtectedRoute
-  const from = location.state?.from?.pathname || "/notes";
+  const from = location.state?.from?.pathname;
 
   const onSubmit = async (data) => {
     setError("");
     setIsSubmitting(true);
 
     try {
-      await login(data.email, data.password);
+      const user = await login(data.email, data.password);
       methods.reset();
-      navigate(from, { replace: true });
+      // Возвращаем на исходную страницу, только если роль пользователя ей соответствует;
+      // иначе — на домашнюю страницу роли (админ → /admin/users, клиент → /notes)
+      navigate(canVisitPath(user, from) ? from : homePathFor(user), { replace: true });
     } catch (err) {
       // Показываем сообщение из backend (например, «Неверный email или пароль»)
       setError(err.message || "Ошибка входа. Попробуйте ещё раз.");
