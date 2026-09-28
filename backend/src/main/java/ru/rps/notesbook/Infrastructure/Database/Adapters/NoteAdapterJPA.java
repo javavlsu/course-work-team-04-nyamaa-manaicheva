@@ -3,6 +3,7 @@ package ru.rps.notesbook.Infrastructure.Database.Adapters;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -34,5 +35,9 @@ public interface NoteAdapterJPA extends JpaRepository<NoteEntity, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select n from NoteEntity n where n.id = :id and n.deletedAt is null")
     Optional<NoteEntity> findByIdAndDeletedAtIsNullForUpdate(@Param("id") UUID id);
+
+    @Modifying(flushAutomatically = true)
+    @Query("delete from NoteEntity n where n.owner.id = :userId")
+    int deleteAllByOwnerId(@Param("userId") UUID userId);
 
 }

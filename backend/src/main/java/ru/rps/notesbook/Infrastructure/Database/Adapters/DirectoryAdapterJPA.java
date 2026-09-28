@@ -3,6 +3,7 @@ package ru.rps.notesbook.Infrastructure.Database.Adapters;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -27,5 +28,9 @@ public interface DirectoryAdapterJPA extends JpaRepository<DirectoryEntity, UUID
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select d from DirectoryEntity d where d.id = :id and d.deletedAt is null")
     Optional<DirectoryEntity> findByIdAndDeletedAtIsNullForUpdate(@Param("id") UUID id);
+
+    @Modifying(flushAutomatically = true)
+    @Query("delete from DirectoryEntity d where d.owner.id = :userId")
+    int deleteAllByOwnerId(@Param("userId") UUID userId);
 
 }

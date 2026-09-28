@@ -1,4 +1,4 @@
-import { Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { HomePage } from "./pages/home/HomePage";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -16,14 +16,19 @@ import { KanbanArchivePage } from "./pages/workspace/KanbanArchivePage";
 import { CalendarPage } from "./pages/workspace/CalendarPage";
 import { AnalyticsPage } from "./pages/workspace/AnalyticsPage";
 import { SettingsPage } from "./pages/workspace/SettingsPage";
+import { UsersPage } from "./pages/admin/UsersPage";
+import { LogsPage } from "./pages/admin/LogsPage";
+import { StatsPage } from "./pages/admin/StatsPage";
 import { NotFoundPage } from "./pages/system/NotFoundPage";
 import { ForbiddenPage } from "./pages/system/ForbiddenPage";
 import { ServerErrorPage } from "./pages/system/ServerErrorPage";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { WorkspaceLayout } from "./layouts/WorkspaceLayout";
+import { AdminLayout } from "./layouts/AdminLayout";
 import { PublicRoute } from "./routes/PublicRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { useAuth } from "./context/AuthContext.jsx";
+import { ROLE_ADMIN, ROLE_CLIENT } from "./lib/utils/roles.js";
 
 function RootGate() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -48,7 +53,8 @@ function App() {
     <Routes>
       {/* Корневой путь: лендинг для гостей, рабочая область для авторизованных */}
       <Route path="/" element={<RootGate />}>
-        <Route element={<ProtectedRoute />}>
+        {/* Клиентская рабочая область: только Client (админ получит 403) */}
+        <Route element={<ProtectedRoute allowedRoles={[ROLE_CLIENT]} />}>
           <Route element={<WorkspaceLayout />}>
             <Route index element={<NotesFeedPage />} />
             <Route path="notes" element={<NotesFeedPage />} />
@@ -66,6 +72,17 @@ function App() {
         </Route>
       </Route>
 
+      {/* Панель администратора: только Admin (клиент получит 403) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLE_ADMIN]} />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/users" replace />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="logs" element={<LogsPage />} />
+          <Route path="stats" element={<StatsPage />} />
+          <Route path="settings" element={<SettingsPage admin />} />
+        </Route>
+      </Route>
+
       {/* Публичные auth-маршруты */}
       <Route element={<PublicRoute />}>
         <Route element={<AuthLayout />}>
@@ -77,7 +94,7 @@ function App() {
       </Route>
 
       {/* Отдельный защищённый маршрут вне workspace shell */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute allowedRoles={[ROLE_CLIENT]} />}>
         <Route path="/account" element={<AccountPage />} />
       </Route>
 

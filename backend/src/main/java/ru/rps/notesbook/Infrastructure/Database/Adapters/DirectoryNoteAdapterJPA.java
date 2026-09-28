@@ -39,4 +39,10 @@ public interface DirectoryNoteAdapterJPA extends JpaRepository<DirectoryNoteEnti
     @Query("delete from DirectoryNoteEntity dn where dn.id.noteId = :noteId and dn.id.directoryId = :directoryId")
     int deleteByNoteIdAndDirectoryIdSafe(@Param("noteId") UUID noteId, @Param("directoryId") UUID directoryId);
 
+    @Modifying(flushAutomatically = true)
+    @Query("delete from DirectoryNoteEntity dn "
+            + "where dn.note.id in (select n.id from NoteEntity n where n.owner.id = :userId) "
+            + "or dn.directory.id in (select d.id from DirectoryEntity d where d.owner.id = :userId)")
+    int deleteAllRelatedToUser(@Param("userId") UUID userId);
+
 }

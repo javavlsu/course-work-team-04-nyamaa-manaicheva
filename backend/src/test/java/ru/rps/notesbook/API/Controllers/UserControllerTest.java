@@ -138,6 +138,16 @@ class UserControllerTest {
     }
 
     @Test
+    void changeUserRole_ownAccountByAdmin_shouldThrowForbidden() {
+        UserContracts.ChangeRoleRequest request = new UserContracts.ChangeRoleRequest(RoleTypeEnum.Client);
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> controller.changeUserRole(adminPrincipal, selfId, request));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+        verify(userService, never()).ChangeUserRole(any(), any());
+    }
+
+    @Test
     void changeUserRole_byNonAdmin_shouldThrowForbidden() {
         UserContracts.ChangeRoleRequest request = new UserContracts.ChangeRoleRequest(RoleTypeEnum.Admin);
 

@@ -1,0 +1,41 @@
+/* Админ-панель: страница «Логи» — textarea на всю рабочую область */
+
+.logs-area {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  padding: 16px var(--content-gutter-x) 24px;
+}
+
+.logs-area > .empty-state {
+  flex: 1;
+}
+
+.logs-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 140px);
+  resize: none;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  outline: none;
+  white-space: pre;
+  overflow: auto;
+}
+
+.logs-textarea:focus {
+  border-color: var(--accent);
+}
+
+@media (max-width: 920px) {
+  .logs-area {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

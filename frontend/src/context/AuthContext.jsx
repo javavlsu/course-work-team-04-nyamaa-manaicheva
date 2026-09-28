@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
    *
    * @param {string} email
    * @param {string} password
-   * @returns {Promise<void>}
+   * @returns {Promise<object>} загруженный UserResponse (нужен вызывающему для редиректа по роли)
    * @throws {Error} с полем .status и .message при ошибке API
    */
   const login = useCallback(async (email, password) => {
@@ -68,6 +68,7 @@ export function AuthProvider({ children }) {
     // Загружаем полные данные пользователя (name, surname, email, role, ...)
     const user = await getCurrentUser(userId);
     setCurrentUser(user);
+    return user;
   }, []);
 
   /**
