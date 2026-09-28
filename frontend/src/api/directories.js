@@ -27,6 +27,28 @@ export function list({ search, limit = 20, cursor } = {}) {
   return api.get(`/api/directories${qs ? `?${qs}` : ""}`);
 }
 
+const LIST_ALL_MAX_PAGES = 100;
+
+/**
+ * Загружает все директории, проходя по cursor-страницам до hasMore === false.
+ *
+ * @param {{ search?: string }} [params]
+ * @returns {Promise<object[]>} плоский массив DirectoryResponse
+ */
+export async function listAll({ search } = {}) {
+  const items = [];
+  let cursor = null;
+
+  for (let page = 0; page < LIST_ALL_MAX_PAGES; page += 1) {
+    const res = await list({ search, limit: 100, cursor });
+    items.push(...(res.items ?? []));
+    if (!res.hasMore || !res.nextCursor) break;
+    cursor = res.nextCursor;
+  }
+
+  return items;
+}
+
 /**
  * Получает одну директорию по UUID.
  *

@@ -83,6 +83,14 @@ CREATE TABLE permission_access (
     )
 );
 
+CREATE UNIQUE INDEX uq_permission_access_user_note
+    ON permission_access (user_id, note_id)
+    WHERE note_id IS NOT NULL;
+
+CREATE UNIQUE INDEX uq_permission_access_user_directory
+    ON permission_access (user_id, directory_id)
+    WHERE directory_id IS NOT NULL;
+
 -- NOTE_REVISION (история изменений)
 CREATE TABLE note_revision (
     id          UUID PRIMARY KEY,

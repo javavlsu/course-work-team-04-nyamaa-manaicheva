@@ -34,14 +34,14 @@ function fetchCounts() {
   Promise.all([
     notesApi.list({ limit: 1 }),
     notesApi.listTrash(),
-    directoriesApi.list({ limit: 20 }),
+    directoriesApi.listAll(),
   ])
     .then(([page, trash, dirs]) => {
       merge({
         totalNotesCount: page.totalNotesCount ?? null,
         favouritesCount: page.favouritesCount ?? null,
         trashCount: Array.isArray(trash) ? trash.length : null,
-        directoriesCount: Array.isArray(dirs.items) ? dirs.items.length : null,
+        directoriesCount: Array.isArray(dirs) ? dirs.length : null,
       });
       loaded = true;
     })

@@ -58,10 +58,11 @@ class UserControllerTest {
 
     @Test
     void listUsers_byAdmin_shouldReturnFullList() {
-        List<UserContracts.UserResponse> expected = List.of(sampleResponse(selfId), sampleResponse(otherId));
-        when(userService.GetUsers()).thenReturn(expected);
+        UserContracts.UserPageResponse expected = new UserContracts.UserPageResponse(
+                List.of(sampleResponse(selfId), sampleResponse(otherId)), null, false, 2);
+        when(userService.GetUsers(null, null)).thenReturn(expected);
 
-        List<UserContracts.UserResponse> result = controller.listUsers(adminPrincipal);
+        UserContracts.UserPageResponse result = controller.listUsers(adminPrincipal, null, null);
 
         assertEquals(expected, result);
     }
@@ -69,9 +70,9 @@ class UserControllerTest {
     @Test
     void listUsers_byNonAdmin_shouldThrowForbidden() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> controller.listUsers(selfPrincipal));
+                () -> controller.listUsers(selfPrincipal, null, null));
         assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-        verify(userService, never()).GetUsers();
+        verify(userService, never()).GetUsers(any(), any());
     }
 
     @Test
@@ -171,9 +172,9 @@ class UserControllerTest {
     @Test
     void listUsers_withoutAuthentication_shouldThrowUnauthorized() {
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> controller.listUsers(null));
+                () -> controller.listUsers(null, null, null));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
-        verify(userService, never()).GetUsers();
+        verify(userService, never()).GetUsers(any(), any());
     }
 
 }

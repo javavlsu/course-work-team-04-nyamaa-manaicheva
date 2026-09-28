@@ -10,6 +10,7 @@ import ru.rps.notesbook.Infrastructure.Database.Entities.NoteEntity;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.NoteMapper;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +35,13 @@ public class NoteRepository implements INoteRepository {
     public Optional<Note> GetNoteById(UUID id)
     {
         return noteAdapterJPA.findByIdAndDeletedAtIsNull(id).map(noteMapper::ToDomain);
+    }
+
+    @Override
+    @Transactional
+    public Optional<Note> GetNoteByIdForUpdate(UUID id)
+    {
+        return noteAdapterJPA.findByIdAndDeletedAtIsNullForUpdate(id).map(noteMapper::ToDomain);
     }
 
     @Override
@@ -71,6 +79,18 @@ public class NoteRepository implements INoteRepository {
     public List<Note> GetNotesUpdatedAfter(LocalDateTime timestamp)
     {
         return noteAdapterJPA.findByUpdatedAtAfter(timestamp)
+                .stream()
+                .map(noteMapper::ToDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Note> GetNotesByIds(Collection<UUID> ids)
+    {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return noteAdapterJPA.findByIdInAndDeletedAtIsNull(ids)
                 .stream()
                 .map(noteMapper::ToDomain)
                 .toList();

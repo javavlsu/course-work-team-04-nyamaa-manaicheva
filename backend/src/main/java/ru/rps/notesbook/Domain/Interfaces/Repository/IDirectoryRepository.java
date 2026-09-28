@@ -13,6 +13,9 @@ public interface IDirectoryRepository {
 
     List<Directory> GetDirectoriesByOwnerId(UUID ownerId);
     Optional<Directory> GetDirectoryById(UUID id);
+
+    Optional<Directory> GetDirectoryByIdForUpdate(UUID id);
+
     Directory SaveDirectory(Directory directory);
     void DeleteDirectoryById(UUID id);
 

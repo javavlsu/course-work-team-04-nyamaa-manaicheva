@@ -4,9 +4,17 @@ import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public final class UserContracts {
+
+    public record UserPageResponse(
+            List<UserResponse> items,
+            String nextCursor,
+            boolean hasMore,
+            long totalCount
+    ) {}
 
     public record UserResponse(
             UUID id,

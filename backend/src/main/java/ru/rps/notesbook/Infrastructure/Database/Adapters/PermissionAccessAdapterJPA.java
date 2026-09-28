@@ -1,6 +1,8 @@
 package ru.rps.notesbook.Infrastructure.Database.Adapters;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.rps.notesbook.Infrastructure.Database.Entities.PermissionAccessEntity;
 
@@ -24,5 +26,11 @@ public interface PermissionAccessAdapterJPA extends JpaRepository<PermissionAcce
     void deleteByNote_Id(UUID noteId);
 
     void deleteByDirectory_Id(UUID directoryId);
+
+    @Query("select p.note.id from PermissionAccessEntity p where p.userGranted.id = :userId and p.note is not null")
+    List<UUID> findGrantedNoteIdsByUserId(@Param("userId") UUID userId);
+
+    @Query("select p.directory.id from PermissionAccessEntity p where p.userGranted.id = :userId and p.directory is not null")
+    List<UUID> findGrantedDirectoryIdsByUserId(@Param("userId") UUID userId);
 
 }

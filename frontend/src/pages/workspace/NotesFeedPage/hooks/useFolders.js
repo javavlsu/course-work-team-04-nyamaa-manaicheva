@@ -11,8 +11,6 @@ import {
   removeNoteFromFolder,
 } from "@/hooks/folderOperations.js";
 
-const PAGE_LIMIT = 20;
-
 // "all" — синтетический пункт на frontend, backend такого понятия не имеет.
 const ALL_FOLDER = { key: "all", name: "Все заметки", tint: "tint-blue" };
 
@@ -36,9 +34,9 @@ export function useFolders({ activeFolder, onSelectAll }) {
 
     async function fetchDirectories() {
       try {
-        const page = await directoriesApi.list({ limit: PAGE_LIMIT });
+        const dirs = await directoriesApi.listAll();
         if (!cancelled) {
-          setFolders([ALL_FOLDER, ...adaptDirectories(page.items)]);
+          setFolders([ALL_FOLDER, ...adaptDirectories(dirs)]);
           setFoldersLoaded(true);
         }
       } catch {

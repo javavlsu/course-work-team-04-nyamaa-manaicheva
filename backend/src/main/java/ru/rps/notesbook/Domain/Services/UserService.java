@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -44,10 +45,32 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserContracts.UserResponse> GetUsers() {
-        return userRepository.GetUsers().stream()
-                .map(UserService::toResponse)
+    public UserContracts.UserPageResponse GetUsers(Integer limit, String cursor) {
+        int pageSize = PageCursor.normalizeLimit(limit);
+        PageCursor pageCursor = PageCursor.decodeOrNull(cursor);
+
+        List<User> sorted = userRepository.GetUsers().stream()
+                .sorted(Comparator.comparing(User::GetRegistrationDate).thenComparing(User::GetId))
                 .toList();
+
+        List<User> page = sorted.stream()
+                .filter(u -> pageCursor == null || pageCursor.isAfter(u.GetRegistrationDate(), u.GetId(), false))
+                .limit(pageSize + 1)
+                .toList();
+
+        boolean hasMore = page.size() > pageSize;
+        List<User> pageItems = hasMore ? page.subList(0, pageSize) : page;
+
+        String nextCursor = hasMore
+                ? PageCursor.of(pageItems.get(pageItems.size() - 1).GetRegistrationDate(), pageItems.get(pageItems.size() - 1).GetId()).encode()
+                : null;
+
+        return new UserContracts.UserPageResponse(
+                pageItems.stream().map(UserService::toResponse).toList(),
+                nextCursor,
+                hasMore,
+                sorted.size()
+        );
     }
 
     @Override

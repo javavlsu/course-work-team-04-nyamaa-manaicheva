@@ -33,12 +33,11 @@ export function useDirectories({ folderId }) {
     setIsLoading(true);
     setError(null);
     try {
-      const [dirsPage, notesPage] = await Promise.all([
-        directoriesApi.list({ limit: 50 }),
-        notesApi.list({ limit: 50 }),
+      const [dirs, fetchedNotes] = await Promise.all([
+        directoriesApi.listAll(),
+        notesApi.listAll(),
       ]);
-      const mappedFolders = (dirsPage.items ?? []).map(adaptFolder);
-      const fetchedNotes = notesPage.items ?? [];
+      const mappedFolders = dirs.map(adaptFolder);
       const map = await buildNoteFolderMap(mappedFolders);
       setFolders(mappedFolders);
       setNotes(fetchedNotes);

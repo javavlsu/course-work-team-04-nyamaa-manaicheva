@@ -53,8 +53,8 @@ export function useNoteDirectories(id, isNew, currentUser) {
       setDirectoriesLoading(true);
 
       try {
-        const page = await directoriesApi.list({ limit: 100 });
-        const dirs = (page.items ?? []).map((d) => ({ id: d.id, title: d.title }));
+        const allDirs = await directoriesApi.listAll();
+        const dirs = allDirs.map((d) => ({ id: d.id, title: d.title }));
         setNoteDirectories(dirs);
 
         const memberships = await Promise.all(

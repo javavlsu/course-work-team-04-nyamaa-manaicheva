@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface IUserService {
 
-    List<UserContracts.UserResponse> GetUsers();
+    UserContracts.UserPageResponse GetUsers(Integer limit, String cursor);
 
     UserContracts.UserResponse GetUserById(UUID id);
 

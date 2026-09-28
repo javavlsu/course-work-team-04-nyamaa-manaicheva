@@ -23,11 +23,15 @@ public class UserController {
     private final IUserService userService;
 
     @GetMapping
-    public List<UserContracts.UserResponse> listUsers(@AuthenticationPrincipal NotesbookUserPrincipal principal)
+    public UserContracts.UserPageResponse listUsers(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String cursor
+    )
     {
         requireUserId(principal);
         requireAdmin(principal);
-        return userService.GetUsers();
+        return userService.GetUsers(limit, cursor);
     }
 
     @GetMapping("/search")

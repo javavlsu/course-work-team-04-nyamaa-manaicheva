@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,6 +95,12 @@ class NoteServiceTest {
         );
     }
 
+    private void stubNoGrantedAccess() {
+        when(permissionAccessRepository.GetDirectlyGrantedNoteIdsByUserId(ownerId)).thenReturn(Set.of());
+        when(permissionAccessRepository.GetGrantedDirectoryIdsByUserId(ownerId)).thenReturn(Set.of());
+        when(directoryNoteRepository.GetNoteIdsByDirectoryIds(Set.of())).thenReturn(Set.of());
+    }
+
     private Note existingNote(UUID id, LocalDateTime updatedAt, Long version) {
         return new Note(
                 id, "Заголовок", "{\"text\":\"старое содержимое\"}",
@@ -152,8 +159,7 @@ class NoteServiceTest {
 
         when(noteRepository.GetNotesByUserId(ownerId))
                 .thenReturn(List.of(matching, nonMatchingType, nonMatchingFavourite));
-        when(permissionAccessRepository.GetPermissionAccessesByUserId(ownerId))
-                .thenReturn(List.of());
+        stubNoGrantedAccess();
 
         NoteContracts.NotePageResponse page = noteService.GetNotesByOwnerId(
                 ownerId, "рабочие", NoteTypeEnum.List, true, null, null, null, null);
@@ -165,7 +171,7 @@ class NoteServiceTest {
     @Test
     void getNotesByOwnerId_withInvalidOrder_shouldThrowBadRequest() {
         when(noteRepository.GetNotesByUserId(ownerId)).thenReturn(List.of());
-        when(permissionAccessRepository.GetPermissionAccessesByUserId(ownerId)).thenReturn(List.of());
+        stubNoGrantedAccess();
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> noteService.GetNotesByOwnerId(
@@ -183,7 +189,7 @@ class NoteServiceTest {
                     NoteTypeEnum.Empty, false, owner, 1L));
         }
         when(noteRepository.GetNotesByUserId(ownerId)).thenReturn(notes);
-        when(permissionAccessRepository.GetPermissionAccessesByUserId(ownerId)).thenReturn(List.of());
+        stubNoGrantedAccess();
 
         NoteContracts.NotePageResponse page = noteService.GetNotesByOwnerId(
                 ownerId, null, null, null, 500, null, null, null);

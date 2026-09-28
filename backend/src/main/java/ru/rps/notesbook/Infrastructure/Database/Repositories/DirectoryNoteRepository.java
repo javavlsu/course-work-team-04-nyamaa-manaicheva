@@ -10,7 +10,9 @@ import ru.rps.notesbook.Infrastructure.Database.Entities.DirectoryNoteId;
 import ru.rps.notesbook.Infrastructure.Database.Mappers.DirectoryNoteMapper;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -49,7 +51,7 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     {
         DirectoryNoteEntity entity = directoryNoteMapper.ToEntity(directoryNote);
 
-        DirectoryNoteEntity createdEntity = directoryNoteAdapterJPA.save(entity);
+        DirectoryNoteEntity createdEntity = directoryNoteAdapterJPA.saveAndFlush(entity);
 
         return directoryNoteMapper.ToDomain(createdEntity);
     }
@@ -69,7 +71,7 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     @Override
     public void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
     {
-        directoryNoteAdapterJPA.deleteById(new DirectoryNoteId(noteId, directoryId));
+        directoryNoteAdapterJPA.deleteByNoteIdAndDirectoryIdSafe(noteId, directoryId);
     }
 
     @Override
@@ -79,6 +81,21 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
                 .stream()
                 .map(directoryNoteMapper::ToDomain)
                 .toList();
+    }
+
+    @Override
+    public Set<UUID> GetNoteIdsByDirectoryIds(Collection<UUID> directoryIds)
+    {
+        if (directoryIds.isEmpty()) {
+            return Set.of();
+        }
+        return Set.copyOf(directoryNoteAdapterJPA.findNoteIdsByDirectoryIdIn(directoryIds));
+    }
+
+    @Override
+    public void UpsertDirectoryNote(UUID noteId, UUID directoryId, LocalDateTime addedAt)
+    {
+        directoryNoteAdapterJPA.upsertDirectoryNote(noteId, directoryId, addedAt);
     }
 
 }
