@@ -10,6 +10,7 @@ export function useNoteAttachments(id, isNew) {
   const [downloadingAttachmentId, setDownloadingAttachmentId] = useState(null);
   const [attachmentDownloadError, setAttachmentDownloadError] = useState(null);
   const [deletingAttachmentId, setDeletingAttachmentId] = useState(null);
+  const [confirmDeleteAttachment, setConfirmDeleteAttachment] = useState(null);
 
   /**
    * Загружает список attachments заметки. Недоступно для "new" (заметки ещё не существует на backend).
@@ -87,32 +88,35 @@ export function useNoteAttachments(id, isNew) {
   );
 
   /**
-   * Удаляет вложение. Перед запросом — window.confirm. Защита от повторной
+   * Удаляет вложение. Перед запросом — показывает модальное окно подтверждения. Защита от повторной
    * отправки через deletingAttachmentId. Права проверяет только backend (canEditNote) —
    * кнопка показывается всегда, ошибка 403 отобразится через тот же attachmentError.
    * Повторный GET не делается — локально фильтруем удалённый id из attachments.
    */
   const remove = useCallback(
-    async (attachment) => {
+    (attachment) => {
       if (isNew || deletingAttachmentId) return;
-
-      const confirmed = window.confirm(`Удалить вложение «${attachment.fileName}»?`);
-      if (!confirmed) return;
-
-      setDeletingAttachmentId(attachment.id);
-      setAttachmentError(null);
-
-      try {
-        await attachmentsApi.remove(attachment.id);
-        setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
-      } catch (err) {
-        setAttachmentError(err.message || "Не удалось удалить вложение");
-      } finally {
-        setDeletingAttachmentId(null);
-      }
+      setConfirmDeleteAttachment(attachment);
     },
     [isNew, deletingAttachmentId],
   );
+
+  const confirmRemove = useCallback(async () => {
+    if (!confirmDeleteAttachment) return;
+
+    setDeletingAttachmentId(confirmDeleteAttachment.id);
+    setAttachmentError(null);
+
+    try {
+      await attachmentsApi.remove(confirmDeleteAttachment.id);
+      setAttachments((prev) => prev.filter((a) => a.id !== confirmDeleteAttachment.id));
+    } catch (err) {
+      setAttachmentError(err.message || "Не удалось удалить вложение");
+    } finally {
+      setDeletingAttachmentId(null);
+      setConfirmDeleteAttachment(null);
+    }
+  }, [confirmDeleteAttachment]);
 
   return {
     list: attachments,
@@ -120,11 +124,14 @@ export function useNoteAttachments(id, isNew) {
     upload,
     download,
     remove,
+    confirmRemove,
     isUploading: isUploadingAttachment,
     error: attachmentError,
     dismissError: () => setAttachmentError(null),
     downloadingId: downloadingAttachmentId,
     downloadError: attachmentDownloadError,
     deletingId: deletingAttachmentId,
+    confirmDeleteAttachment,
+    cancelDeleteAttachment: () => setConfirmDeleteAttachment(null),
   };
 }

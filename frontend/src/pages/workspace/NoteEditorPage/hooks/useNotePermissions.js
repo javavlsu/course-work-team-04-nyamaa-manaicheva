@@ -10,6 +10,7 @@ export function useNotePermissions(id, isNew, currentUser) {
   const [permissionsError, setPermissionsError] = useState(null);
   const [isAddingShareUser, setIsAddingShareUser] = useState(false);
   const [removingShareUserId, setRemovingShareUserId] = useState(null);
+  const [confirmRemoveShareUserIndex, setConfirmRemoveShareUserIndex] = useState(null);
 
   // --- Sharing: privacy UI-состояние локально (link/public не поддерживаются backend);
   // shareUsers заполняется реальными permissions (см. load). ownerId аккумулируется из
@@ -136,41 +137,43 @@ export function useNotePermissions(id, isNew, currentUser) {
   /**
    * Убирает доступ пользователя (revoke). PrivacyMenu передаёт индекс в массиве shareUsers
    * (onRemove(i) не менялся) — реальный permission.id для DELETE берётся из shareUsers[index],
-   * а не из самого индекса. Перед запросом — window.confirm. Защита от повторной
+   * а не из самого индекса. Перед запросом — показывает модальное окно подтверждения. Защита от повторной
    * отправки через removingShareUserId. При ошибке пользователь остаётся в списке.
    */
   const removeShareUser = useCallback(
-    async (index) => {
+    (index) => {
       if (isNew || removingShareUserId) return;
-
-      const target = shareUsers[index];
-      if (!target) return;
-
-      const confirmed = window.confirm(`Убрать доступ пользователя «${target.name}»?`);
-      if (!confirmed) return;
-
-      setRemovingShareUserId(target.id);
-      setPermissionsError(null);
-
-      try {
-        await permissionsApi.remove(target.id);
-        // Локально фильтруем по permission.id (не по индексу) — повторный GET не делается.
-        setShareUsers((prev) => prev.filter((u) => u.id !== target.id));
-      } catch (err) {
-        // Ошибка — пользователь остаётся в списке.
-        setPermissionsError(err.message || "Не удалось убрать доступ");
-      } finally {
-        setRemovingShareUserId(null);
-      }
+      setConfirmRemoveShareUserIndex(index);
     },
-    [isNew, removingShareUserId, shareUsers],
+    [isNew, removingShareUserId],
   );
+
+  const confirmRemoveShareUser = useCallback(async () => {
+    if (confirmRemoveShareUserIndex === null) return;
+
+    const target = shareUsers[confirmRemoveShareUserIndex];
+    if (!target) return;
+
+    setRemovingShareUserId(target.id);
+    setPermissionsError(null);
+
+    try {
+      await permissionsApi.remove(target.id);
+      setShareUsers((prev) => prev.filter((u) => u.id !== target.id));
+    } catch (err) {
+      setPermissionsError(err.message || "Не удалось убрать доступ");
+    } finally {
+      setRemovingShareUserId(null);
+      setConfirmRemoveShareUserIndex(null);
+    }
+  }, [confirmRemoveShareUserIndex, shareUsers]);
 
   return {
     shareUsers,
     load,
     addShareUser,
     removeShareUser,
+    confirmRemoveShareUser,
     privacyOpen,
     togglePrivacy: () => setPrivacyOpen((prev) => !prev),
     privacy,
@@ -178,5 +181,7 @@ export function useNotePermissions(id, isNew, currentUser) {
     privacyWrapRef,
     error: permissionsError,
     dismissError: () => setPermissionsError(null),
+    confirmRemoveShareUserIndex,
+    cancelRemoveShareUser: () => setConfirmRemoveShareUserIndex(null),
   };
 }

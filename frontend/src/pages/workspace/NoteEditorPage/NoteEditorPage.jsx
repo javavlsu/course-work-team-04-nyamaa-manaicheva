@@ -3,6 +3,7 @@ import { Link, useOutletContext, useParams, useSearchParams } from "react-router
 
 import { useAuth } from "@/context/AuthContext.jsx";
 import { refreshNotesCounts } from "@/hooks/useNotesCounts.js";
+import ConfirmModal from "@/components/modals/ConfirmModal";
 import EditorTopbar from "./components/EditorTopbar";
 import FormatToolbar from "./components/FormatToolbar";
 import MarkdownArea from "./components/MarkdownArea";
@@ -306,6 +307,55 @@ export function NoteEditorPage() {
           open={tableModalOpen}
           onClose={() => setTableModalOpen(false)}
           onInsert={actions.table}
+        />
+
+        <ConfirmModal
+          open={doc.confirmDeleteNote}
+          title="Удалить заметку"
+          message="Удалить эту заметку? Это действие нельзя отменить."
+          confirmText="Удалить"
+          cancelText="Отмена"
+          variant="danger"
+          isProcessing={doc.isDeleting}
+          onConfirm={doc.confirmDelete}
+          onCancel={doc.cancelDelete}
+        />
+
+        <ConfirmModal
+          open={!!attachments.confirmDeleteAttachment}
+          title="Удалить вложение"
+          message={`Удалить вложение «${attachments.confirmDeleteAttachment?.fileName}»?`}
+          confirmText="Удалить"
+          cancelText="Отмена"
+          variant="danger"
+          isProcessing={!!attachments.deletingId}
+          onConfirm={attachments.confirmRemove}
+          onCancel={attachments.cancelDeleteAttachment}
+        />
+
+        <ConfirmModal
+          open={!!comments.confirmDeleteCommentId}
+          title="Удалить комментарий"
+          message="Удалить этот комментарий?"
+          confirmText="Удалить"
+          cancelText="Отмена"
+          variant="danger"
+          isProcessing={!!comments.deletingId}
+          onConfirm={comments.confirmRemove}
+          onCancel={comments.cancelDeleteComment}
+        />
+
+        <ConfirmModal
+          open={permissions.confirmRemoveShareUserIndex !== null}
+          title="Убрать доступ"
+          message={`Убрать доступ пользователя «${permissions.shareUsers[permissions.confirmRemoveShareUserIndex]?.name}»?`}
+          confirmText="Убрать"
+          cancelText="Отмена"
+          variant="danger"
+          isProcessing={!!permissions.shareUsers[permissions.confirmRemoveShareUserIndex]?.id &&
+                       permissions.shareUsers.some(u => u.id === permissions.shareUsers[permissions.confirmRemoveShareUserIndex]?.id)}
+          onConfirm={permissions.confirmRemoveShareUser}
+          onCancel={permissions.cancelRemoveShareUser}
         />
     </>
   );
