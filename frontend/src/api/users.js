@@ -6,6 +6,7 @@
  *                                аутентифицированному пользователю. Возвращает
  *                                минимальный публичный набор полей (без surname/role).
  *   PUT /api/users/{id}       — обновление профиля (только сам пользователь или Admin).
+ *   PUT /api/users/{id}/password — смена пароля (только сам пользователь или Admin).
  *   DELETE /api/users/{id}    — удаление аккаунта (только сам пользователь или Admin);
  *                               409, если с пользователем связаны данные.
  *
@@ -14,6 +15,8 @@
  *
  * UpdateUserRequest: { name, surname, email, birthdayDate, role } — все поля
  *   опциональны; role меняет только Admin. Лишнего не отправляем.
+ *
+ * ChangePasswordRequest: { oldPassword, newPassword }
  */
 
 import { api } from "./client.js";
@@ -55,4 +58,17 @@ export function update(id, data) {
  */
 export function remove(id) {
   return api.delete(`/api/users/${id}`);
+}
+
+/**
+ * Меняет пароль пользователя (только сам пользователь или Admin).
+ * Backend: PUT /api/users/{id}/password с ChangePasswordRequest { oldPassword, newPassword }.
+ * 400 — если текущий пароль неверный или новый пароль не соответствует требованиям.
+ *
+ * @param {string} id
+ * @param {{ oldPassword: string, newPassword: string }} data
+ * @returns {Promise<void>}
+ */
+export function changePassword(id, data) {
+  return api.put(`/api/users/${id}/password`, data);
 }

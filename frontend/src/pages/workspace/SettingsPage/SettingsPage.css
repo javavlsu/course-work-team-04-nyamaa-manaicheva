@@ -352,6 +352,14 @@
   color: var(--danger);
 }
 
+.settings-feedback-success {
+  color: #10b981;
+}
+
+[data-theme="dark"] .settings-feedback-success {
+  color: #34d399;
+}
+
 .settings-modal-overlay {
   position: fixed;
   inset: 0;

@@ -27,4 +27,6 @@ public interface IUserService {
 
     void ResetPassword(String token, String newPassword);
 
+    void ChangePassword(UUID userId, String oldPassword, String newPassword);
+
 }

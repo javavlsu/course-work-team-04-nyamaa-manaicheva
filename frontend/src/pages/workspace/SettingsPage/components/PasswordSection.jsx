@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 
 import Input from "@/components/ui/Input";
+import { useAuth } from "@/context/AuthContext.jsx";
+import * as usersApi from "@/api/users.js";
 
 const currentPasswordValidation = {
   type: "password",
@@ -42,13 +44,31 @@ const confirmNewPasswordValidation = {
 };
 
 function PasswordSection() {
+  const { currentUser } = useAuth();
   const methods = useForm({ mode: "onSubmit" });
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = () => {
-    setNotice(
-      "Смена пароля ещё недоступна: соответствующий endpoint появится на сервере позже.",
-    );
+  const onSubmit = async (data) => {
+    if (!currentUser?.id) return;
+
+    setError("");
+    setSuccess("");
+    setIsSubmitting(true);
+
+    try {
+      await usersApi.changePassword(currentUser.id, {
+        oldPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      setSuccess("Пароль успешно изменён");
+      methods.reset();
+    } catch (err) {
+      setError(err.message || "Не удалось изменить пароль");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,11 +83,12 @@ function PasswordSection() {
             <Input {...confirmNewPasswordValidation} />
           </div>
           <div className="account-actions">
-            <button type="submit" className="btn btn-primary">
-              Сменить пароль
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? "Сохранение…" : "Сменить пароль"}
             </button>
           </div>
-          {notice && <div className="settings-feedback">{notice}</div>}
+          {error && <div className="settings-feedback settings-feedback-error">{error}</div>}
+          {success && <div className="settings-feedback settings-feedback-success">{success}</div>}
         </form>
       </FormProvider>
     </section>
