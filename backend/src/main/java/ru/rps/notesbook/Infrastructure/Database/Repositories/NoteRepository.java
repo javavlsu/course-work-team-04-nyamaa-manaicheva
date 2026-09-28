@@ -39,6 +39,13 @@ public class NoteRepository implements INoteRepository {
 
     @Override
     @Transactional
+    public Optional<Note> GetNoteByIdForUpdate(UUID id)
+    {
+        return noteAdapterJPA.findByIdAndDeletedAtIsNullForUpdate(id).map(noteMapper::ToDomain);
+    }
+
+    @Override
+    @Transactional
     public Note SaveNote(Note note) {
         NoteEntity entity = noteMapper.ToEntity(note);
 

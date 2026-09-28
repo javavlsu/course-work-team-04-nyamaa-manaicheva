@@ -1,31 +1,22 @@
-// 01-client-scenario.js
-//
-// Клиентский сценарий: одна итерация = одна "сессия" пользователя, которая
-// последовательно проходит по 7 модулям продукта:
-//   1. Заметки — список (тот же "тяжёлый" GET /api/notes, что и раньше)
-//   2. Заметки — деталь (GET /api/notes/{id})
+// Клиентский сценарий:
+//   1. Заметки — список
+//   2. Заметки — конкретная заметка
 //   3. Директории — список
 //   4. Директории — добавление/удаление заметки из директории
 //   5. Комментарии — создание + список
 //   6. Канбан — доска + перемещение задачи между колонками
 //   7. Календарь — получение + события за диапазон дат
-//
-// Использует заранее подготовленную выборку из 00-seed-data.js — регистрация
-// в сценарий не входит.
-//
-// Запуск:
-//   k6 run 01-client-scenario.js
-//   k6 run -e BASE_URL=http://localhost:8080 -e CLIENT_POOL_SIZE=20 01-client-scenario.js
+// k6 run 01-client-scenario.js
 
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
-const POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 20); // должно совпадать с 00-seed-data.js
+const POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 150);
 const EMAIL_PREFIX = __ENV.CLIENT_EMAIL_PREFIX || 'loadtest-client';
 const PASSWORD = __ENV.CLIENT_PASSWORD || 'LoadTest123!';
-const THINK_TIME = Number(__ENV.THINK_TIME || 3); // сек, пауза между двумя запросами списка заметок
+const THINK_TIME = Number(__ENV.THINK_TIME || 3);
 
 const getNotesTrend = new Trend('get_notes_duration', true);
 const loginFailures = new Counter('login_failures');
@@ -39,13 +30,13 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: 20 },  // разогрев
-        { duration: '1m', target: 20 },   // базовая нагрузка
-        { duration: '30s', target: 60 },  // рост
+        { duration: '30s', target: 20 },
+        { duration: '1m', target: 20 },
+        { duration: '30s', target: 60 },
         { duration: '2m', target: 60 },
-        { duration: '30s', target: 150 }, // пиковая нагрузка
+        { duration: '30s', target: 150 },
         { duration: '2m', target: 150 },
-        { duration: '30s', target: 0 },   // спад
+        { duration: '30s', target: 0 },
       ],
     },
   },
@@ -62,7 +53,7 @@ export default function () {
   const vuUser = __VU % POOL_SIZE;
   const email = `${EMAIL_PREFIX}-${vuUser}@example.com`;
 
-  // --- 0. Вход в систему ---
+  // 0. Вход в систему
   const loginRes = http.post(
     `${BASE_URL}/api/auth/login`,
     JSON.stringify({ email, password: PASSWORD }),
@@ -75,14 +66,14 @@ export default function () {
     return;
   }
 
-  // --- 1. Заметки: список (основной "тяжёлый" запрос, с таймаутом между двумя вызовами) ---
+  // 1. Заметки: список
   let notesItems = [];
   group('notes_list', () => {
     const res1 = http.get(`${BASE_URL}/api/notes?limit=20`, { tags: { endpoint: 'notes_list' } });
     getNotesTrend.add(res1.timings.duration);
     if (!check(res1, { 'notes #1: статус 200': (r) => r.status === 200 })) getNotesFailures.add(1);
 
-    sleep(THINK_TIME); // "пользователь читает список"
+    sleep(THINK_TIME);
 
     const res2 = http.get(`${BASE_URL}/api/notes?limit=20`, { tags: { endpoint: 'notes_list' } });
     getNotesTrend.add(res2.timings.duration);
@@ -94,21 +85,20 @@ export default function () {
   });
 
   if (notesItems.length === 0) {
-    // нет данных — скорее всего забыли прогнать 00-seed-data.js
     sleep(1);
     return;
   }
 
-  const primaryNoteId = notesItems[0].id;                      // на неё сидер уже накидал комментариев
-  const spareNoteId = notesItems[notesItems.length - 1].id;    // заведомо не привязана к директории
+  const primaryNoteId = notesItems[0].id;
+  const spareNoteId = notesItems[notesItems.length - 1].id;
 
-  // --- 2. Заметки: деталь ---
+  // 2. Заметки: деталь
   group('notes_detail', () => {
     const res = http.get(`${BASE_URL}/api/notes/${primaryNoteId}`, { tags: { endpoint: 'notes_detail' } });
     check(res, { 'note detail: статус 200': (r) => r.status === 200 });
   });
 
-  // --- 3. Директории: список ---
+  // 3. Директории: список
   let directories = [];
   group('directories_list', () => {
     const res = http.get(`${BASE_URL}/api/directories?limit=20`, { tags: { endpoint: 'directories_list' } });
@@ -118,7 +108,7 @@ export default function () {
     }
   });
 
-  // --- 4. Директории: добавить заметку и сразу убрать (чтобы состояние не разрасталось) ---
+  // 4. Директории: добавить заметку и сразу убрать
   if (directories.length > 0) {
     const dirId = directories[0].id;
     group('directory_note_link', () => {
@@ -138,7 +128,7 @@ export default function () {
     });
   }
 
-  // --- 5. Комментарии: создать + получить список ---
+  // 5. Комментарии: создать + получить список
   group('comments', () => {
     const createRes = http.post(
       `${BASE_URL}/api/notes/${primaryNoteId}/comments`,
@@ -151,7 +141,7 @@ export default function () {
     check(listRes, { 'list comments: статус 200': (r) => r.status === 200 });
   });
 
-  // --- 6. Канбан: доска + перемещение задачи между колонками ---
+  // 6. Канбан: доска + перемещение задачи между колонками
   group('kanban', () => {
     const boardRes = http.get(`${BASE_URL}/api/kanban/board`, { tags: { endpoint: 'kanban_board' } });
     const boardOk = check(boardRes, { 'kanban board: статус 200': (r) => r.status === 200 });
@@ -173,7 +163,7 @@ export default function () {
     check(moveRes, { 'move task: статус 200': (r) => r.status === 200 });
   });
 
-  // --- 7. Календарь: получение + события за диапазон ---
+  // 7. Календарь: получение + события за диапазон
   group('calendar', () => {
     const calendarRes = http.get(`${BASE_URL}/api/calendar`, { tags: { endpoint: 'calendar_get' } });
     const calendarOk = check(calendarRes, { 'calendar: статус 200': (r) => r.status === 200 });

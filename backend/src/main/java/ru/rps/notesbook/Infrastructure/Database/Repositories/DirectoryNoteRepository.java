@@ -51,9 +51,6 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     {
         DirectoryNoteEntity entity = directoryNoteMapper.ToEntity(directoryNote);
 
-        // saveAndFlush вместо save: здесь важно получить нарушение уникального ключа
-        // синхронно в транзакции вызова (а не отложенно на commit-флаш),
-        // чтобы сервис мог своевременно поймать гонку двух одновременных add и свести её к idempotent-успеху.
         DirectoryNoteEntity createdEntity = directoryNoteAdapterJPA.saveAndFlush(entity);
 
         return directoryNoteMapper.ToDomain(createdEntity);
@@ -74,9 +71,6 @@ public class DirectoryNoteRepository implements IDirectoryNoteRepository {
     @Override
     public void DeleteDirectoryNoteByNoteIdAndDirectoryId(UUID noteId, UUID directoryId)
     {
-        // Атомарное удаление на уровне БД: в отличие от deleteById не читает строку перед удалением
-        // и не бросает исключение, если связь уже удалена конкурентным запросом того же пользователя —
-        // affected rows просто будет 0, что и есть желаемое (идемпотентное) поведение.
         directoryNoteAdapterJPA.deleteByNoteIdAndDirectoryIdSafe(noteId, directoryId);
     }
 

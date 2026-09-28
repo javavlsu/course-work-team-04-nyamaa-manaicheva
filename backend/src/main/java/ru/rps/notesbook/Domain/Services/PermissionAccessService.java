@@ -134,10 +134,10 @@ public class PermissionAccessService implements IPermissionAccessService {
         User owner;
 
         if (request.noteId() != null) {
-            note = getActiveNoteOrThrow(request.noteId());
+            note = getActiveNoteForUpdateOrThrow(request.noteId());
             owner = note.GetOwner();
         } else {
-            directory = getActiveDirectoryOrThrow(request.directoryId());
+            directory = getActiveDirectoryForUpdateOrThrow(request.directoryId());
             owner = directory.GetOwner();
         }
 
@@ -245,6 +245,16 @@ public class PermissionAccessService implements IPermissionAccessService {
 
     private Directory getActiveDirectoryOrThrow(UUID directoryId) {
         return directoryRepository.GetDirectoryById(directoryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Directory not found"));
+    }
+
+    private Note getActiveNoteForUpdateOrThrow(UUID noteId) {
+        return noteRepository.GetNoteByIdForUpdate(noteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
+    }
+
+    private Directory getActiveDirectoryForUpdateOrThrow(UUID directoryId) {
+        return directoryRepository.GetDirectoryByIdForUpdate(directoryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Directory not found"));
     }
 

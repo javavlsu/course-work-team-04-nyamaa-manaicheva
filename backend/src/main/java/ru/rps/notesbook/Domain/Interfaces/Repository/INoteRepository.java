@@ -14,6 +14,9 @@ public interface INoteRepository {
 
     List<Note> GetNotesByUserId(UUID userId);
     Optional<Note> GetNoteById(UUID id);
+
+    Optional<Note> GetNoteByIdForUpdate(UUID id);
+
     Note SaveNote(Note note);
     void DeleteNoteById(UUID id);
 

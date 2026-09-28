@@ -1,54 +1,28 @@
-// 00-seed-data.js
-//
 // Одноразовый скрипт подготовки тестовой выборки.
-// НЕ является нагрузочным тестом — запускать с 1 VU и 1 итерацией:
-//
-//   k6 run --vus 1 --iterations 1 00-seed-data.js
-//
-// Что делает:
-//   1) регистрирует CLIENT_POOL_SIZE клиентских пользователей и каждому создаёт:
-//      - NOTES_PER_USER заметок
-//      - DIRECTORIES_PER_USER директорий (в первую кладёт NOTES_PER_DIRECTORY заметок)
-//      - COMMENTS_PER_NOTE комментариев на первой заметке
-//      - канбан-доску (создаётся автоматически по первому GET) с 2 колонками
-//        и KANBAN_TASKS_PER_COLUMN задачами в первой
-//      - календарь (тоже auto-create) с CALENDAR_EVENTS_PER_USER событиями
-//   2) регистрирует пул из ADMIN_POOL_SIZE кандидатов в админы (без заметок —
-//      им они не нужны: в 02-admin-scenario.js роль Admin используется только
-//      для GET /api/users и CRUD над чужим аккаунтом; вложения, ревизии,
-//      права доступа и аналитика не проверяют роль и тестируются от лица
-//      обычных клиентов из пула выше, см. README)
-//   3) регистрирует отдельный аккаунт RECOVERY_EMAIL, изолированный от общего
-//      клиентского пула — он нужен только для проверки восстановления пароля,
-//      чтобы не задевать пароли пользователей, которых логинит клиентский сценарий
-//
-// После однократного запуска эти данные переиспользуются во всех последующих
-// прогонах 01-client-scenario.js / 02-admin-scenario.js — регистрация новых
-// пользователей в сами нагрузочные тесты не входит (кроме отдельной группы
-// "жизненный цикл пользователя" в админском сценарии — там это осознанно).
+// k6 run --vus 1 --iterations 1 00-seed-data.js
 
 import http from 'k6/http';
 import { check } from 'k6';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
-// --- клиентский пул ---
-const CLIENT_POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 20);
-const NOTES_PER_USER = Number(__ENV.NOTES_PER_USER || 300); // чем больше — тем сильнее нагрузка на GET /api/notes
+// клиентский пул
+const CLIENT_POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 150);
+const NOTES_PER_USER = Number(__ENV.NOTES_PER_USER || 300);
 const DIRECTORIES_PER_USER = Number(__ENV.DIRECTORIES_PER_USER || 5);
-const NOTES_PER_DIRECTORY = Number(__ENV.NOTES_PER_DIRECTORY || 5); // сколько заметок положить в первую директорию
+const NOTES_PER_DIRECTORY = Number(__ENV.NOTES_PER_DIRECTORY || 5);
 const COMMENTS_PER_NOTE = Number(__ENV.COMMENTS_PER_NOTE || 5);
 const KANBAN_TASKS_PER_COLUMN = Number(__ENV.KANBAN_TASKS_PER_COLUMN || 3);
 const CALENDAR_EVENTS_PER_USER = Number(__ENV.CALENDAR_EVENTS_PER_USER || 5);
 const EMAIL_PREFIX = __ENV.CLIENT_EMAIL_PREFIX || 'loadtest-client';
 const PASSWORD = __ENV.CLIENT_PASSWORD || 'LoadTest123!';
 
-// --- пул админов (только для GET /api/users и CRUD над чужим аккаунтом) ---
+// пул админов
 const ADMIN_EMAIL_PREFIX = __ENV.ADMIN_EMAIL_PREFIX || 'loadtest-admin';
-const ADMIN_POOL_SIZE = Number(__ENV.ADMIN_POOL_SIZE || 20); // должно совпадать с 02-admin-scenario.js
+const ADMIN_POOL_SIZE = Number(__ENV.ADMIN_POOL_SIZE || 150);
 const ADMIN_PASSWORD = __ENV.ADMIN_PASSWORD || 'LoadTest123!';
 
-// --- отдельный аккаунт только для сценария восстановления пароля ---
+// отдельный аккаунт для сценария восстановления пароля
 const RECOVERY_EMAIL = __ENV.RECOVERY_EMAIL || 'loadtest-recovery@example.com';
 const RECOVERY_PASSWORD = __ENV.CLIENT_PASSWORD || 'LoadTest123!';
 
@@ -67,7 +41,6 @@ function registerUser(email, password) {
     }),
     jsonHeaders
   );
-  // 201 — создан, 400 "уже зарегистрирован" — считаем ок при повторном запуске сидера
   const ok = res.status === 201 || (res.status === 400 && res.body.includes('уже зарегистрирован'));
   check(res, { [`register ${email}: ok`]: () => ok });
   return ok;
@@ -141,8 +114,6 @@ function ensureCalendar() {
   return JSON.parse(res.body);
 }
 
-// ISO-строка без таймзоны и с миллисекундами — формат, который ожидает бэкенд
-// и для @RequestBody (Jackson LocalDateTime), и для @RequestParam (Spring ISO.DATE_TIME)
 function toLocalIso(date) {
   return date.toISOString().slice(0, 23);
 }
@@ -156,7 +127,7 @@ function createCalendarEvent(calendarId, title, startAt, endAt) {
 }
 
 export default function () {
-  // ================= клиентский пул =================
+  // клиентский пул
   for (let u = 0; u < CLIENT_POOL_SIZE; u++) {
     const email = `${EMAIL_PREFIX}-${u}@example.com`;
     registerUser(email, PASSWORD);
@@ -215,21 +186,18 @@ export default function () {
     console.log(`${email}: заметок=${noteIds.length}, директорий=${DIRECTORIES_PER_USER}, канбан=ok, календарь=ok`);
   }
 
-  // ================= пул админов: только регистрация, роль назначается вручную в БД =================
-  // Заметки им не нужны — в 02-admin-scenario.js все модули, работающие с
-  // заметками (вложения/ревизии/права доступа/аналитика), выполняются от
-  // лица обычных клиентов из пула выше, а не от лица админа.
+  // пул админов
   for (let a = 0; a < ADMIN_POOL_SIZE; a++) {
     const adminEmail = `${ADMIN_EMAIL_PREFIX}-${a}@example.com`;
     registerUser(adminEmail, ADMIN_PASSWORD);
   }
 
-  // ================= отдельный аккаунт для восстановления пароля =================
+  // отдельный аккаунт для восстановления пароля
   registerUser(RECOVERY_EMAIL, RECOVERY_PASSWORD);
 
   console.log(
-    `\nГотово. Пул кандидатов в админы: ${ADMIN_EMAIL_PREFIX}-0..${ADMIN_POOL_SIZE - 1}@example.com (${ADMIN_POOL_SIZE} шт.).\n` +
-    `Выдать им роль Admin вручную в БД (один раз):\n\n` +
-    `  UPDATE "User" SET role = 'Admin' WHERE email LIKE '${ADMIN_EMAIL_PREFIX}-%@example.com';\n`
+    `\nПул кандидатов в админы: ${ADMIN_EMAIL_PREFIX}-0..${ADMIN_POOL_SIZE - 1}@example.com (${ADMIN_POOL_SIZE} шт.).\n` +
+    `Коменда для выдачи роли Admin: UPDATE "User" SET role = 'Admin' WHERE email LIKE '${ADMIN_EMAIL_PREFIX}-%@example.com';\n`
   );
+
 }

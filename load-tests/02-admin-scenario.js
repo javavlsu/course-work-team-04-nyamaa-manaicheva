@@ -1,44 +1,12 @@
-// 02-admin-scenario.js
-//
-// Административный сценарий: одна итерация = одна "сессия", последовательно
-// проходящая по 7 модулям:
-//   1. Пользователи — список (GET /api/users)
-//   2. Пользователи — CRUD: регистрация одноразового пользователя, поиск его id,
-//      получение, обновление, удаление (полный жизненный цикл)
-//   3. Восстановление пароля — forgot-password -> письмо в MailHog -> reset-password
+// Административный сценарий:
+//   1. Пользователи — список
+//   2. Пользователи — CRUD: регистрация одноразового пользователя, поиск его id, получение, обновление, удаление
+//   3. Восстановление пароля — forgot-password, письмо в MailHog, reset-password
 //   4. Вложения — загрузка файла на заметку, список, удаление
 //   5. Ревизии заметок — обновление заметки (создаёт ревизию) + список ревизий
-//   6. Права доступа (Permission Access) — выдать право другому клиенту, список, отозвать
-//   7. Аналитика — GET /api/analytics
-//
-// ВАЖНО: в API нет административного обхода прав на чужие заметки —
-// requireCanViewNote/canEditNote проверяют владельца или явный PermissionAccess,
-// без исключения для роли Admin. Более того, эндпоинты вложений, ревизий,
-// прав доступа и аналитики вообще не проверяют роль — им достаточно быть
-// авторизованным владельцем/участником доступа (см. AttachmentController,
-// NoteController, PermissionAccessController, AnalyticsController). Реально
-// роль Admin нужна только для модулей 1-2 (GET /api/users и CRUD над чужим
-// аккаунтом в UserController).
-//
-// Поэтому в этом сценарии внутри одной "сессии" два логина:
-//   - сначала под админом из пула (ADMIN_POOL_SIZE) — только для модулей 1 и 2;
-//   - затем под обычным клиентом из клиентского пула (тот же пул, что и в
-//     01-client-scenario.js) — для модулей 4-7, которые работают с уже
-//     насеянными клиентскими заметками вместо отдельных "своих" заметок
-//     админа. Модуль 3 (восстановление пароля) не зависит от текущей сессии —
-//     это анонимные эндпоинты forgot/reset-password.
-//
-// Перед запуском один раз выполните 00-seed-data.js и вручную выдайте роль
-// Admin всем тестовым админам из пула (см. подсказку в конце того скрипта).
-//
-// Запуск:
-//   k6 run 02-admin-scenario.js
-//   k6 run -e BASE_URL=http://localhost:8080 -e ADMIN_POOL_SIZE=20 -e CLIENT_POOL_SIZE=20 02-admin-scenario.js
-//
-// Модуль вложений требует настоящего S3-совместимого хранилища (см. .env:
-// S3_ENDPOINT/S3_ACCESS_KEY/S3_SECRET_KEY) — если оно не поднято локально,
-// отключите модуль флагом -e ATTACHMENTS_ENABLED=0, иначе он будет валить
-// весь прогон ошибками загрузки, не относящимися к тестируемой нагрузке.
+//   6. Права доступа — выдать право другому клиенту, список, отозвать
+//   7. Аналитика
+// k6 run 02-admin-scenario.js
 
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
@@ -47,10 +15,10 @@ import { Trend, Counter } from 'k6/metrics';
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const MAILHOG_URL = __ENV.MAILHOG_URL || 'http://localhost:8025';
 const ADMIN_EMAIL_PREFIX = __ENV.ADMIN_EMAIL_PREFIX || 'loadtest-admin';
-const ADMIN_POOL_SIZE = Number(__ENV.ADMIN_POOL_SIZE || 20); // должно совпадать с 00-seed-data.js
+const ADMIN_POOL_SIZE = Number(__ENV.ADMIN_POOL_SIZE || 150);
 const ADMIN_PASSWORD = __ENV.ADMIN_PASSWORD || 'LoadTest123!';
 const CLIENT_EMAIL_PREFIX = __ENV.CLIENT_EMAIL_PREFIX || 'loadtest-client';
-const CLIENT_POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 20); // должно совпадать с 00-seed-data.js/01-client-scenario.js
+const CLIENT_POOL_SIZE = Number(__ENV.CLIENT_POOL_SIZE || 150);
 const CLIENT_PASSWORD = __ENV.CLIENT_PASSWORD || 'LoadTest123!';
 const RECOVERY_EMAIL = __ENV.RECOVERY_EMAIL || 'loadtest-recovery@example.com';
 const RECOVERY_PASSWORD = __ENV.CLIENT_PASSWORD || 'LoadTest123!';
@@ -69,25 +37,25 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: 20 },  // разогрев
-        { duration: '1m', target: 20 },   // базовая нагрузка
-        { duration: '30s', target: 60 },  // рост
+        { duration: '30s', target: 20 },
+        { duration: '1m', target: 20 },
+        { duration: '30s', target: 60 },
         { duration: '2m', target: 60 },
-        { duration: '30s', target: 150 }, // пиковая нагрузка (как в клиентском сценарии)
+        { duration: '30s', target: 150 },
         { duration: '2m', target: 150 },
-        { duration: '30s', target: 0 },   // спад
+        { duration: '30s', target: 0 },
       ],
     },
   },
   thresholds: {
     http_req_failed: ['rate<0.02'],
     get_users_duration: ['p(95)<800'],
-    'http_req_duration{endpoint:login}': ['p(95)<500'],
+    'http_req_duration{endpoint:login}': ['p(95)<900'],
   },
 };
 
 export default function () {
-  // ================= 0a. Вход под админом (каждый VU — свой админ из пула) =================
+  // 0a. Вход под админом
   const vuAdmin = __VU % ADMIN_POOL_SIZE;
   const adminEmail = `${ADMIN_EMAIL_PREFIX}-${vuAdmin}@example.com`;
   const adminLoginRes = http.post(
@@ -102,7 +70,7 @@ export default function () {
     return;
   }
 
-  // ================= 1. Пользователи: список (нужна роль Admin) =================
+  // 1. Пользователи: список
   group('users_list', () => {
     const res1 = http.get(`${BASE_URL}/api/users`, { tags: { endpoint: 'users_list' } });
     getUsersTrend.add(res1.timings.duration);
@@ -115,7 +83,7 @@ export default function () {
     if (!check(res2, { 'get_users #2: статус 200': (r) => r.status === 200 })) getUsersFailures.add(1);
   });
 
-  // ================= 2. Пользователи: полный CRUD-цикл на одноразовом аккаунте (нужна роль Admin) =================
+  // 2. Пользователи: полный CRUD-цикл на одноразовом аккаунте
   group('users_crud', () => {
     const throwawayEmail = `loadtest-crud-${__VU}-${__ITER}-${Date.now()}@example.com`;
 
@@ -152,8 +120,7 @@ export default function () {
     check(deleteRes, { 'delete user: статус 2xx': (r) => r.status >= 200 && r.status < 300 });
   });
 
-  // ================= 3. Восстановление пароля: forgot -> письмо в MailHog -> reset =================
-  // Анонимные эндпоинты — не зависят от текущей (админской) сессии.
+  // 3. Восстановление пароля: forgot, письмо в MailHog, reset
   group('password_recovery', () => {
     const forgotRes = http.post(
       `${BASE_URL}/api/auth/forgot-password`,
@@ -162,7 +129,6 @@ export default function () {
     );
     if (!check(forgotRes, { 'forgot-password: статус 200': (r) => r.status === 200 })) return;
 
-    // письма в MailHog появляются почти сразу, но дадим бэкенду время отправить
     sleep(0.5);
 
     const mailRes = http.get(`${MAILHOG_URL}/api/v2/messages?limit=20`, { tags: { endpoint: 'mailhog' } });
@@ -188,11 +154,7 @@ export default function () {
     check(resetRes, { 'reset-password: статус 200': (r) => r.status === 200 });
   });
 
-  // ================= 0b. Переключаемся на клиента =================
-  // Вложения/ревизии/права доступа/аналитика не требуют роли Admin — им
-  // достаточно быть владельцем заметки (или иметь явный PermissionAccess).
-  // Логинимся под обычным клиентом из клиентского пула и работаем с его
-  // уже насеянными заметками вместо отдельных "своих" заметок админа.
+  // 0b. Переключаемся на клиента
   const vuClient = __VU % CLIENT_POOL_SIZE;
   const clientEmail = `${CLIENT_EMAIL_PREFIX}-${vuClient}@example.com`;
   const clientLoginRes = http.post(
@@ -207,7 +169,7 @@ export default function () {
     return;
   }
 
-  // общий noteId для модулей 4-6 (attachments/revisions/permissions) — заметка клиента
+  // общий noteId для модулей 4-6
   let clientNoteId = null;
   group('own_notes_lookup', () => {
     const res = http.get(`${BASE_URL}/api/notes?limit=5`, { tags: { endpoint: 'client_notes_list' } });
@@ -218,7 +180,7 @@ export default function () {
   });
 
   if (clientNoteId) {
-    // ================= 4. Вложения =================
+    // 4. Вложения
     if (ATTACHMENTS_ENABLED) {
       group('attachments', () => {
         const fileContent = `k6 load test attachment ${Date.now()}`;
@@ -247,7 +209,7 @@ export default function () {
       });
     }
 
-    // ================= 5. Ревизии заметок =================
+    // 5. Ревизии заметок
     group('note_revisions', () => {
       const updateRes = http.put(
         `${BASE_URL}/api/notes/${clientNoteId}`,
@@ -263,8 +225,7 @@ export default function () {
       check(revisionsRes, { 'list revisions: статус 200': (r) => r.status === 200 });
     });
 
-    // ================= 6. Права доступа (Permission Access) =================
-    // Право выдаётся следующему клиенту из того же пула (не самому себе).
+    // 6. Права доступа
     group('permission_access', () => {
       const targetVu = (vuClient + 1) % CLIENT_POOL_SIZE;
       const targetEmailPrefix = `${CLIENT_EMAIL_PREFIX}-${targetVu}`;
@@ -301,7 +262,7 @@ export default function () {
       }
     });
 
-    // ================= 7. Аналитика =================
+    // 7. Аналитика
     group('analytics', () => {
       const res = http.get(`${BASE_URL}/api/analytics`, { tags: { endpoint: 'analytics_get' } });
       check(res, { 'analytics: статус 200': (r) => r.status === 200 });

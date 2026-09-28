@@ -39,6 +39,14 @@ public class DirectoryRepository implements IDirectoryRepository {
 
     @Override
     @Transactional
+    public Optional<Directory> GetDirectoryByIdForUpdate(UUID id)
+    {
+        return directoryAdapterJPA.findByIdAndDeletedAtIsNullForUpdate(id)
+                .map(directoryMapper::ToDomain);
+    }
+
+    @Override
+    @Transactional
     public Directory SaveDirectory(Directory directory)
     {
         DirectoryEntity entity = directoryMapper.ToEntity(directory);

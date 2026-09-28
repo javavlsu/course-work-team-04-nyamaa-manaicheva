@@ -66,7 +66,7 @@ class PermissionAccessServiceTest {
 
     @Test
     void grantPermission_toOwnNote_shouldCreatePermission() {
-        when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
+        when(noteRepository.GetNoteByIdForUpdate(note.GetId())).thenReturn(Optional.of(note));
         when(userRepository.GetUserById(otherUser.GetId())).thenReturn(Optional.of(otherUser));
         when(permissionAccessRepository.GetPermissionAccessByUserIdAndNoteId(otherUser.GetId(), note.GetId()))
                 .thenReturn(Optional.empty());
@@ -87,7 +87,7 @@ class PermissionAccessServiceTest {
 
     @Test
     void grantPermission_byNonOwner_shouldThrowForbidden() {
-        when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
+        when(noteRepository.GetNoteByIdForUpdate(note.GetId())).thenReturn(Optional.of(note));
 
         PermissionAccessContracts.CreatePermissionAccessRequest request =
                 new PermissionAccessContracts.CreatePermissionAccessRequest(
@@ -101,7 +101,7 @@ class PermissionAccessServiceTest {
 
     @Test
     void grantPermission_toSelf_shouldThrowBadRequest() {
-        when(noteRepository.GetNoteById(note.GetId())).thenReturn(Optional.of(note));
+        when(noteRepository.GetNoteByIdForUpdate(note.GetId())).thenReturn(Optional.of(note));
 
         PermissionAccessContracts.CreatePermissionAccessRequest request =
                 new PermissionAccessContracts.CreatePermissionAccessRequest(
