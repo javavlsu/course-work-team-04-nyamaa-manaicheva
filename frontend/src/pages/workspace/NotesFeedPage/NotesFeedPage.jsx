@@ -92,7 +92,7 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
         {!feed.isLoading && !feed.error && (
           notesEnriched.length > 0 ? (
             <>
-              <NotesGrid notes={notesEnriched} folders={dirs.foldersForSelector} onToggle={feed.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} />
+              <NotesGrid notes={notesEnriched} folders={dirs.foldersForSelector} onToggle={feed.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} onDelete={feed.deleteNote} />
 
               {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы */}
               {feed.hasMore && (

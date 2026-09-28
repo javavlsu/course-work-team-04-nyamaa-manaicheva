@@ -1,6 +1,6 @@
 import NoteCard from "./NoteCard";
 
-function NotesGrid({ notes, folders, onToggle, onMove, onRemove, onCreateAndMove }) {
+function NotesGrid({ notes, folders, onToggle, onMove, onRemove, onCreateAndMove, onDelete }) {
   return (
     <div className="notes-grid">
       {notes.map((note) => (
@@ -12,6 +12,7 @@ function NotesGrid({ notes, folders, onToggle, onMove, onRemove, onCreateAndMove
           onMove={onMove}
           onRemove={onRemove}
           onCreateAndMove={onCreateAndMove}
+          onDelete={onDelete}
         />
       ))}
     </div>

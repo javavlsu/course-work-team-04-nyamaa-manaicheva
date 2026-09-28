@@ -291,6 +291,21 @@ export function useNotesFeed({ favouritesOnly = false } = {}) {
     setIsFavouriteFilter(true);
   };
 
+  const deleteNote = async (id) => {
+    try {
+      await notesApi.remove(id);
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setTotalNotesCount((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+      setFilteredCount((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+      const note = notes.find((n) => n.id === id);
+      if (note?.isFavourite) {
+        setFavouritesCount((prev) => (prev == null ? prev : Math.max(0, prev - 1)));
+      }
+    } catch (err) {
+      console.error("Failed to delete note:", err);
+    }
+  };
+
   return {
     activeFolder,
     setActiveFolder,
@@ -313,5 +328,6 @@ export function useNotesFeed({ favouritesOnly = false } = {}) {
     toggleFavorite,
     handleSelectAll,
     handleSelectFavorites,
+    deleteNote,
   };
 }

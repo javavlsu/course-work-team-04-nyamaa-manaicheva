@@ -36,7 +36,7 @@ const NOTE_TYPE_LABELS = {
   Calendar: "Календарь",
 };
 
-function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndMove }) {
+function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndMove, onDelete }) {
   const navigate = useNavigate();
   const excerpt = extractExcerpt(note.content ?? note.excerpt);
   const createdAt = formatDate(note.createDate ?? note.createdAt);
@@ -83,6 +83,12 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
     e.stopPropagation();
     setIsOpen(false);
     if (onCreateAndMove) setShowCreateModal(true);
+  };
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    if (onDelete) onDelete(note.id);
   };
 
   const handleSelectFolder = (targetId) => {
@@ -138,11 +144,13 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
                     <>
                       <button className="dropdown-item" onClick={handleMoveClick}>Переместить в другую папку</button>
                       <button className="dropdown-item dropdown-item-danger" onClick={handleRemoveClick}>Удалить из папки</button>
+                      <button className="dropdown-item dropdown-item-danger" onClick={handleDeleteClick}>Переместить в корзину</button>
                     </>
                   ) : (
                     <>
                       <button className="dropdown-item" onClick={handleMoveClick}>Выбрать папку</button>
                       <button className="dropdown-item" onClick={handleCreateClick}>Создать папку и переместить</button>
+                      <button className="dropdown-item dropdown-item-danger" onClick={handleDeleteClick}>Переместить в корзину</button>
                     </>
                   )}
                 </div>
