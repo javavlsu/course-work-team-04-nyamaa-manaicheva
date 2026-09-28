@@ -42,6 +42,31 @@
   margin-left: var(--sidebar-collapsed-w);
 }
 
+.main > .empty-state,
+.main > .notes-loading,
+.main > .notes-error,
+.main > .directories-page {
+  flex: 1;
+}
+
+.directories-page > .empty-state {
+  flex: 1;
+}
+
+.app .fab.fab-secondary,
+.app .fab.fab-secondary:hover {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--fg) 14%, transparent);
+}
+
+.app .fab.fab-secondary:hover {
+  box-shadow: 0 4px 14px color-mix(in oklch, var(--fg) 20%, transparent);
+}
+
 .topbar-left {
   flex: 1;
   min-width: 0;

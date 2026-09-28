@@ -5,7 +5,7 @@ import "./ServerErrorPage.css";
 
 export function ServerErrorPage() {
   return (
-    <>
+    <div className="error-layout">
       <Header />
       <main className="page">
         <div className="servererror">
@@ -15,6 +15,6 @@ export function ServerErrorPage() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

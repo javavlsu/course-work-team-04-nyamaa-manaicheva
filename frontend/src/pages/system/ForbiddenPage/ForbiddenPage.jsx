@@ -5,7 +5,7 @@ import "./ForbiddenPage.css";
 
 export function ForbiddenPage() {
   return (
-    <>
+    <div className="error-layout">
       <Header />
       <main className="page">
         <div className="forbidden">
@@ -15,6 +15,6 @@ export function ForbiddenPage() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

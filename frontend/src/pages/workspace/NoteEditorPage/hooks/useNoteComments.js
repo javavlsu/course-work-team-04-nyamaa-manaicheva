@@ -13,6 +13,7 @@ export function useNoteComments(id, isNew) {
   const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [commentDeleteError, setCommentDeleteError] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
+  const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
 
   /**
    * Загружает комментарии к заметке. Недоступно для "new" (заметки ещё не существует на backend).
@@ -62,31 +63,34 @@ export function useNoteComments(id, isNew) {
   }, [id, isNew, isSendingComment, commentDraft]);
 
   /**
-   * Удаляет комментарий. Перед запросом — window.confirm. Защита от повторной
+   * Удаляет комментарий. Перед запросом — показывает модальное окно подтверждения. Защита от повторной
    * отправки через deletingCommentId. При ошибке комментарий остаётся в списке.
    * Повторный GET не делается — локально фильтруем удалённый id из comments.
    */
   const remove = useCallback(
-    async (commentId) => {
+    (commentId) => {
       if (deletingCommentId) return;
-
-      const confirmed = window.confirm("Удалить этот комментарий?");
-      if (!confirmed) return;
-
-      setDeletingCommentId(commentId);
-      setCommentDeleteError(null);
-
-      try {
-        await commentsApi.remove(commentId);
-        setComments((prev) => prev.filter((c) => c.id !== commentId));
-      } catch (err) {
-        setCommentDeleteError(err.message || "Не удалось удалить комментарий");
-      } finally {
-        setDeletingCommentId(null);
-      }
+      setConfirmDeleteCommentId(commentId);
     },
     [deletingCommentId],
   );
+
+  const confirmRemove = useCallback(async () => {
+    if (!confirmDeleteCommentId) return;
+
+    setDeletingCommentId(confirmDeleteCommentId);
+    setCommentDeleteError(null);
+
+    try {
+      await commentsApi.remove(confirmDeleteCommentId);
+      setComments((prev) => prev.filter((c) => c.id !== confirmDeleteCommentId));
+    } catch (err) {
+      setCommentDeleteError(err.message || "Не удалось удалить комментарий");
+    } finally {
+      setDeletingCommentId(null);
+      setConfirmDeleteCommentId(null);
+    }
+  }, [confirmDeleteCommentId]);
 
   return {
     list: comments,
@@ -94,6 +98,7 @@ export function useNoteComments(id, isNew) {
     onDraftChange: (e) => setCommentDraft(e.target.value),
     add,
     remove,
+    confirmRemove,
     load,
     isLoading: commentsLoading,
     error: commentsError,
@@ -101,5 +106,7 @@ export function useNoteComments(id, isNew) {
     sendError: sendCommentError,
     deletingId: deletingCommentId,
     deleteError: commentDeleteError,
+    confirmDeleteCommentId,
+    cancelDeleteComment: () => setConfirmDeleteCommentId(null),
   };
 }

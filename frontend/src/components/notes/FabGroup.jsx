@@ -9,9 +9,8 @@ function FabGroup({ onNewFolder }) {
   return (
     <>
       <div className="fab-group">
-        <button className="fab fab-secondary" title="Импорт">
+        <button className="fab fab-secondary" title="Импорт" aria-label="Импорт">
           <Download />
-          <span className="fab-label">Импорт</span>
         </button>
         <button
           className="fab fab-primary fab-main"

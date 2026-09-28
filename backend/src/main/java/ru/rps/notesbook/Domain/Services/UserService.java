@@ -214,6 +214,27 @@ public class UserService implements IUserService {
         userRepository.SaveUser(user);
     }
 
+    @Override
+    @Transactional
+    public void ChangePassword(UUID userId, String oldPassword, String newPassword) {
+        if (oldPassword == null || oldPassword.isEmpty()) {
+            throw new IllegalArgumentException("Укажите текущий пароль");
+        }
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("Укажите новый пароль");
+        }
+
+        User user = userRepository.GetUserById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+
+        if (!passwordEncoder.matches(oldPassword, user.GetPassword())) {
+            throw new IllegalArgumentException("Неверный текущий пароль");
+        }
+
+        user.ChangePassword(passwordEncoder.encode(newPassword));
+        userRepository.SaveUser(user);
+    }
+
     private static String hashToken(String rawToken) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

@@ -2,6 +2,7 @@ package ru.rps.notesbook.API.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -73,6 +74,23 @@ public class UserController {
         requireUserId(principal);
         requireAdmin(principal);
         return userService.ChangeUserRole(id, request.role());
+    }
+
+    @PutMapping("/{id}/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id,
+            @RequestBody UserContracts.ChangePasswordRequest request
+    ) {
+        UUID ownerId = requireUserId(principal);
+        requireSelfOrAdmin(id, ownerId, principal);
+
+        try {
+            userService.ChangePassword(id, request.oldPassword(), request.newPassword());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

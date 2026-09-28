@@ -59,6 +59,7 @@ export function useNoteDocument(
 
   // --- Delete state (DELETE /api/notes/:id) ---
   const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDeleteNote, setConfirmDeleteNote] = useState(false);
 
   const [noteType, setNoteType] = useState(isNew ? templateType : null);
   const [title, setTitle] = useState(isNew ? templateTitleFor(templateType) : "");
@@ -264,15 +265,15 @@ export function useNoteDocument(
 
   /**
    * Удаление заметки. Недоступно для "new" (кнопка в EditorTopbar дизейблена через deleteDisabled).
-   * Перед запросом — window.confirm. Защита от повторной отправки через isDeleting.
+   * Перед запросом — показывает модальное окно подтверждения. Защита от повторной отправки через isDeleting.
    * Ошибка показывается через тот же баннер saveError, что и для save.
    */
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (isNew || isDeleting) return;
+    setConfirmDeleteNote(true);
+  };
 
-    const confirmed = window.confirm("Удалить эту заметку? Это действие нельзя отменить.");
-    if (!confirmed) return;
-
+  const confirmDelete = async () => {
     setIsDeleting(true);
     setSaveError(null);
 
@@ -285,6 +286,8 @@ export function useNoteDocument(
         message: err.message || "Не удалось удалить заметку",
       });
       setIsDeleting(false);
+    } finally {
+      setConfirmDeleteNote(false);
     }
   };
 
@@ -333,6 +336,9 @@ export function useNoteDocument(
     isDeleting,
     save: handleSave,
     delete: handleDelete,
+    confirmDelete,
+    cancelDelete: () => setConfirmDeleteNote(false),
+    confirmDeleteNote,
     export: handleExport,
     reloadAfterConflict: handleReloadAfterConflict,
     createdAt: isNew ? blankNote.createdAt : formatDateTime(createdAtRaw),

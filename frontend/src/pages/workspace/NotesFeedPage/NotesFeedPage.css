@@ -887,23 +887,25 @@
   gap: 0;
 }
 
-.app .fab-secondary {
+.app .fab-secondary,
+.app .fab-secondary:hover,
+.app .fab-secondary:focus,
+.app .fab-secondary:active {
   width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  gap: 0;
+}
+
+.app .fab-secondary {
   background: var(--surface);
   color: var(--muted);
   border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.25);
 }
 
 .app .fab-secondary:hover {
-  width: auto;
-  border-radius: 22px;
-  padding: 0 16px 0 14px;
-  gap: 8px;
   color: var(--fg);
-  box-shadow: var(--shadow-md);
-}
-
-.app .fab-secondary:hover .fab-label {
-  display: inline;
-  opacity: 1;
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.32);
 }
