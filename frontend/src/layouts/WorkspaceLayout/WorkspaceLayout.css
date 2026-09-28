@@ -42,6 +42,17 @@
   margin-left: var(--sidebar-collapsed-w);
 }
 
+.main > .empty-state,
+.main > .notes-loading,
+.main > .notes-error,
+.main > .directories-page {
+  flex: 1;
+}
+
+.directories-page > .empty-state {
+  flex: 1;
+}
+
 .topbar-left {
   flex: 1;
   min-width: 0;
