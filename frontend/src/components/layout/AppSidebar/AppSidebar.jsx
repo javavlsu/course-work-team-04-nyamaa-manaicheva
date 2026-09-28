@@ -118,25 +118,10 @@ function AppSidebar({
           <Settings strokeWidth={1.6} aria-hidden="true" />
           <span className="link-label">Настройки</span>
         </Link>
-        <div className="user-row" style={{ marginTop: "10px", padding: "0 8px" }}>
+        <div className="user-row">
           <div className="avatar" title={displayName}>{initials}</div>
           <span className="link-label">{displayName}</span>
-          {/* Кнопка выхода — видна только когда sidebar развёрнут */}
-          <button
-            className="sidebar-logout-btn"
-            title="Выйти"
-            onClick={handleLogout}
-            style={{
-              marginLeft: "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted, #888)",
-              fontSize: "11px",
-              padding: "2px 4px",
-              flexShrink: 0,
-            }}
-          >
+          <button className="sidebar-logout-btn" title="Выйти" onClick={handleLogout}>
             Выйти
           </button>
         </div>
