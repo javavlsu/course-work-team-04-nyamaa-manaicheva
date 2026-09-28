@@ -5,7 +5,7 @@ import "./NotFoundPage.css";
 
 export function NotFoundPage() {
   return (
-    <>
+    <div className="error-layout">
       <Header />
       <main className="page">
         <div className="notfound">
@@ -15,6 +15,6 @@ export function NotFoundPage() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
