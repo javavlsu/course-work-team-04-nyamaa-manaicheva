@@ -1,6 +1,8 @@
 package ru.rps.notesbook.Domain.Services;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +14,7 @@ import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IEmailService;
 import ru.rps.notesbook.Domain.Interfaces.Services.IUserService;
+import ru.rps.notesbook.Domain.Interfaces.Storage.IFileStorageService;
 import ru.rps.notesbook.Domain.Models.User;
 import ru.rps.notesbook.Domain.Security.NotesbookUserPrincipal;
 
@@ -33,6 +36,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService implements IUserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private static final int SEARCH_RESULT_LIMIT = 20;
 
     private static final Duration PASSWORD_RESET_TOKEN_TTL = Duration.ofMinutes(30);
@@ -42,6 +47,7 @@ public class UserService implements IUserService {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final IEmailService emailService;
+    private final IFileStorageService fileStorageService;
 
     @Override
     @Transactional(readOnly = true)
@@ -233,6 +239,68 @@ public class UserService implements IUserService {
 
         user.ChangePassword(passwordEncoder.encode(newPassword));
         userRepository.SaveUser(user);
+    }
+
+    @Override
+    public UserContracts.UserResponse CreateUser(UserContracts.CreateUserRequest request) {
+        if (request.name() == null || request.name().isBlank()) {
+            throw new IllegalArgumentException("Укажите имя");
+        }
+        if (request.surname() == null || request.surname().isBlank()) {
+            throw new IllegalArgumentException("Укажите фамилию");
+        }
+        if (request.email() == null || request.email().isBlank()) {
+            throw new IllegalArgumentException("Укажите email");
+        }
+        if (request.password() == null || request.password().isEmpty()) {
+            throw new IllegalArgumentException("Укажите пароль");
+        }
+
+        String normalizedEmail = request.email().trim().toLowerCase();
+
+        if (userRepository.GetUserByEmail(normalizedEmail).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с таким email уже зарегистрирован");
+        }
+
+        User user = new User(
+                UUID.randomUUID(),
+                request.name().strip(),
+                request.surname().strip(),
+                normalizedEmail,
+                request.birthdayDate(),
+                LocalDateTime.now(),
+                passwordEncoder.encode(request.password()),
+                request.role()
+        );
+
+        return toResponse(userRepository.SaveUser(user));
+    }
+
+    @Override
+    public void DeleteUserWithAllData(UUID targetUserId, UUID actorUserId) {
+        if (targetUserId.equals(actorUserId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Нельзя удалить собственную учётную запись"
+            );
+        }
+
+        userRepository.GetUserById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<String> storageKeys = userRepository.DeleteUserWithAllData(targetUserId);
+
+        for (String storageKey : storageKeys) {
+            try {
+                fileStorageService.Delete(storageKey);
+            } catch (RuntimeException e) {
+                log.error("Failed to delete storage object (key={}) of removed user {}; metadata already removed",
+                        storageKey, targetUserId, e);
+            }
+        }
+
+        log.info("User {} deleted by admin {} together with all data ({} attachment objects)",
+                targetUserId, actorUserId, storageKeys.size());
     }
 
     private static String hashToken(String rawToken) {

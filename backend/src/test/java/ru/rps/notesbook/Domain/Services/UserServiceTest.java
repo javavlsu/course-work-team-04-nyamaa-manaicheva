@@ -11,6 +11,7 @@ import ru.rps.notesbook.API.Contracts.UserContracts;
 import ru.rps.notesbook.Domain.Enum.RoleTypeEnum;
 import ru.rps.notesbook.Domain.Interfaces.Repository.IUserRepository;
 import ru.rps.notesbook.Domain.Interfaces.Services.IEmailService;
+import ru.rps.notesbook.Domain.Interfaces.Storage.IFileStorageService;
 import ru.rps.notesbook.Domain.Models.User;
 
 import java.nio.charset.StandardCharsets;
@@ -41,12 +42,14 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private IEmailService emailService;
+    @Mock
+    private IFileStorageService fileStorageService;
 
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder, emailService);
+        userService = new UserService(userRepository, passwordEncoder, emailService, fileStorageService);
     }
 
     @Test

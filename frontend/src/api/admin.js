@@ -3,11 +3,11 @@
  *
  * Backend:
  *   GET    /api/users?limit&cursor      — список пользователей (только Admin), UserPageResponse
- *   POST   /api/admin/users             — создать пользователя с ролью (только Admin)
+ *   POST   /api/users                   — создать пользователя с ролью (только Admin)
  *   PUT    /api/users/{id}              — обновить профиль (Admin — любого)
  *   PUT    /api/users/{id}/role         — сменить роль (только Admin, не себе → 403)
- *   DELETE /api/admin/users/{id}        — удалить пользователя вместе со всеми данными
- *   GET    /api/admin/logs?lines        — хвост лог-файла: { available, content }
+ *   DELETE /api/users/{id}/with-data    — удалить пользователя вместе со всеми данными (только Admin)
+ *   GET    /api/logs?lines              — хвост лог-файла: { available, content } (только Admin)
  *
  * UserResponse: { id, name, surname, email, birthdayDate, registrationDate, role }
  * CreateUserRequest: { name, surname, email, birthdayDate, password, role }
@@ -43,7 +43,7 @@ export async function listAllUsers() {
  * @returns {Promise<object>} созданный UserResponse
  */
 export function createUser(data) {
-  return api.post("/api/admin/users", {
+  return api.post("/api/users", {
     ...data,
     birthdayDate: data.birthdayDate || null,
   });
@@ -77,7 +77,7 @@ export function changeRole(id, role) {
  * @returns {Promise<void>}
  */
 export function deleteUser(id) {
-  return api.delete(`/api/admin/users/${id}`);
+  return api.delete(`/api/users/${id}/with-data`);
 }
 
 /**
@@ -86,5 +86,5 @@ export function deleteUser(id) {
  */
 export function getLogs(lines) {
   const query = lines ? `?lines=${lines}` : "";
-  return api.get(`/api/admin/logs${query}`);
+  return api.get(`/api/logs${query}`);
 }

@@ -1,6 +1,6 @@
 package ru.rps.notesbook.API.Contracts;
 
-public final class AdminContracts {
+public final class LogContracts {
 
     public record LogsResponse(
             boolean available,
