@@ -16,7 +16,6 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // После логина возвращаем пользователя туда, откуда его редиректнул ProtectedRoute
   const from = location.state?.from?.pathname;
 
   const onSubmit = async (data) => {
@@ -26,11 +25,8 @@ function LoginForm() {
     try {
       const user = await login(data.email, data.password);
       methods.reset();
-      // Возвращаем на исходную страницу, только если роль пользователя ей соответствует;
-      // иначе — на домашнюю страницу роли (админ → /admin/users, клиент → /notes)
       navigate(canVisitPath(user, from) ? from : homePathFor(user), { replace: true });
     } catch (err) {
-      // Показываем сообщение из backend (например, «Неверный email или пароль»)
       setError(err.message || "Ошибка входа. Попробуйте ещё раз.");
     } finally {
       setIsSubmitting(false);

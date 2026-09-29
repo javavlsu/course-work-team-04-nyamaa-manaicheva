@@ -7,7 +7,6 @@
   --danger: #f87171;
 }
 
-/* ── Loading / Error states (загрузка заметки) ──────────── */
 .editor-loading,
 .editor-error {
   display: flex;
@@ -65,7 +64,6 @@
   background: color-mix(in oklch, var(--fg) 12%, transparent);
 }
 
-/* ── Save banner (успешное сохранение / conflict / ошибка) ───── */
 .editor-save-banner {
   display: flex;
   align-items: center;

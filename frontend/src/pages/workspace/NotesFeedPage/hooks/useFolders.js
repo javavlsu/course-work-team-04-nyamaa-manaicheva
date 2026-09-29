@@ -11,15 +11,12 @@ import {
   removeNoteFromFolder,
 } from "@/hooks/folderOperations.js";
 
-// "all" — синтетический пункт на frontend, backend такого понятия не имеет.
 const ALL_FOLDER = { key: "all", name: "Все заметки", tint: "tint-blue" };
 
 export function useFolders({ activeFolder, onSelectAll }) {
-  // --- Directories (реальный API) ---
   const [folders, setFolders] = useState([ALL_FOLDER]);
   const [foldersLoaded, setFoldersLoaded] = useState(false);
 
-  // --- Directory CRUD state ---
   const [isCreatingFolder, setIsCreatingFolder]   = useState(false);
   const [renamingFolderId, setRenamingFolderId]   = useState(null);
   const [deletingFolderId, setDeletingFolderId]   = useState(null);
@@ -28,7 +25,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
   const [isCreateOpen, setIsCreateOpen]           = useState(false);
   const [folderActionError, setFolderActionError] = useState(null);
 
-  // Загрузка директорий при монтировании
   useEffect(() => {
     let cancelled = false;
 
@@ -40,8 +36,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
           setFoldersLoaded(true);
         }
       } catch {
-        // Ошибка загрузки папок не рендерится (список папок живёт на /directories),
-        // папки нужны здесь только для noteFolderMap и foldersForSelector.
       }
     }
 
@@ -76,11 +70,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
     }
   };
 
-  /**
-   * Переименовывает директорию через PUT /api/directories/{id}. Защита от параллельных
-   * rename/delete-действий через renamingFolderId/deletingFolderId. Права проверяет только
-   * backend (владелец, иначе 403).
-   */
   const handleRenameFolder = (folder) => {
     if (renamingFolderId || deletingFolderId) return;
     setFolderActionError(null);
@@ -110,11 +99,6 @@ export function useFolders({ activeFolder, onSelectAll }) {
     }
   };
 
-  /**
-   * Удаляет директорию через DELETE /api/directories/{id}. Если удаляемая папка была
-   * выбрана как activeFolder — возвращаемся к "Все заметки" через уже существующий
-   * handleSelectAll. Заметки внутри папки не удаляются (backend удаляет только самую директорию).
-   */
   const handleDeleteFolder = (folder) => {
     if (renamingFolderId || deletingFolderId) return;
     setFolderActionError(null);

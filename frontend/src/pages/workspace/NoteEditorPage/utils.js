@@ -5,13 +5,6 @@ export const blankNote = {
   updatedAt: "только что",
 };
 
-/**
- * Извлекает текстовое представление поля content для textarea/preview.
- * Backend хранит content как Object: обычно строка Markdown для заметок
- * типа Empty, либо структурированный JSON для List/Table/Kanban/Calendar.
- * Редактор пока рассчитан на Markdown-текст, поэтому объектный content
- * сериализуется как JSON-фоллбэк (полноценная поддержка типов — вне Stage 4A).
- */
 export function extractContentText(content) {
   if (content === null || content === undefined) return "";
   if (typeof content === "string") return content;
@@ -22,7 +15,6 @@ export function extractContentText(content) {
   }
 }
 
-/** Форматирует ISO-дату в «14 авг 2026, 10:32». */
 export function formatDateTime(isoString) {
   if (!isoString) return "";
   try {
@@ -38,12 +30,6 @@ export function formatDateTime(isoString) {
   }
 }
 
-/**
- * Адаптирует CommentResponse backend { id, noteId, authorId, content, createdAt, updatedAt }
- * под формат, который уже ожидает CommentsSection: { author, initials, time, text }.
- * Backend не возвращает имя автора (только authorId UUID), поэтому отображаем
- * короткий идентификатор вместо полного имени (резолв через users API — вне Stage 6A).
- */
 export function adaptComment(comment) {
   const authorId = comment.authorId || "";
   const shortId = authorId.replace(/-/g, "").slice(0, 6).toUpperCase();
@@ -57,16 +43,6 @@ export function adaptComment(comment) {
   };
 }
 
-/**
- * Адаптирует PermissionAccessResponse backend { id, type, noteId, userId, directoryId }
- * под формат, который уже ожидает PrivacyMenu: { name, initials, role }.
- * Backend не возвращает имя пользователя (только userId). Для уже выданных permissions
- * (loadPermissions) имя больше недоступно обычному пользователю — GET /api/users стал
- * admin-only — показываем заглушку "Неизвестный пользователь". При добавлении нового
- * пользователя (addShareUser) имя берётся из GET /api/users/search, который возвращает
- * только { id, email, name } (без surname), поэтому surname обрабатывается как опциональный.
- * id и userId сохраняются в адаптированном объекте для grant/update/revoke.
- */
 export function adaptPermission(permission, user) {
   let name = "Неизвестный пользователь";
   let initials = "??";

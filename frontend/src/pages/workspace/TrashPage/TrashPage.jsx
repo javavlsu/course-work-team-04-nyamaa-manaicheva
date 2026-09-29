@@ -24,11 +24,9 @@ export function TrashPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Восстановление/удаление — по одному действию за раз, аналогично renamingFolderId/deletingFolderId
-  // в NotesFeedPage/DirectoriesPage.
   const [restoringId, setRestoringId] = useState(null);
   const [purgingId, setPurgingId] = useState(null);
-  const [purgingNote, setPurgingNote] = useState(null); // заметка, ожидающая подтверждения в модалке
+  const [purgingNote, setPurgingNote] = useState(null);
   const [actionError, setActionError] = useState(null);
 
   useLayoutEffect(() => {

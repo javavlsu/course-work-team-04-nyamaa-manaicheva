@@ -10,7 +10,7 @@ import "./LoginPage.css";
 export function LoginPage() {
   const location = useLocation();
   const setPanel = useOutletContext();
-  // Флаг, выставленный RegisterForm после успешной регистрации
+  
   const justRegistered = location.state?.registered === true;
 
   useLayoutEffect(() => {

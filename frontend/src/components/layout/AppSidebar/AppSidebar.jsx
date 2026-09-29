@@ -47,7 +47,6 @@ function AppSidebar({
   const linkClass = (key) => (active === key ? "sidebar-link active" : "sidebar-link");
   const modClass = (key) => (!resolvedModules[key] ? " disabled" : "");
 
-  // Строим имя и инициалы из данных backend (UserResponse: name, surname, email)
   const displayName = currentUser
     ? `${currentUser.name} ${currentUser.surname}`
     : "";
@@ -58,7 +57,6 @@ function AppSidebar({
   const handleLogout = async (e) => {
     e.preventDefault();
     await logout();
-    // После logout ProtectedRoute перенаправит на /login автоматически
   };
 
   return (

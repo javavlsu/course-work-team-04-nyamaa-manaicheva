@@ -12,12 +12,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Все /api/* запросы → backend
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
       },
-      // Spring Security logout endpoint — не под /api/
       "/logout": {
         target: "http://localhost:8080",
         changeOrigin: true,

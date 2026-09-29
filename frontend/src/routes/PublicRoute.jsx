@@ -10,7 +10,6 @@ export function PublicRoute() {
   }
 
   if (isAuthenticated) {
-    // Уже авторизованного администратора ведём в его панель, клиента — в рабочую область
     return <Navigate to={isAdmin(currentUser) ? "/admin/users" : "/"} replace />;
   }
 

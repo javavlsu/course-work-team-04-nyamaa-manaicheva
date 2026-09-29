@@ -1,10 +1,5 @@
 import { RotateCcw, Trash2 } from "lucide-react";
 
-/**
- * Маппинг noteType (backend enum) → человекочитаемый тег.
- * Дублирует NOTE_TYPE_LABELS из NotesFeedPage/NoteCard.jsx — там он не экспортируется,
- * а заводить общий модуль ради одного объекта не входит в задачу.
- */
 const NOTE_TYPE_LABELS = {
   Empty: "Заметка",
   List: "Список",
@@ -13,9 +8,6 @@ const NOTE_TYPE_LABELS = {
   Calendar: "Календарь",
 };
 
-/**
- * Вытаскивает читаемый текст-preview из поля content (та же логика, что в NoteCard).
- */
 function extractExcerpt(content) {
   if (!content) return "";
   if (typeof content === "string") return content;
@@ -26,9 +18,6 @@ function extractExcerpt(content) {
   }
 }
 
-/**
- * Форматирует ISO-дату в читаемый вид «14 авг 2026».
- */
 function formatDate(isoString) {
   if (!isoString) return "";
   try {

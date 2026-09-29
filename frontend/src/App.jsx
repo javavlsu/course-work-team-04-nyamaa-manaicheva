@@ -34,26 +34,21 @@ function RootGate() {
   const { isAuthenticated, isLoading } = useAuth();
   const { pathname } = useLocation();
 
-  // Ждём завершения начальной проверки сессии — не делаем flash redirect
   if (isLoading) {
     return null;
   }
 
-  // Корневой путь: гостю — лендинг, авторизованному — рабочая область
   if (!isAuthenticated && pathname === "/") {
     return <HomePage />;
   }
 
-  // Прочие пути отдаём вложенным маршрутам (guards сделают redirect при необходимости)
   return <Outlet />;
 }
 
 function App() {
   return (
     <Routes>
-      {/* Корневой путь: лендинг для гостей, рабочая область для авторизованных */}
       <Route path="/" element={<RootGate />}>
-        {/* Клиентская рабочая область: только Client (админ получит 403) */}
         <Route element={<ProtectedRoute allowedRoles={[ROLE_CLIENT]} />}>
           <Route element={<WorkspaceLayout />}>
             <Route index element={<NotesFeedPage />} />
@@ -72,7 +67,6 @@ function App() {
         </Route>
       </Route>
 
-      {/* Панель администратора: только Admin (клиент получит 403) */}
       <Route element={<ProtectedRoute allowedRoles={[ROLE_ADMIN]} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/users" replace />} />
@@ -83,7 +77,6 @@ function App() {
         </Route>
       </Route>
 
-      {/* Публичные auth-маршруты */}
       <Route element={<PublicRoute />}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -93,12 +86,10 @@ function App() {
         </Route>
       </Route>
 
-      {/* Отдельный защищённый маршрут вне workspace shell */}
       <Route element={<ProtectedRoute allowedRoles={[ROLE_CLIENT]} />}>
         <Route path="/account" element={<AccountPage />} />
       </Route>
 
-      {/* Статичные error-страницы — публичные */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />

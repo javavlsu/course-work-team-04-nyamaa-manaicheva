@@ -1,11 +1,6 @@
 import { useEffect } from "react";
 import "../KanbanBoardPage.css";
 
-/**
- * Универсальная модалка подтверждения деструктивного действия (удаление колонки/задачи).
- * Повторяет паттерн PurgeConfirmModal из pages/TrashPage, но обобщена под заголовок/текст,
- * т.к. используется для двух разных сущностей на этой странице.
- */
 function ConfirmDialog({ title, text, confirmLabel = "Удалить", isBusy = false, onCancel, onConfirm }) {
   useEffect(() => {
     const handleKey = (e) => {

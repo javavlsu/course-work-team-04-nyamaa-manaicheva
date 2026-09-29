@@ -40,7 +40,6 @@
   gap: 10px;
 }
 
-/* ── Ошибка действия (restore/purge) — баннер под topbar ─────────── */
 .trash-action-error {
   display: flex;
   align-items: center;
@@ -68,7 +67,6 @@
   background: var(--fg-soft);
 }
 
-/* ── Список удалённых заметок ─────────────────────────────────────── */
 .trash-list {
   display: flex;
   flex-direction: column;
@@ -186,7 +184,6 @@
   background: color-mix(in oklch, #d14343 16%, transparent);
 }
 
-/* ── Пустое состояние ──────────────────────────────────────────────── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -209,7 +206,6 @@
   max-width: 32ch;
 }
 
-/* ── Loading / Error states (те же классы, что и на других страницах) ── */
 .notes-loading {
   display: flex;
   flex-direction: column;
@@ -273,7 +269,6 @@
   background: var(--border);
 }
 
-/* ── Модалка подтверждения безвозвратного удаления ────────────────── */
 .trash-modal-overlay {
   position: fixed;
   inset: 0;
@@ -363,7 +358,6 @@
   cursor: default;
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 920px) {
   .topbar {
     padding-left: 16px;

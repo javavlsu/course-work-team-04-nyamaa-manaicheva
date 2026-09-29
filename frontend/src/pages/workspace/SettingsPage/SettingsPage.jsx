@@ -13,10 +13,6 @@ import ProfileSection, { roleLabel } from "./components/ProfileSection";
 import ProfileCard from "./ProfileCard";
 import "./SettingsPage.css";
 
-/**
- * @param {{ admin?: boolean }} props
- *   admin — режим администратора: без блока модулей и без импорта/экспорта заметок.
- */
 export function SettingsPage({ admin = false }) {
   const { setSidebarProps } = useOutletContext();
   const { currentUser } = useAuth();

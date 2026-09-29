@@ -29,16 +29,6 @@ const birthdayValidation = {
   },
 };
 
-/**
- * Модалка создания / редактирования пользователя.
- *
- * mode="create": форма как при регистрации + выбор роли (можно создать и администратора).
- * mode="edit":   все поля профиля + смена роли. Для собственной записи роль заблокирована
- *                (backend вернёт 403 на смену собственной роли).
- *
- * onSubmit получает { name, surname, email, birthdayDate, role, password? } и должен
- * вернуть Promise; при ошибке выбрасывайте Error — сообщение покажем в форме.
- */
 function UserFormModal({ mode, user, isSelf = false, onClose, onSubmit }) {
   const isCreate = mode === "create";
   const [isSaving, setIsSaving] = useState(false);

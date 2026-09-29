@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import AdminSidebar from "@/components/layout/AdminSidebar";
-// Каркас (.app / .main) такой же, как у клиентской рабочей области
 import "../WorkspaceLayout/WorkspaceLayout.css";
 
 export function AdminLayout() {
@@ -13,7 +12,6 @@ export function AdminLayout() {
     setSidebarProps((prev) => ({ ...prev, ...props }));
   }, []);
 
-  // Тот же контракт, что у WorkspaceLayout: страницы вызывают setSidebarProps({ active })
   const outletContext = useMemo(
     () => ({ setSidebarProps: mergeSidebarProps }),
     [mergeSidebarProps],
