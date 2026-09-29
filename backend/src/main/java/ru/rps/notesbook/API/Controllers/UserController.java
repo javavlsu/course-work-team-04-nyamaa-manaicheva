@@ -35,6 +35,21 @@ public class UserController {
         return userService.GetUsers(limit, cursor);
     }
 
+    @PostMapping
+    public ResponseEntity<UserContracts.UserResponse> createUser(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @RequestBody UserContracts.CreateUserRequest request
+    ) {
+        requireUserId(principal);
+        requireAdmin(principal);
+
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userService.CreateUser(request));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     @GetMapping("/search")
     public List<UserContracts.UserSearchResponse> searchUsers(
             @AuthenticationPrincipal NotesbookUserPrincipal principal,
@@ -104,6 +119,17 @@ public class UserController {
         UUID ownerId = requireUserId(principal);
         requireSelfOrAdmin(id, ownerId, principal);
         userService.DeleteUserById(id);
+    }
+
+    @DeleteMapping("/{id}/with-data")
+    public ResponseEntity<Void> deleteUserWithAllData(
+            @AuthenticationPrincipal NotesbookUserPrincipal principal,
+            @PathVariable UUID id
+    ) {
+        UUID actorId = requireUserId(principal);
+        requireAdmin(principal);
+        userService.DeleteUserWithAllData(id, actorId);
+        return ResponseEntity.noContent().build();
     }
 
     private static UUID requireUserId(NotesbookUserPrincipal principal) {

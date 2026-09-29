@@ -1,4 +1,4 @@
-package ru.rps.notesbook.Domain.Services;
+package ru.rps.notesbook.Infrastructure.Email;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +9,7 @@ import ru.rps.notesbook.Domain.Interfaces.Services.IEmailService;
 
 @Service
 @RequiredArgsConstructor
-public class EmailService implements IEmailService {
+public class SmtpEmailService implements IEmailService {
 
     private final JavaMailSender mailSender;
 

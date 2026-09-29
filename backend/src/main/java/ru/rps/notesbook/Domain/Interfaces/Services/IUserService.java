@@ -29,4 +29,8 @@ public interface IUserService {
 
     void ChangePassword(UUID userId, String oldPassword, String newPassword);
 
+    UserContracts.UserResponse CreateUser(UserContracts.CreateUserRequest request);
+
+    void DeleteUserWithAllData(UUID targetUserId, UUID actorUserId);
+
 }

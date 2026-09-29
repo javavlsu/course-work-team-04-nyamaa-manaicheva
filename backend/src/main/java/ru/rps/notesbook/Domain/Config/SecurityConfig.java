@@ -48,7 +48,7 @@ public class SecurityConfig {
                             "/directories",
                             "/directories/**"
                         ).hasRole(RoleTypeEnum.Client.name().toUpperCase())
-                        .requestMatchers("/api/admin/**").hasRole(RoleTypeEnum.Admin.name().toUpperCase())
+                        .requestMatchers("/api/logs").hasRole(RoleTypeEnum.Admin.name().toUpperCase())
                         .requestMatchers("/api/users", "/api/users/**").authenticated()
                         .requestMatchers("/api/**").hasRole(RoleTypeEnum.Client.name().toUpperCase())
                         .requestMatchers("/profile").authenticated()
