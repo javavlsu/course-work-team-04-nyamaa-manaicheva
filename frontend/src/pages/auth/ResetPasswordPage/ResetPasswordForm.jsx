@@ -29,14 +29,12 @@ function ResetPasswordForm() {
       });
       setDone(true);
     } catch (err) {
-      // Backend возвращает понятное сообщение для недействительного/просроченного токена
       setError(err.message || "Не удалось сохранить новый пароль. Попробуйте ещё раз");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Ссылка открыта без токена — форму показывать нет смысла
   if (!token) {
     return (
       <div className="reset-success">

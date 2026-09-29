@@ -69,7 +69,6 @@ export function UsersPage() {
     const { role, ...profile } = data;
 
     let updated = await adminApi.updateUser(target.id, profile);
-    // Роль меняется отдельным endpoint'ом и только если реально изменилась
     if (role !== target.role) {
       updated = await adminApi.changeRole(target.id, role);
     }

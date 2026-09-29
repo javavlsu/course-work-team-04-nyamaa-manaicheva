@@ -35,7 +35,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- BOM AWS SDK v2: версии всех модулей SDK берутся отсюда -->
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>bom</artifactId>

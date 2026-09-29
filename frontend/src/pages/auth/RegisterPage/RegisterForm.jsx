@@ -1,18 +1,3 @@
-/**
- * RegisterForm
- *
- * Backend contract (AuthContracts.RegisterRequest):
- *   name, surname, email, birthdayDate?, password, passwordConfirm
- *
- * Маппинг полей формы → backend:
- *   firstName → name
- *   lastName  → surname
- *   phone     → НЕ отправляем (backend не принимает)
- *
- * После успешной регистрации (201 No Content) — redirect на /login.
- * Логин после регистрации пользователь делает сам (backend не возвращает сессию при register).
- */
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, FormProvider } from "react-hook-form";
@@ -40,19 +25,16 @@ function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      // Маппим поля формы в backend contract.
-      // phone не отправляем — backend его не принимает.
       await apiRegister({
         name: data.firstName,
         surname: data.lastName,
         email: data.email,
-        birthdayDate: null, // поле не собирается в форме, backend принимает null
+        birthdayDate: null,
         password: data.password,
         passwordConfirm: data.passwordConfirm,
       });
 
       methods.reset();
-      // После регистрации направляем на логин
       navigate("/login", { state: { registered: true } });
     } catch (err) {
       setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");
@@ -70,7 +52,6 @@ function RegisterForm() {
         </div>
 
         <Input {...emailValidation} requiredIndicator placeholder="you@example.com" />
-        {/* phone — UI-only поле, не отправляется на backend */}
         <Input {...phoneValidation} />
         <Input {...registerPasswordValidation} requiredIndicator />
         <Input {...confirmPasswordValidation} requiredIndicator />

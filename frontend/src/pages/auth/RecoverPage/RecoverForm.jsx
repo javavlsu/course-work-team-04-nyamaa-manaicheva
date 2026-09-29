@@ -20,8 +20,6 @@ function RecoverForm() {
 
     try {
       await forgotPassword(data.email);
-      // Backend всегда отвечает одинаковым сообщением независимо от того, найден ли email —
-      // поэтому просто показываем success-экран без раскрытия реального результата.
       setSent(true);
     } catch (err) {
       setError(err.message || "Не удалось отправить письмо. Попробуйте ещё раз");

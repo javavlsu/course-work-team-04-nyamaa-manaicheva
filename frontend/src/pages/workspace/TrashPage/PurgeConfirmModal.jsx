@@ -1,13 +1,6 @@
 import { useEffect } from "react";
 import "./TrashPage.css";
 
-/**
- * Модалка подтверждения безвозвратного удаления заметки.
- * Визуально и поведенчески повторяет DeleteDirectoryModal
- * (components/DirectoryModal), но со своими CSS-классами (trash-modal-*),
- * т.к. по конвенции проекта стили модалок не выносятся в общий файл,
- * а дублируются рядом со страницей/фичей, которой принадлежат.
- */
 function PurgeConfirmModal({ noteTitle, isPurging = false, onClose, onConfirm }) {
   useEffect(() => {
     const handleKey = (e) => {

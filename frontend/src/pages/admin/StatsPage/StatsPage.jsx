@@ -4,10 +4,6 @@ import { ChartNoAxesColumn } from "lucide-react";
 
 import "../../workspace/TrashPage/TrashPage.css";
 
-/**
- * Заглушка: упрощённая статистика (ошибки, число созданных/удалённых пользователей)
- * будет добавлена позже.
- */
 export function StatsPage() {
   const { setSidebarProps } = useOutletContext();
 

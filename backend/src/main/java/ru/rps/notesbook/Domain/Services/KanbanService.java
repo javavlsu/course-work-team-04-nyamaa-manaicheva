@@ -109,8 +109,6 @@ public class KanbanService implements IKanbanService {
     public void DeleteColumn(UUID currentUserId, UUID columnId) {
         KanbanColumn column = getOwnedColumnOrThrow(currentUserId, columnId);
 
-        // В схеме нет ON DELETE CASCADE (как и у остальных таблиц проекта) —
-        // сначала удаляем задачи колонки, затем саму колонку.
         kanbanTaskRepository.DeleteTasksByColumnId(column.GetId());
         kanbanColumnRepository.DeleteColumnById(column.GetId());
     }

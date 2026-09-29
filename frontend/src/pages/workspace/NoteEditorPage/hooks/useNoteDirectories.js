@@ -3,13 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as directoriesApi from "@/api/directories.js";
 
 export function useNoteDirectories(id, isNew, currentUser) {
-  // --- Note ↔ Directory membership (только для owner, так же как permissions) ---
-  const [noteDirectories, setNoteDirectories] = useState([]); // [{ id, title }] — без псевдо-пункта "all"
-  const [noteDirectoryIds, setNoteDirectoryIds] = useState(new Set()); // directoryId, в которых сейчас лежит заметка
+  const [noteDirectories, setNoteDirectories] = useState([]);
+  const [noteDirectoryIds, setNoteDirectoryIds] = useState(new Set());
   const [directoriesMenuOpen, setDirectoriesMenuOpen] = useState(false);
   const [directoriesLoading, setDirectoriesLoading] = useState(false);
   const [directoriesError, setDirectoriesError] = useState(null);
-  const [updatingDirectoryIds, setUpdatingDirectoryIds] = useState(new Set()); // блокирует только конкретную строку, не весь список
+  const [updatingDirectoryIds, setUpdatingDirectoryIds] = useState(new Set());
   const directoryMenuWrapRef = useRef(null);
 
   useEffect(() => {
@@ -26,20 +25,6 @@ export function useNoteDirectories(id, isNew, currentUser) {
       document.removeEventListener("click", handleDocumentClick);
   }, []);
 
-  /**
-   * Загружает список директорий владельца и определяет, в каких из них сейчас
-   * находится эта заметка. Доступно только владельцу (add/remove на backend требуют
-   * владение директорией и заметкой), поэтому для не-владельца запрос вообще
-   * не делается. ownerIdParam передаётся явно, так же как в loadPermissions.
-   *
-   * Backend не имеет endpoint вида "в каких директориях лежит эта заметка" —
-   * только GET /api/directories/{id}/notes (список всех заметок одной директории).
-   * Поэтому membership определяется перебором всех директорий владельца (обычно
-   * их немного) и проверкой, есть ли текущий noteId в каждой из них.
-   *
-   * Список и ошибки сбрасываются до загрузки — при смене заметки в UI не остаётся
-   * membership предыдущей заметки (в т.ч. для не-владельца, который грузить не будет).
-   */
   const load = useCallback(
     async (ownerIdParam) => {
       if (isNew) return;
@@ -64,7 +49,6 @@ export function useNoteDirectories(id, isNew, currentUser) {
               const isMember = (notesInDir ?? []).some((n) => n.noteId === id);
               return isMember ? dir.id : null;
             } catch {
-              // Ошибка по одной директории не должна ломать весь список.
               return null;
             }
           })
@@ -79,14 +63,6 @@ export function useNoteDirectories(id, isNew, currentUser) {
     [id, isNew, currentUser],
   );
 
-  /**
-   * Включает/выключает принадлежность заметки к конкретной директории. Одна заметка может
-   * одновременно состоять в нескольких директориях — это обычный toggle без
-   * взаимного исключения. Защита от повторной отправки — через updatingDirectoryIds
-   * (Set), блокируется только конкретная директория, остальные остаются доступны.
-   * При ошибке checked-состояние не меняется. Повторный GET не делается —
-   * локально обновляем noteDirectoryIds после успешного add/remove.
-   */
   const toggle = useCallback(
     async (directory) => {
       if (isNew || updatingDirectoryIds.has(directory.id)) return;

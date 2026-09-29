@@ -15,7 +15,6 @@ public final class DirectoryNoteContracts {
             UUID directoryId
     ) {}
 
-    // contract for sync
     public record DirectoryNoteSyncResponse(
             UUID noteId,
             UUID directoryId,

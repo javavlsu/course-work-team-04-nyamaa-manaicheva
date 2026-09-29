@@ -7,7 +7,7 @@ export function useKanbanBoard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [deletingColumn, setDeletingColumn] = useState(null); // колонка, ожидающая подтверждения
+  const [deletingColumn, setDeletingColumn] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
 
@@ -38,8 +38,6 @@ export function useKanbanBoard() {
     }));
   };
 
-  // ─── Columns ────────────────────────────────────────────────────────
-
   const handleCreateColumn = async (title) => {
     if (!board) return;
     setIsAddingColumn(false);
@@ -60,7 +58,7 @@ export function useKanbanBoard() {
       await kanbanApi.updateColumn(columnId, { title });
     } catch (err) {
       setError(err.message || "Не удалось переименовать колонку");
-      loadBoard(); // откат — проще перезагрузить доску целиком
+      loadBoard();
     }
   };
 
@@ -75,8 +73,6 @@ export function useKanbanBoard() {
       setError(err.message || "Не удалось удалить колонку");
     }
   };
-
-  // ─── Tasks ──────────────────────────────────────────────────────────
 
   const handleAddTask = async (columnId, title) => {
     try {
@@ -127,9 +123,6 @@ export function useKanbanBoard() {
     }
   };
 
-  // Общий перенос: targetColumnId — целевая колонка, position (null = в конец).
-  // position — индекс среди задач целевой колонки БЕЗ самой переносимой задачи
-  // (backend MoveTask удаляет задачу из source и вставляет на position в target).
   const moveTask = async (taskId, targetColumnId, position) => {
     if (!board) return;
 
@@ -147,8 +140,6 @@ export function useKanbanBoard() {
     const remainingInTarget = targetColumn.tasks.filter((t) => t.id !== taskId);
     let targetIndex = position != null ? Math.min(position, remainingInTarget.length) : remainingInTarget.length;
 
-    // При перемещении внутри одной колонки удаление задачи из массива
-    // сдвигает индексы всех элементов после неё на −1.
     if (isSameColumn && position != null) {
       const currentIndex = sourceColumn.tasks.findIndex((t) => t.id === taskId);
       if (currentIndex !== -1 && position > currentIndex) {
@@ -156,10 +147,8 @@ export function useKanbanBoard() {
       }
     }
 
-    // Отпустили карточку туда же, откуда взяли — запрос не нужен.
     if (isSameColumn && targetIndex === sourceColumn.tasks.findIndex((t) => t.id === taskId)) return;
 
-    // Оптимистичное обновление порядка в UI, не дожидаясь ответа backend.
     setBoard((prev) => {
       const columns = prev.columns.map((c) => ({ ...c, tasks: [...c.tasks] }));
       const srcCol = columns.find((c) => c.id === sourceColumn.id);
@@ -174,7 +163,7 @@ export function useKanbanBoard() {
       applyTaskUpdate(updatedTask);
     } catch (err) {
       setError(err.message || "Не удалось перенести задачу");
-      loadBoard(); // откат — проще перезагрузить доску целиком
+      loadBoard();
     }
   };
 

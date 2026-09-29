@@ -67,7 +67,6 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
           />
         )}
 
-        {/* Notes loading state (первая загрузка / смена директории) */}
         {feed.isLoading && (
           <div className="notes-loading">
             <div className="notes-loading-spinner" />
@@ -75,7 +74,6 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
           </div>
         )}
 
-        {/* Notes error state (первая загрузка) */}
         {!feed.isLoading && feed.error && (
           <div className="notes-error">
             <p>{feed.error}</p>
@@ -88,13 +86,11 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
           </div>
         )}
 
-        {/* Notes list + infinite scroll */}
         {!feed.isLoading && !feed.error && (
           notesEnriched.length > 0 ? (
             <>
               <NotesGrid notes={notesEnriched} folders={dirs.foldersForSelector} onToggle={feed.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} onDelete={feed.deleteNote} />
 
-              {/* Sentinel для IntersectionObserver — рендерится только пока есть ещё страницы */}
               {feed.hasMore && (
                 <div ref={feed.sentinelRef} className="notes-load-more-sentinel">
                   {feed.isLoadingMore && (
@@ -106,7 +102,6 @@ export function NotesFeedPage({ favouritesOnly = false } = {}) {
                 </div>
               )}
 
-              {/* Ошибка подгрузки следующей страницы — уже загруженные notes остаются */}
               {feed.loadMoreError && (
                 <div className="notes-load-more-error">
                   <span>{feed.loadMoreError}</span>

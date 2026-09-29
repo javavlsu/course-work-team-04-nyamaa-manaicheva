@@ -3,10 +3,6 @@ import { Pencil, Trash2 } from "lucide-react";
 import { ROLE_ADMIN } from "@/lib/utils/roles.js";
 import { roleLabel } from "@/pages/workspace/SettingsPage/components/ProfileSection";
 
-/**
- * Карточка-строка пользователя: ФИО, под ним роль; справа — «Редактировать» и «Удалить».
- * Собственную учётную запись удалить нельзя (backend запрещает), кнопка блокируется.
- */
 function UserRow({ user, isSelf, disabled, onEdit, onDeleteRequest }) {
   const fullName = `${user.name ?? ""} ${user.surname ?? ""}`.trim() || user.email;
 

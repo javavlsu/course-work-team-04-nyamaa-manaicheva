@@ -673,7 +673,6 @@
   max-width: 32ch;
 }
 
-/* ── Loading state ────────────────────────────────── */
 .notes-loading {
   display: flex;
   flex-direction: column;
@@ -698,7 +697,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Infinite scroll: load-more indicator ────────────── */
 .notes-load-more-sentinel {
   display: flex;
   align-items: center;
@@ -754,7 +752,6 @@
   background: var(--border);
 }
 
-/* ── Error state ──────────────────────────────────── */
 .notes-error {
   display: flex;
   flex-direction: column;
@@ -794,7 +791,6 @@
   background: var(--border);
 }
 
-/* ── Responsive ───────────────────────────────────── */
 @media (max-width: 768px) {
   .actions-btn {
     opacity: 1;

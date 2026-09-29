@@ -13,9 +13,6 @@ public final class PushContracts {
 
     public enum PushResourceType { NOTE, DIRECTORY }
 
-    // title/content/noteType/isFavourite only for CREATE/UPDATE
-    // expectedVersion only for UPDATE/DELETE (null – ignore)
-    // for CREATE operation – client-generated UUID
     public record NotePushOperation(
             PushOperationType op,
             UUID id,
@@ -26,9 +23,6 @@ public final class PushContracts {
             Long expectedVersion
     ) {}
 
-    // title only for CREATE/UPDATE
-    // expectedVersion only for UPDATE/DELETE (null – ignore)
-    // for CREATE operation – client-generated UUID
     public record DirectoryPushOperation(
             PushOperationType op,
             UUID id,
@@ -41,8 +35,6 @@ public final class PushContracts {
             List<DirectoryPushOperation> directories
     ) {}
 
-    // Only one operation result
-    // currentVersion is filled only when status == CONFLICT
     public record PushOperationResult(
             PushResourceType resourceType,
             UUID id,

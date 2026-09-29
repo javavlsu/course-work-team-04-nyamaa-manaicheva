@@ -1,8 +1,5 @@
 import { useEffect } from "react";
 
-/**
- * Подтверждение удаления пользователя вместе со всеми его данными.
- */
 function DeleteUserModal({ user, isDeleting = false, error, onClose, onConfirm }) {
   useEffect(() => {
     const handleKey = (e) => {

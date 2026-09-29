@@ -2,13 +2,8 @@ import { Link } from "react-router-dom";
 import { ChartNoAxesColumn, Menu, ScrollText, Settings, Users } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext.jsx";
-// Переиспользуем стили клиентского сайдбара — визуально панель администратора идентична
 import "../AppSidebar/AppSidebar.css";
 
-/**
- * Боковая панель администратора: Пользователи, Логи, Статистика
- * + нижний блок «Настройки / имя пользователя / выйти».
- */
 function AdminSidebar({ active, collapsed, onToggle }) {
   const { currentUser, logout } = useAuth();
   const linkClass = (key) => (active === key ? "sidebar-link active" : "sidebar-link");
@@ -21,7 +16,7 @@ function AdminSidebar({ active, collapsed, onToggle }) {
   const handleLogout = async (e) => {
     e.preventDefault();
     await logout();
-    // После logout ProtectedRoute перенаправит на /login
+    // После перенаправит на /login
   };
 
   return (

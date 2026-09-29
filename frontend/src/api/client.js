@@ -1,18 +1,3 @@
-/**
- * Базовый API клиент.
- *
- * - Все запросы идут через Vite/nginx proxy: /api/... → backend:8080
- * - credentials: 'include' обязателен для session cookie
- * - Ошибки нормализуются в объект { status, message }
- */
-
-/**
- * Выбрасывает нормализованную ошибку для HTTP-ответов с кодом >= 400.
- * Пробует прочитать { message } из тела ответа, иначе использует статус-текст.
- *
- * @param {Response} response
- * @returns {Promise<never>}
- */
 async function throwApiError(response) {
   let message = response.statusText || "Неизвестная ошибка";
 
@@ -25,7 +10,7 @@ async function throwApiError(response) {
       }
     }
   } catch {
-    // ignore parse errors — используем statusText
+    // ignore parse errors
   }
 
   const error = new Error(message);
@@ -33,13 +18,6 @@ async function throwApiError(response) {
   throw error;
 }
 
-/**
- * Универсальный fetch wrapper.
- *
- * @param {string} path      — путь вида /api/auth/login
- * @param {RequestInit} [options]
- * @returns {Promise<any>}   — распарсенный JSON или undefined (для 204/пустого тела)
- */
 export async function request(path, options = {}) {
   const { headers: extraHeaders, body, ...rest } = options;
 
@@ -48,7 +26,6 @@ export async function request(path, options = {}) {
     ...extraHeaders,
   };
 
-  // Если body уже FormData — не ставим Content-Type (браузер сам проставит boundary)
   if (body instanceof FormData) {
     delete headers["Content-Type"];
   }
@@ -64,7 +41,6 @@ export async function request(path, options = {}) {
     await throwApiError(response);
   }
 
-  // 204 No Content и пустые тела
   const contentType = response.headers.get("content-type") || "";
   if (response.status === 204 || !contentType.includes("application/json")) {
     return undefined;

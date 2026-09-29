@@ -32,7 +32,6 @@ export function useKanbanDnd(board, moveTask) {
     setDragOverTaskId(taskId);
   };
 
-  // Отпустили карточку на пустое место в колонке (не на другую карточку) — в конец.
   const handleColumnDrop = (e, columnId) => {
     e.preventDefault();
     setDragOverColumnId(null);
@@ -43,7 +42,6 @@ export function useKanbanDnd(board, moveTask) {
     moveTask(taskId, columnId, null);
   };
 
-  // Отпустили карточку на другую карточку — вычисляем позицию и передаём в moveTask.
   const handleCardDrop = (e, columnId, targetTaskId) => {
     e.preventDefault();
     e.stopPropagation();

@@ -3,7 +3,6 @@ import { useCallback, useState } from "react";
 import * as attachmentsApi from "@/api/attachments.js";
 
 export function useNoteAttachments(id, isNew) {
-  // --- Attachments: POST /api/notes/:id/attachments ---
   const [attachments, setAttachments] = useState([]);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -12,12 +11,6 @@ export function useNoteAttachments(id, isNew) {
   const [deletingAttachmentId, setDeletingAttachmentId] = useState(null);
   const [confirmDeleteAttachment, setConfirmDeleteAttachment] = useState(null);
 
-  /**
-   * Загружает список attachments заметки. Недоступно для "new" (заметки ещё не существует на backend).
-   * Перед загрузкой сбрасывает список и ошибки текущей заметки (при смене id), чтобы в UI
-   * не остались вложения предыдущей заметки. Ошибка переиспользует attachmentError/баннер,
-   * отдельного loading не вводим — список просто появляется, когда готов.
-   */
   const load = useCallback(async () => {
     if (isNew) return;
 
@@ -33,12 +26,6 @@ export function useNoteAttachments(id, isNew) {
     }
   }, [id, isNew]);
 
-  /**
-   * Загружает файл-вложение к заметке сразу после выбора файла в FormatToolbar.
-   * Недоступно для "new" (заметка ещё не существует на backend — кнопка дизейблена через uploadDisabled).
-   * Защита от повторной отправки через isUploadingAttachment. 413 от backend (лимит 20 МБ)
-   * показывается отдельным понятным сообщением.
-   */
   const upload = useCallback(
     async (file) => {
       if (isNew || isUploadingAttachment) return;
@@ -48,7 +35,6 @@ export function useNoteAttachments(id, isNew) {
 
       try {
         const created = await attachmentsApi.upload(id, file);
-        // Добавляем в уже загруженный список без повторного GET.
         setAttachments((prev) => [...prev, created]);
       } catch (err) {
         if (err.status === 413) {
@@ -63,11 +49,6 @@ export function useNoteAttachments(id, isNew) {
     [id, isNew, isUploadingAttachment],
   );
 
-  /**
-   * Получает presigned-ссылку и открывает её в новой вкладке. Upload response не содержит
-   * url напрямую, поэтому требуется отдельный запрос GET /api/attachments/{id}.
-   * Защита от повторной отправки через downloadingAttachmentId.
-   */
   const download = useCallback(
     async (attachment) => {
       if (isNew || downloadingAttachmentId) return;
@@ -87,12 +68,6 @@ export function useNoteAttachments(id, isNew) {
     [isNew, downloadingAttachmentId],
   );
 
-  /**
-   * Удаляет вложение. Перед запросом — показывает модальное окно подтверждения. Защита от повторной
-   * отправки через deletingAttachmentId. Права проверяет только backend (canEditNote) —
-   * кнопка показывается всегда, ошибка 403 отобразится через тот же attachmentError.
-   * Повторный GET не делается — локально фильтруем удалённый id из attachments.
-   */
   const remove = useCallback(
     (attachment) => {
       if (isNew || deletingAttachmentId) return;

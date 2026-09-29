@@ -286,7 +286,6 @@
   color: var(--muted);
 }
 
-/* ── Loading / Error (тот же паттерн, что на других страницах) ── */
 .notes-loading {
   display: flex;
   flex-direction: column;
