@@ -37,7 +37,6 @@ public class KanbanTaskEntity {
     @Column(name = "archived", nullable = false)
     private Boolean archived;
 
-    // note_id nullable — задача может не быть привязана ни к одной заметке.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "note_id")
     private NoteEntity note;

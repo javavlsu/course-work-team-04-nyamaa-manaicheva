@@ -53,8 +53,7 @@ public class S3Config {
         try {
             client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
         } catch (Exception e) {
-            log.warn("Could not verify S3 bucket '{}' on startup (this is OK if the bucket " +
-                    "already exists and the credentials are scoped to it): {}", bucket, e.getMessage());
+            log.warn("Could not verify S3 bucket '{}' on startup: {}", bucket, e.getMessage());
         }
 
         return client;

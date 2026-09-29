@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- Путь из logging.file.path (application.yaml); каталог относительно рабочей директории процесса -->
     <springProperty name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
 
-    <!-- %throwable — полный стектрейс после строки сообщения (удобно для 500 и SQL-ошибок) -->
     <property name="FILE_LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - %msg%n%throwable"/>
 

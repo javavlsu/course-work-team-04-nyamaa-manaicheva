@@ -19,7 +19,7 @@ public class OpenApiConfig {
                         .title("Notesbook API")
                         .version("1.0")
                         .description("""
-                                Сессия после входа: выполните POST /api/auth/login из этого интерфейса — браузер сохранит cookie JSESSIONID для последующих запросов.\s
+                                Сессия после входа: выполнить POST /api/auth/login и браузер сохранит cookie для последующих запросов.\s
                                 Регистрация: POST /api/auth/register.
                                 """))
                 .components(new Components().addSecuritySchemes(SESSION_COOKIE_SCHEME,

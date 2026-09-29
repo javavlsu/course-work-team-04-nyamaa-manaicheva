@@ -35,17 +35,12 @@ public final class NoteContracts {
             boolean isFavourite
     ) {}
 
-    // expectedVersion optional (not required)
     public record UpdateNoteRequest(
             String title,
             Object content,
             Long expectedVersion
     ) {}
 
-    // Infinite Scroll: cursor-based pagination response. nextCursor == null и hasMore == false,
-    // когда данных больше нет. totalNotesCount — все заметки (вне фильтров/пагинации),
-    // filteredCount — заметки под текущими фильтрами (search/noteType/isFavourite), без учёта
-    // сортировки и пагинации; favouritesCount — все избранные.
     public record NotePageResponse(
             List<NoteResponse> items,
             String nextCursor,
