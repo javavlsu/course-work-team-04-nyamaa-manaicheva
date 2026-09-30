@@ -297,24 +297,26 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteUserById_withRelatedData_shouldThrowConflict() {
-        UUID id = UUID.randomUUID();
-        org.mockito.Mockito.doThrow(new org.springframework.dao.DataIntegrityViolationException("FK violation"))
-                .when(userRepository).DeleteUserById(id);
+    void deleteUserById_shouldDeleteUserAndRemoveStorageObjects() {
+        User user = existingUser();
+        UUID id = user.GetId();
+        when(userRepository.GetUserById(id)).thenReturn(Optional.of(user));
+        when(userRepository.DeleteUserById(id)).thenReturn(List.of("key-1", "key-2"));
 
-        org.springframework.web.server.ResponseStatusException ex = assertThrows(
-                org.springframework.web.server.ResponseStatusException.class,
-                () -> userService.DeleteUserById(id));
-        assertEquals(org.springframework.http.HttpStatus.CONFLICT, ex.getStatusCode());
+        userService.DeleteUserById(id);
+
+        verify(userRepository).DeleteUserById(id);
+        verify(fileStorageService).Delete("key-1");
+        verify(fileStorageService).Delete("key-2");
     }
 
     @Test
-    void deleteUserById_withUnknownId_shouldPropagateRepositoryBehavior() {
+    void deleteUserById_withUnknownId_shouldThrowAndNotDelete() {
         UUID id = UUID.randomUUID();
-        org.mockito.Mockito.doThrow(new RuntimeException("User not found"))
-                .when(userRepository).DeleteUserById(id);
+        when(userRepository.GetUserById(id)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> userService.DeleteUserById(id));
+        verify(userRepository, never()).DeleteUserById(any());
     }
 
     @Test

@@ -1,7 +1,6 @@
 package ru.rps.notesbook.Infrastructure.Database.Adapters;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -33,12 +32,5 @@ public interface PermissionAccessAdapterJPA extends JpaRepository<PermissionAcce
 
     @Query("select p.directory.id from PermissionAccessEntity p where p.userGranted.id = :userId and p.directory is not null")
     List<UUID> findGrantedDirectoryIdsByUserId(@Param("userId") UUID userId);
-
-    @Modifying(flushAutomatically = true)
-    @Query("delete from PermissionAccessEntity p "
-            + "where p.userGranted.id = :userId or p.createdBy.id = :userId "
-            + "or p.note.id in (select n.id from NoteEntity n where n.owner.id = :userId) "
-            + "or p.directory.id in (select d.id from DirectoryEntity d where d.owner.id = :userId)")
-    int deleteAllRelatedToUser(@Param("userId") UUID userId);
 
 }
