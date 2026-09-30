@@ -12,6 +12,7 @@ import {
   moveNote,
   removeNoteFromFolder,
 } from "@/hooks/folderOperations.js";
+import { refreshNotesCounts } from "@/hooks/useNotesCounts.js";
 
 export function useDirectories({ folderId }) {
   const navigate = useNavigate();
@@ -94,6 +95,22 @@ export function useDirectories({ folderId }) {
       setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updated } : n)));
     } catch {
       setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, isFavourite: !n.isFavourite } : n)));
+    }
+  };
+
+  const deleteNote = async (id) => {
+    setFolderActionError(null);
+    try {
+      await notesApi.remove(id);
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNoteFolderMap((prev) => {
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+      refreshNotesCounts();
+    } catch (err) {
+      setFolderActionError(err.message || "Не удалось удалить заметку");
     }
   };
 
@@ -242,6 +259,7 @@ export function useDirectories({ folderId }) {
     folderActionError,
     setFolderActionError,
     toggleFavorite,
+    deleteNote,
     handleMoveNote,
     handleRemoveNote,
     handleCreateAndMove,
