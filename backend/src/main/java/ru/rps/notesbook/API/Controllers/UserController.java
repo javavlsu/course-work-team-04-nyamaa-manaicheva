@@ -118,18 +118,13 @@ public class UserController {
     ) {
         UUID ownerId = requireUserId(principal);
         requireSelfOrAdmin(id, ownerId, principal);
+        if (isAdmin(principal) && id.equals(ownerId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Нельзя удалить собственную учётную запись"
+            );
+        }
         userService.DeleteUserById(id);
-    }
-
-    @DeleteMapping("/{id}/with-data")
-    public ResponseEntity<Void> deleteUserWithAllData(
-            @AuthenticationPrincipal NotesbookUserPrincipal principal,
-            @PathVariable UUID id
-    ) {
-        UUID actorId = requireUserId(principal);
-        requireAdmin(principal);
-        userService.DeleteUserWithAllData(id, actorId);
-        return ResponseEntity.noContent().build();
     }
 
     private static UUID requireUserId(NotesbookUserPrincipal principal) {

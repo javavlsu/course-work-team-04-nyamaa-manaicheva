@@ -3,7 +3,6 @@ package ru.rps.notesbook.Domain.Services;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -138,16 +137,22 @@ public class UserService implements IUserService {
     }
 
     @Override
-    @Transactional
     public void DeleteUserById(UUID id) {
-        try {
-            userRepository.DeleteUserById(id);
-        } catch (DataIntegrityViolationException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Невозможно удалить пользователя: с ним связаны заметки, директории или другие данные"
-            );
+        userRepository.GetUserById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<String> storageKeys = userRepository.DeleteUserById(id);
+
+        for (String storageKey : storageKeys) {
+            try {
+                fileStorageService.Delete(storageKey);
+            } catch (RuntimeException e) {
+                log.error("Failed to delete storage object (key={}) of removed user {}; metadata already removed",
+                        storageKey, id, e);
+            }
         }
+
+        log.info("User {} deleted together with all data ({} attachment objects)", id, storageKeys.size());
     }
 
     @Override
@@ -274,33 +279,6 @@ public class UserService implements IUserService {
         );
 
         return toResponse(userRepository.SaveUser(user));
-    }
-
-    @Override
-    public void DeleteUserWithAllData(UUID targetUserId, UUID actorUserId) {
-        if (targetUserId.equals(actorUserId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Нельзя удалить собственную учётную запись"
-            );
-        }
-
-        userRepository.GetUserById(targetUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<String> storageKeys = userRepository.DeleteUserWithAllData(targetUserId);
-
-        for (String storageKey : storageKeys) {
-            try {
-                fileStorageService.Delete(storageKey);
-            } catch (RuntimeException e) {
-                log.error("Failed to delete storage object (key={}) of removed user {}; metadata already removed",
-                        storageKey, targetUserId, e);
-            }
-        }
-
-        log.info("User {} deleted by admin {} together with all data ({} attachment objects)",
-                targetUserId, actorUserId, storageKeys.size());
     }
 
     private static String hashToken(String rawToken) {

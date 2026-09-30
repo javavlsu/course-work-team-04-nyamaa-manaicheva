@@ -37,7 +37,7 @@ export function changeRole(id, role) {
 }
 
 export function deleteUser(id) {
-  return api.delete(`/api/users/${id}/with-data`);
+  return api.delete(`/api/users/${id}`);
 }
 
 export function getLogs(lines) {

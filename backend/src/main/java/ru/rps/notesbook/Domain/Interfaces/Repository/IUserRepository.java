@@ -15,7 +15,6 @@ public interface IUserRepository{
     Optional<User> GetUserByEmail(String email);
     Optional<User> GetUserByPasswordResetTokenHash(String tokenHash);
     User SaveUser(User user);
-    void DeleteUserById(UUID id);
-    List<String> DeleteUserWithAllData(UUID id);
+    List<String> DeleteUserById(UUID id);
     
 }

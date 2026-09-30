@@ -31,6 +31,4 @@ public interface IUserService {
 
     UserContracts.UserResponse CreateUser(UserContracts.CreateUserRequest request);
 
-    void DeleteUserWithAllData(UUID targetUserId, UUID actorUserId);
-
 }

@@ -28,7 +28,7 @@ CREATE TABLE directory (
     owner_id     UUID NOT NULL,
     version      BIGINT NOT NULL DEFAULT 0,
     CONSTRAINT fk_directory_owner
-        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+        FOREIGN KEY (owner_id) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- NOTE
@@ -44,7 +44,7 @@ CREATE TABLE note (
     owner_id      UUID NOT NULL,
     version       BIGINT NOT NULL DEFAULT 0,
     CONSTRAINT fk_note_owner
-        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+        FOREIGN KEY (owner_id) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- DIRECTORY_NOTE
@@ -54,9 +54,9 @@ CREATE TABLE directory_note (
     added_at     TIMESTAMP NOT NULL,
     PRIMARY KEY (note_id, directory_id),
     CONSTRAINT fk_directorynote_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_directorynote_directory
-        FOREIGN KEY (directory_id) REFERENCES directory(id)
+        FOREIGN KEY (directory_id) REFERENCES directory(id) ON DELETE CASCADE
 );
 
 -- PERMISSION_ACCESS
@@ -69,13 +69,13 @@ CREATE TABLE permission_access (
     directory_id UUID,
     created_at   TIMESTAMP NOT NULL,
     CONSTRAINT fk_perm_user
-        FOREIGN KEY (user_id) REFERENCES "User"(id),
+        FOREIGN KEY (user_id) REFERENCES "User"(id) ON DELETE CASCADE,
     CONSTRAINT fk_perm_created_by
-        FOREIGN KEY (created_by) REFERENCES "User"(id),
+        FOREIGN KEY (created_by) REFERENCES "User"(id) ON DELETE CASCADE,
     CONSTRAINT fk_perm_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_perm_directory
-        FOREIGN KEY (directory_id) REFERENCES directory(id),
+        FOREIGN KEY (directory_id) REFERENCES directory(id) ON DELETE CASCADE,
     CONSTRAINT chk_perm_note_xor_directory CHECK (
         (note_id IS NOT NULL AND directory_id IS NULL)
         OR
@@ -101,9 +101,9 @@ CREATE TABLE note_revision (
     created_at  TIMESTAMP NOT NULL,
     created_by  UUID NOT NULL,
     CONSTRAINT fk_noterevision_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_noterevision_created_by
-        FOREIGN KEY (created_by) REFERENCES "User"(id)
+        FOREIGN KEY (created_by) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- TAG
@@ -114,7 +114,7 @@ CREATE TABLE tag (
     created_at  TIMESTAMP NOT NULL,
     deleted_at  TIMESTAMP NULL,
     CONSTRAINT fk_tag_owner
-        FOREIGN KEY (owner_id) REFERENCES "User"(id),
+        FOREIGN KEY (owner_id) REFERENCES "User"(id) ON DELETE CASCADE,
     CONSTRAINT uq_tag_owner_name UNIQUE (owner_id, name)
 );
 
@@ -125,9 +125,9 @@ CREATE TABLE note_tag (
     added_at  TIMESTAMP NOT NULL,
     PRIMARY KEY (note_id, tag_id),
     CONSTRAINT fk_notetag_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_notetag_tag
-        FOREIGN KEY (tag_id) REFERENCES tag(id)
+        FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
 );
 
 -- ATTACHMENT
@@ -141,9 +141,9 @@ CREATE TABLE attachment (
     created_at    TIMESTAMP NOT NULL,
     created_by    UUID NOT NULL,
     CONSTRAINT fk_attachment_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_attachment_created_by
-        FOREIGN KEY (created_by) REFERENCES "User"(id)
+        FOREIGN KEY (created_by) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- COMMENT
@@ -156,9 +156,9 @@ CREATE TABLE "comment" (
     updated_at  TIMESTAMP NOT NULL,
     deleted_at  TIMESTAMP NULL,
     CONSTRAINT fk_comment_note
-        FOREIGN KEY (note_id) REFERENCES note(id),
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE,
     CONSTRAINT fk_comment_author
-        FOREIGN KEY (author_id) REFERENCES "User"(id)
+        FOREIGN KEY (author_id) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- KANBAN_BOARD
@@ -168,7 +168,7 @@ CREATE TABLE kanban_board (
     created_at  TIMESTAMP NOT NULL,
     updated_at  TIMESTAMP NOT NULL,
     CONSTRAINT fk_kanbanboard_owner
-        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+        FOREIGN KEY (owner_id) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- KANBAN_COLUMN
@@ -180,7 +180,7 @@ CREATE TABLE kanban_column (
     created_at  TIMESTAMP NOT NULL,
     updated_at  TIMESTAMP NOT NULL,
     CONSTRAINT fk_kanbancolumn_board
-        FOREIGN KEY (board_id) REFERENCES kanban_board(id)
+        FOREIGN KEY (board_id) REFERENCES kanban_board(id) ON DELETE CASCADE
 );
 
 -- KANBAN_TASK
@@ -195,9 +195,9 @@ CREATE TABLE kanban_task (
     created_at   TIMESTAMP NOT NULL,
     updated_at   TIMESTAMP NOT NULL,
     CONSTRAINT fk_kanbantask_column
-        FOREIGN KEY (column_id) REFERENCES kanban_column(id),
+        FOREIGN KEY (column_id) REFERENCES kanban_column(id) ON DELETE CASCADE,
     CONSTRAINT fk_kanbantask_note
-        FOREIGN KEY (note_id) REFERENCES note(id)
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE SET NULL
 );
 
 -- CALENDAR
@@ -207,7 +207,7 @@ CREATE TABLE calendar (
     created_at  TIMESTAMP NOT NULL,
     updated_at  TIMESTAMP NOT NULL,
     CONSTRAINT fk_calendar_owner
-        FOREIGN KEY (owner_id) REFERENCES "User"(id)
+        FOREIGN KEY (owner_id) REFERENCES "User"(id) ON DELETE CASCADE
 );
 
 -- CALENDAR_EVENT
@@ -223,7 +223,7 @@ CREATE TABLE calendar_event (
     created_at   TIMESTAMP NOT NULL,
     updated_at   TIMESTAMP NOT NULL,
     CONSTRAINT fk_calendarevent_calendar
-        FOREIGN KEY (calendar_id) REFERENCES calendar(id),
+        FOREIGN KEY (calendar_id) REFERENCES calendar(id) ON DELETE CASCADE,
     CONSTRAINT fk_calendarevent_note
-        FOREIGN KEY (note_id) REFERENCES note(id)
+        FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE SET NULL
 );
