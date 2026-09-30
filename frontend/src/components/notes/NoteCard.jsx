@@ -1,9 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EllipsisVertical, Folder, Star } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import FolderSelector from "../FolderSelector";
 import { CreateDirectoryModal } from "../modals/DirectoryModal";
+import {
+  listToMarkdown,
+  parseListContent,
+  parseTableContent,
+  tableToMarkdown,
+} from "@/pages/workspace/NoteEditorPage/utils.js";
+
+const PREVIEW_MAX_CHARS = 600;
+const PREVIEW_MAX_LIST_ITEMS = 8;
+const PREVIEW_MAX_TABLE_ROWS = 6;
 
 function extractExcerpt(content) {
   if (!content) return "";
@@ -13,6 +25,20 @@ function extractExcerpt(content) {
   } catch {
     return "";
   }
+}
+
+function buildPreviewMarkdown(note) {
+  const raw = note.content ?? note.excerpt;
+  if (raw === null || raw === undefined) return "";
+
+  if (note.noteType === "List") {
+    return listToMarkdown(parseListContent(raw).slice(0, PREVIEW_MAX_LIST_ITEMS));
+  }
+  if (note.noteType === "Table") {
+    return tableToMarkdown(parseTableContent(raw).slice(0, PREVIEW_MAX_TABLE_ROWS));
+  }
+
+  return extractExcerpt(raw).slice(0, PREVIEW_MAX_CHARS);
 }
 
 function formatDate(isoString) {
@@ -38,7 +64,10 @@ const NOTE_TYPE_LABELS = {
 
 function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndMove, onDelete }) {
   const navigate = useNavigate();
-  const excerpt = extractExcerpt(note.content ?? note.excerpt);
+  const previewMarkdown = useMemo(
+    () => buildPreviewMarkdown(note),
+    [note.content, note.excerpt, note.noteType],
+  );
   const createdAt = formatDate(note.createDate ?? note.createdAt);
   const favorited = note.isFavourite ?? note.favorited ?? false;
   const tag = NOTE_TYPE_LABELS[note.noteType] ?? note.tag ?? "";
@@ -158,7 +187,9 @@ function NoteCard({ note, folders = [], onToggle, onMove, onRemove, onCreateAndM
             </div>
           </div>
         </div>
-        <p className="note-card-preview">{excerpt}</p>
+        <div className="note-card-preview">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{previewMarkdown}</ReactMarkdown>
+        </div>
         {folderId && folderName && (
           <div className="note-folder-badge">
             <Folder size={12} />
