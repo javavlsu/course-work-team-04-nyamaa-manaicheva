@@ -96,7 +96,7 @@
   padding: 8px 0 16px;
 }
 
-.admin-primary-btn {
+.app .admin-primary-btn {
   font-size: 13px;
   font-weight: 500;
   color: #fff;
@@ -107,11 +107,11 @@
   transition: background 0.15s ease, opacity 0.15s ease;
 }
 
-.admin-primary-btn:hover {
+.app .admin-primary-btn:hover {
   background: color-mix(in oklch, var(--accent) 82%, black);
 }
 
-.admin-primary-btn:disabled {
+.app .admin-primary-btn:disabled {
   opacity: 0.65;
   cursor: default;
 }
