@@ -1,5 +1,7 @@
 import { Download, Paperclip, Trash2 } from "lucide-react";
 
+import CollapsibleSection from "./CollapsibleSection";
+
 export default function AttachmentsSection({
   attachments,
   onDownload,
@@ -9,11 +11,11 @@ export default function AttachmentsSection({
   downloadError = null,
 }) {
   return (
-    <div className="attachments-section">
-      <div className="comments-header">
-        <h3>Вложения</h3>
-        <span className="comments-count">{attachments.length}</span>
-      </div>
+    <CollapsibleSection
+      className="attachments-section"
+      title="Вложения"
+      count={attachments.length}
+    >
       <div className="attachments-list">
         {attachments.map((att) => (
           <div className="attachment-item" key={att.id}>
@@ -51,6 +53,6 @@ export default function AttachmentsSection({
           {downloadError}
         </p>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

@@ -137,6 +137,8 @@ export function NoteEditorPage() {
           onToggleNoteDirectory={directories.toggle}
           updatingDirectoryIds={directories.isUpdating}
           directoriesLoading={directories.isLoading}
+          createdAt={doc.createdAt}
+          updatedAt={doc.updatedAt}
         />
 
         {doc.saveError && (
@@ -264,10 +266,6 @@ export function NoteEditorPage() {
                 onKeyDown={actions.handleListEnter}
               />
             )}
-            <div className="note-dates">
-              <span>Создано: {doc.createdAt}</span>
-              <span>Изменено: {doc.updatedAt}</span>
-            </div>
 
             {!isNew && (
               <AttachmentsSection
