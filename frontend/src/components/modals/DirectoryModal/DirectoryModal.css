@@ -105,7 +105,7 @@
   cursor: default;
 }
 
-.directory-modal-primary {
+.app .directory-modal-primary {
   font-size: 13px;
   font-weight: 500;
   color: #02133b;
@@ -119,11 +119,11 @@
     opacity 0.15s;
 }
 
-.directory-modal-primary:hover {
+.app .directory-modal-primary:hover:not(:disabled) {
   background: color-mix(in oklch, var(--accent) 88%, black);
 }
 
-.directory-modal-primary:disabled {
+.app .directory-modal-primary:disabled {
   opacity: 0.55;
   cursor: default;
 }

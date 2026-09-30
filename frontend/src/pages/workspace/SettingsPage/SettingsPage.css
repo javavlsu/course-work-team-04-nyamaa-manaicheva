@@ -87,12 +87,26 @@
   background: color-mix(in oklch, var(--danger) 18%, transparent);
 }
 
+.app .btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .app .btn-logout {
+  background: color-mix(in oklch, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
+.app .btn-logout:hover {
+  background: color-mix(in oklch, var(--danger) 18%, transparent);
+}
+
+.app .btn-delete-account {
   background: var(--fg-soft);
   color: var(--fg);
 }
 
-.app .btn-logout:hover {
+.app .btn-delete-account:hover {
   background: color-mix(in oklch, var(--fg) 12%, transparent);
 }
 
@@ -286,35 +300,30 @@
   margin-bottom: 24px;
 }
 
-.account-meta {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 28px;
-}
-
-.account-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
+.account-registered {
+  margin-top: 16px;
   font-size: 13px;
-  font-weight: 500;
-  background: var(--fg-soft);
   color: var(--muted);
 }
 
-.account-badge svg {
-  width: 14px;
-  height: 14px;
+.account-registered strong {
+  color: var(--fg);
+  font-weight: 500;
 }
 
-.account-badge strong {
-  color: var(--fg);
-  font-weight: 600;
+.account-form .input-readonly,
+.account-form .input-readonly:disabled {
+  background: var(--fg-soft);
+  color: var(--muted);
+  -webkit-text-fill-color: var(--muted);
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -331,7 +340,7 @@
 .account-actions {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 8px;
 }
 
 .account-bottom-actions {

@@ -22,7 +22,10 @@ export function useNoteComments(id, isNew) {
 
     try {
       const data = await commentsApi.list(id);
-      setComments((data ?? []).map(adaptComment));
+      const newestFirst = [...(data ?? [])].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      setComments(newestFirst.map(adaptComment));
     } catch (err) {
       setCommentsError(err.message || "Не удалось загрузить комментарии");
     } finally {
@@ -42,9 +45,8 @@ export function useNoteComments(id, isNew) {
 
     try {
       const created = await commentsApi.create(id, { content: text });
-      setComments((prev) => [...prev, adaptComment(created)]);
+      setComments((prev) => [adaptComment(created), ...prev]);
       setCommentDraft("");
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     } catch (err) {
       setSendCommentError(err.message || "Не удалось отправить комментарий");
     } finally {

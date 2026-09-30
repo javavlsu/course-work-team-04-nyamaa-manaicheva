@@ -131,7 +131,7 @@ export function DirectoriesPage() {
                   )}
                 </div>
                 {dirs.displayNotes.length > 0 ? (
-                  <NotesGrid notes={dirs.displayNotes} folders={dirs.foldersWithCount} onToggle={dirs.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} />
+                  <NotesGrid notes={dirs.displayNotes} folders={dirs.foldersWithCount} onToggle={dirs.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} onDelete={dirs.deleteNote} />
                 ) : (
                   <EmptyState />
                 )}
@@ -140,7 +140,7 @@ export function DirectoriesPage() {
             {folderId && (
               <div className="directories-page directories-page-detail">
                 {dirs.displayNotes.length > 0 ? (
-                  <NotesGrid notes={dirs.displayNotes} folders={dirs.foldersWithCount} onToggle={dirs.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} />
+                  <NotesGrid notes={dirs.displayNotes} folders={dirs.foldersWithCount} onToggle={dirs.toggleFavorite} onMove={dirs.handleMoveNote} onRemove={dirs.handleRemoveNote} onCreateAndMove={dirs.handleCreateAndMove} onDelete={dirs.deleteNote} />
                 ) : (
                   <EmptyState />
                 )}

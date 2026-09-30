@@ -1,5 +1,7 @@
 import { Send } from "lucide-react";
 
+import CollapsibleSection from "./CollapsibleSection";
+
 export default function CommentsSection({
   comments,
   draft,
@@ -16,11 +18,11 @@ export default function CommentsSection({
   deleteError = null,
 }) {
   return (
-    <div className="comments-section">
-      <div className="comments-header">
-        <h3>Комментарии</h3>
-        <span className="comments-count">{comments.length}</span>
-      </div>
+    <CollapsibleSection
+      className="comments-section"
+      title="Комментарии"
+      count={comments.length}
+    >
       <div className="comments-list">
         {isLoading && <p className="comments-status">Загрузка комментариев…</p>}
 
@@ -33,8 +35,8 @@ export default function CommentsSection({
           </p>
         )}
 
-        {!isLoading && !error && comments.map((comment, i) => (
-          <div className="comment" key={`${comment.author}-${i}`}>
+        {!isLoading && !error && comments.map((comment) => (
+          <div className="comment" key={comment.id}>
             <div
               className={
                 comment.avatarClass
@@ -95,6 +97,6 @@ export default function CommentsSection({
       {sendError && (
         <p className="comments-status comments-status-error">{sendError}</p>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

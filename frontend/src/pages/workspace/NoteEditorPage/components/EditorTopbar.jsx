@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, Lock, Plus, Trash, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Info, Link, Lock, Plus, Trash, Upload } from "lucide-react";
 
 import { privacyOptions } from "@/lib/utils/mockData";
 import DirectoryMenu from "./DirectoryMenu";
@@ -104,6 +104,53 @@ function PrivacyMenu({
   );
 }
 
+function InfoMenu({ createdAt, updatedAt }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutside = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="info-wrap" ref={wrapRef}>
+      <button
+        className="btn btn-ghost"
+        title="Информация о заметке"
+        aria-label="Информация о заметке"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Info strokeWidth={1.8} />
+      </button>
+      {open && (
+        <div className="info-dropdown">
+          <div className="info-row">
+            <span className="info-label">Создано:</span>
+            <span className="info-value">{createdAt}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Изменено:</span>
+            <span className="info-value">{updatedAt}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EditorTopbar({
   noteType = "Empty",
   mode,
@@ -134,6 +181,8 @@ export default function EditorTopbar({
   onToggleNoteDirectory,
   updatingDirectoryIds,
   directoriesLoading = false,
+  createdAt = "",
+  updatedAt = "",
 }) {
   const typeLabel =
     noteType === "List" ? "Список"
@@ -191,6 +240,7 @@ export default function EditorTopbar({
             isLoading={directoriesLoading}
           />
         )}
+        <InfoMenu createdAt={createdAt} updatedAt={updatedAt} />
         <button
           className="btn btn-danger"
           title="Удалить заметку"
