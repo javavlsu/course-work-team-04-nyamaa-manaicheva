@@ -10,7 +10,7 @@ import {
 } from "@/lib/utils/inputValidations";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { update, remove } from "@/api/users.js";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import DeleteAccountModal from "./DeleteAccountModal";
 
 export function roleLabel(role) {
@@ -116,16 +116,6 @@ function ProfileSection({ onBack }) {
         Назад к настройкам
       </button>
       <div className="account-title">Аккаунт</div>
-      <div className="account-meta">
-        <div className="account-badge">
-          <Calendar strokeWidth={1.6} aria-hidden="true" />
-          Дата регистрации: <strong>{registrationDate}</strong>
-        </div>
-        <div className="account-badge">
-          <User strokeWidth={1.6} aria-hidden="true" />
-          Роль: <strong>{roleLabel(currentUser?.role)}</strong>
-        </div>
-      </div>
       <FormProvider {...methods}>
         <form className="account-form" onSubmit={methods.handleSubmit(handleSubmit)} noValidate>
           <div className="form-row">
@@ -134,6 +124,22 @@ function ProfileSection({ onBack }) {
           </div>
           <Input {...emailValidation} />
           <Input {...birthdayValidation} />
+          <div className="input-group">
+            <label className="input-label" htmlFor="role">
+              Роль
+            </label>
+            <div className="input-wrapper">
+              <input
+                id="role"
+                type="text"
+                className="input input-readonly"
+                value={roleLabel(currentUser?.role)}
+                readOnly
+                disabled
+                aria-readonly="true"
+              />
+            </div>
+          </div>
           {formError && (
             <div className="settings-feedback settings-feedback-error">{formError}</div>
           )}
@@ -148,12 +154,17 @@ function ProfileSection({ onBack }) {
           </div>
         </form>
       </FormProvider>
+      {registrationDate && (
+        <div className="account-registered">
+          Дата регистрации: <strong>{registrationDate}</strong>
+        </div>
+      )}
       <div className="account-bottom-actions">
+        <button type="button" className="btn btn-delete-account" onClick={() => setDeleteOpen(true)}>
+          Удалить аккаунт
+        </button>
         <button type="button" className="btn btn-logout" onClick={handleLogout}>
           Выйти
-        </button>
-        <button type="button" className="btn btn-danger" onClick={() => setDeleteOpen(true)}>
-          Удалить аккаунт
         </button>
       </div>
       {deleteOpen && (
